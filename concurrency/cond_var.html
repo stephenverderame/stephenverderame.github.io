@@ -278,7 +278,7 @@ Why is this ok? Well, I'm not going to talk much about memory ordering, but I wi
 <p>An instruction that is <em>sequenced-before</em> another on the same thread of execution (so, comes first top-to-bottom) <em>happens-before</em> the second instruction.
 The barrier provides a mechanism to <em>synchronize-with</em> another thread. So if <code>A</code> happens-before <code>B</code>, and <code>B</code> synchronizes-with <code>C</code>,
 and <code>C</code> happens-before <code>D</code>, then <code>A</code> <em>inter-thread-happens-before</em> <code>D</code>. 
-Thus, utilizing data from <code>A</code> in <code>D</code>, is safe. There's more to this story but that's good start.
+Thus, utilizing data from <code>A</code> in <code>D</code>, is safe. There's more to this story but that's a good start.
 So when a thread arrives at the barrier, all the updates that happened on that thread before the barrier are synchronized to all other threads ater the barrier.
 Let's say thread <code>A</code> assigns its result to <code>result[0]</code>. Then <code>A</code> reaches the barrier and waits. When thread <code>B</code> and <code>C</code> arrive at the barrier,
 the wait count will reach <code>3</code> and all the threads will be released and continue execution.
@@ -388,21 +388,6 @@ will be visible on another thread after the call to <code>acquire()</code>. Ther
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

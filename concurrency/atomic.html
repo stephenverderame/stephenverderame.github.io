@@ -166,7 +166,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="atomics"><a class="header" href="#atomics">Atomics</a></h1>
-<p>Here we are, home stretch of the threading library! Do you remember how I said we can have a situation where an integer is half-updated?
+<p>Do you remember how I said we can have a situation where an integer is half-updated?
 Well that's because normal read and writes are not atomic.
 When something is atomic, it is basically an indivisible operation. An atomic operation is either fully completed, or not started.
 Which means it forces some kind of modification order between threads. For most primitive types, atomic data types are lock free,
@@ -243,7 +243,7 @@ void producer() {
     }
 }
 </code></pre>
-<p>Because atomic variables, are, well atomic. No locking or synchronization mechanism is needed to access them from multiple threads.</p>
+<p>Because atomic variables, are, well atomic, no locking or synchronization mechanism is needed to access them from multiple threads.</p>
 <pre><code class="language-C++">std::atomic&lt;int&gt; count = 0;
 void processor(){
     while(count.load() &lt; 500){
@@ -310,7 +310,7 @@ Return by reference via output parameter or make the user pass a smart pointer. 
 Moreover, when we return by smart pointer (whose copy cannot throw), we could not allocate the smart pointer in <code>pop()</code> because the allocation can fail.</p>
 <p><code>std::atomic&lt;shared_ptr&lt;T&gt;&gt;</code> does not make accesses of the underlying data thread safe, but it makes changing the actual pointer value thread safe. </p>
 <p>Lock free data structures are generally hard to design and even harder to get right, so only go for it if it is <strong>necessary</strong>.
-They're even harder when we relax the memory ordering and start using relaxes, or acquire-release memory ordering instead of sequentially consistent.
+They're even harder when we relax the memory ordering and start using relaxed or acquire-release memory ordering instead of sequentially consistent.
 As far as I know however, x86 only supports sequentially consistent memory ordering.</p>
 <p>Here's a common issue with lock-free data structures known as the <em>ABA</em> problem. Consider:</p>
 <ol>
@@ -358,21 +358,6 @@ As far as I know however, x86 only supports sequentially consistent memory order
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         

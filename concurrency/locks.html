@@ -219,8 +219,12 @@ Information comes in any order, and the threads have no knowledge about each oth
 <p>Of course things aren't always as peachy as being able to avoid shared state.
 When those times come, you must enforce a modification order between objects.
 If you don't, you have a <em>race condition</em> where one thread is racing another to access the state. </p>
-<p>One tool to avoid that are mutexes which stand for MUTually EXclusive.
-In C++, we have <code>std::mutex</code>. I'm not even going to enumerate the member functions of a mutex because you should basically never use it directly.
+<p>One tool to avoid that are mutexes which stand for MUTually EXclusive. Mutexes basically enforce
+serial access to pieces of data. Threads lock a mutex before executing instructions that cannot be completed by multiple threads
+at once. Once a thread has obtained the lock, other threads that try to lock the mutex must wait until the
+thread that has the mutex releases it. When a thread is done with a mutex, it must release it so other threads
+can acquire it and execute the code the mutex protects.</p>
+<p>In C++, we have <code>std::mutex</code>. I'm not even going to enumerate the member functions of a mutex because you should basically never use it directly.
 Instead, you want to wrap it in a class such as <code>std::lock_guard&lt;&gt;</code> or <code>std::scoped_lock&lt;&gt;</code>.
 A lock guard is the simplest RAII object for a mutex.
 When it's constructed it locks immediately and won't unlock until its destroyed.
@@ -421,15 +425,33 @@ std::call_once(once, []() {
 // pass the once_flag and a callable object to std::call_once
 </code></pre>
 <h3 id="deadlock"><a class="header" href="#deadlock">Deadlock</a></h3>
-<p>I mentioned deadlock before, it's basically where no progress is made because one thread is waiting for another, but that thread is waiting for the first thread. 
-Here are some guidelines to avoid it</p>
+<p>I mentioned deadlock before, it's basically where no progress is made because one thread is waiting for another, but that thread is waiting for the first thread. More formally, deadlock occurs when all of the following conditions are met:</p>
 <ul>
-<li>Use <code>std::lock()</code> or <code>std::scoped_lock&lt;&gt;</code> to acquire multiple locks together</li>
-<li>Avoid nested locks</li>
-<li>Avoid calling user supplied code when holding a lock. This could possible lead to nested locks, since we don't know what that code does</li>
-<li>Always acquire and release locks in the same order</li>
-<li>Use a lock Hierarchy
-A Hierarchical lock is one which enforces an ordering. You can only lock locks going up (or down) the hierarchy. You can google for a simple implementation of one.</li>
+<li>Bounded Resources - we have a limited number of resources that many threads may try to access.</li>
+<li>No preemptions - a thread must wait for another thread to finish before taking the resource. Basically, threads are not stopped or interrupted during the time that is has the resource.</li>
+<li>Hold and Wait - a thread holding a resource waits for another resource.</li>
+<li>Circular Waiting - there exists a cycle in a resource acquisition graph. For example, thread <code>A</code> waits for <code>B</code>, who waits for <code>C</code>, who waits for <code>A</code>.</li>
+</ul>
+<p>Typically Bounded Resources and No Preemptions are not conditions we can do much about, so most strategies at avoiding deadlock aim to prevent Hold and Wait and Circular Waiting from occuring at the same time.</p>
+<p>Here are some guidelines to avoid deadlock:</p>
+<ul>
+<li>
+<p>Use <code>std::lock()</code> or <code>std::scoped_lock&lt;&gt;</code> if you need to acquire multiple locks together</p>
+</li>
+<li>
+<p>Avoid nested locks</p>
+</li>
+<li>
+<p>Avoid calling user supplied code when holding a lock. This could possible lead to nested locks, since we don't know what that code does</p>
+</li>
+<li>
+<p>Always acquire and release locks in the same order</p>
+</li>
+<li>
+<p>Use a lock Hierarchy</p>
+<p>A Hierarchical lock is one which enforces an ordering. You can only lock locks going up (or down) the hierarchy.
+You can google for a simple implementation of one.</p>
+</li>
 </ul>
 <p>Deadlock and proper locking granularity are very simple concepts to describe,
 but takes practice in order to identify and write code that considers both issues.
@@ -476,21 +498,6 @@ Thus, I'm going to refer you to C++ Concurrency in Action for more information.<
 
         </div>
 
-        
-        <!-- Livereload script (if served using the cli tool) -->
-        <script type="text/javascript">
-            var socket = new WebSocket("ws://localhost:3000/__livereload");
-            socket.onmessage = function (event) {
-                if (event.data === "reload") {
-                    socket.close();
-                    location.reload();
-                }
-            };
-
-            window.onbeforeunload = function() {
-                socket.close();
-            }
-        </script>
         
 
         
