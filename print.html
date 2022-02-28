@@ -12491,7 +12491,7 @@ index % time    self  children    called     name
 </code></pre>
 <p>The primary line is the line for the function that the entry is analyzing. 
 This line has the name of the function not on an indent. The direct caller of the function being analyzed is also included in the same entry.</p>
-<p>To display the call graph more nicely, we can use the python script <code>gprof2dot</code>.</p>
+<p>To display the call graph more nicely, we can use the python script <code>gprof2dot</code>. This can be installed via <code>pip</code>.</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="valgrind"><a class="header" href="#valgrind">Valgrind</a></h1>
 <p>Valgrind is a suite of profiling and performance tools that's more recent and more powerful than gprof. Besides
 being able to effectively profile multithreaded code, valgrind also has tools for finding memory leaks and unitialized 
@@ -12516,7 +12516,7 @@ This number is the process id.</p>
 Valgrind logs its information to <code>stderr</code>, so the redirect both <code>stdout</code> and <code>stderr</code> to a file you can use the following:</p>
 <pre><code>&lt;command&gt; &gt; allout.txt 2&gt;&amp;1
 </code></pre>
-<h2 id="memchek"><a class="header" href="#memchek">Memchek</a></h2>
+<h3 id="memcheck"><a class="header" href="#memcheck">Memcheck</a></h3>
 <p>Memcheck is the default tool for Valgrind, to when running memcheck you don't need the <code>--tool</code> flag.
 Memcheak looks for invalid memory usage (reading/writing to invalid data, memory leaks, usage of unitialized data etc.)</p>
 <p>If we run the program using the following command:</p>
@@ -12531,13 +12531,18 @@ is made because Valgrind can't tell if it's a memory leak or if you are doing so
 clever with pointers (in most cases).</p>
 <p>The <code>--leak-check=full</code> parameter will tell Valgrind to display detailed information for any memory
 leaks it finds instead of just summarizing how many it finds.</p>
-<h2 id="callgrind"><a class="header" href="#callgrind">Callgrind</a></h2>
+<p>The output of Memcheck is pretty self explanatory, and when using <code>--leak-check=full</code>, will display a stack trace for where
+the memory leak occurs. By default, Memcheck can only tell us if uninitialized memory is used,
+and not the cause of it. The argument <code>--track-origins=yes</code> enables tracing unitialized memory, but may slow down the runtime.</p>
+<h3 id="callgrind"><a class="header" href="#callgrind">Callgrind</a></h3>
 <p>Callgrind is a callgraph-based profiling tool. We can run it like so </p>
 <pre><code>valgrind --tool=callgrind &lt;program&gt;
 </code></pre>
 <p>Callgrind will log its output to a file named <code>callgrind.out.&lt;pid&gt;</code> unless this is changed using the <code>--out-file</code> flag.</p>
-<p>To view this data, you can use <code>kcachegrind</code> (<code>qcachegrind</code> on Windows) to display the callgraph and flat profile in a graphical format.</p>
-<h2 id="helgrind-and-drd"><a class="header" href="#helgrind-and-drd">Helgrind and DRD</a></h2>
+<p>To view this data, you can use <code>kcachegrind</code> (<code>qcachegrind</code> on Windows) to display the callgraph and flat profile in a graphical format.
+These tools provide you with GUIs that make looking at the data pretty easy. They do however only show the top 50 functions in a call graph.
+If you need to see everything, <code>gprof2dot</code> works for the Callgrind output as well.</p>
+<h3 id="helgrind-and-drd"><a class="header" href="#helgrind-and-drd">Helgrind and DRD</a></h3>
 <p>Helgrind and DRD are both tools for thread error detection. They may detect different types of issues, so it may be worth it to use
 both of these. The errors these tools detect are misuse of the <code>pthreads</code> API, data races, and potential deadlock. For us C++ programmers, we don't have to worry too about the first class of errors too much since most of <code>pthreads</code> will be abstracted from us by
 the standard library or boost.</p>
@@ -12546,6 +12551,40 @@ that use <code>pthreads</code>.</p>
 <p>Now it should be noted that Helgrind can generate a lot of false positives. This mostly resolves around the fact that Helgrind
 doesn't seem to play nice non-pthread synchronization primitives such as atomics, or pthread condition variables. So if you use this, I might suggest to focus more on any issues it finds with locking order.</p>
 <p>DRD seems to be slower than Helgrind, but supports more synchronization primitives.</p>
+<p>Let's look at some example output from these tools. This one is a nice example from the <a href="https://valgrind.org/docs/manual/drd-manual.html">Valgrind DRD User Manual</a></p>
+<pre><code>...
+==9466== Thread 3:
+==9466== Conflicting load by thread 3 at 0x006020b8 size 4
+==9466==    at 0x400B6C: thread_func (rwlock_race.c:29)
+==9466==    by 0x4C291DF: vg_thread_wrapper (drd_pthread_intercepts.c:186)
+==9466==    by 0x4E3403F: start_thread (in /lib64/libpthread-2.8.so)
+==9466==    by 0x53250CC: clone (in /lib64/libc-2.8.so)
+==9466== Location 0x6020b8 is 0 bytes inside local var &quot;s_racy&quot;
+==9466== declared at rwlock_race.c:18, in frame #0 of thread 3
+==9466== Other segment start (thread 2)
+==9466==    at 0x4C2847D: pthread_rwlock_rdlock* (drd_pthread_intercepts.c:813)
+==9466==    by 0x400B6B: thread_func (rwlock_race.c:28)
+==9466==    by 0x4C291DF: vg_thread_wrapper (drd_pthread_intercepts.c:186)
+==9466==    by 0x4E3403F: start_thread (in /lib64/libpthread-2.8.so)
+==9466==    by 0x53250CC: clone (in /lib64/libc-2.8.so)
+==9466== Other segment end (thread 2)
+==9466==    at 0x4C28B54: pthread_rwlock_unlock* (drd_pthread_intercepts.c:912)
+==9466==    by 0x400B84: thread_func (rwlock_race.c:30)
+==9466==    by 0x4C291DF: vg_thread_wrapper (drd_pthread_intercepts.c:186)
+==9466==    by 0x4E3403F: start_thread (in /lib64/libpthread-2.8.so)
+==9466==    by 0x53250CC: clone (in /lib64/libc-2.8.so)
+...
+</code></pre>
+<p>What we're looking at here is the report of a race condition. Race conditions require at least two accesses to the same data,
+the first access displayed is shown with a precise stacktrace, the subsequent ones are shown with approximate stack traces
+in between &quot;segments&quot;. A segment in this sense is a sequence of reads and writes. </p>
+<p>To read the approximate stacktraces, it helps to read the stack from bottom to top, and start searching where the stack traces begin
+to differ. In this example, that would point us to <code>thread_func</code> in <code>rwlock_race.c</code> from lines <code>28</code> to <code>30</code>.</p>
+<p>DRD numbers each thread; these numbers are, as far as I can tell, somewhat arbitrary and really only useful for differentiating
+threads in the report.</p>
+<p>A useful flag on DRD is the <code>--exlusive-threshold=&lt;time&gt;</code> and <code>--shared-threshold=&lt;time&gt;</code> arguments. These allow you to set threshold durations,
+in milliseconds, for exclusive/unique/writer locks and shared/reader locks, respectively. If a lock is held for longer than these
+set thresholds, DRD will display an error telling you where the lock was taken and where it was released.</p>
 <h1 id="sanitizers"><a class="header" href="#sanitizers">Sanitizers</a></h1>
 <p>Sanitizers work similarly to Valgrind, but often are more efficient due to the face that unlike valgrind, they are not a purely runtime
 tool. Depending on the tool, they claim to have a roughly <code>2x</code> slowdown.</p>
@@ -12554,23 +12593,76 @@ and then running the program normally.</p>
 <p>When using the sanitizers, they reccomend using optimization level 1 (flag <code>-O1</code>, that's an &quot;oh&quot; not a 0) which will disable
 some optimizations (such as inlining) that can make analysis more difficult.</p>
 <p>Some sanitizers (such as Asan (address sanitizer), UBsan (undefined behavior sanitizer), and Lsan (leak sanitizer)) can be run together
-while others like Tsan (thread sanitizer) need separable builds.</p>
-<h2 id="address-and-memory-sanitizer"><a class="header" href="#address-and-memory-sanitizer">Address and Memory Sanitizer</a></h2>
+while others like Tsan (thread sanitizer) need separate builds.</p>
+<h3 id="address-and-memory-sanitizer"><a class="header" href="#address-and-memory-sanitizer">Address and Memory Sanitizer</a></h3>
 <p>Address sanitizer is similar to Valgrind's Memcheck. It works by applying the flag <code>-fsantizie=address</code>. For C++,
 they reccommend also using the argument <code>-fno-omit-frame-pointer</code>. It may also be helpful to disable
 tail call elimination with <code>-fno-optimize-sibling-call</code>.</p>
+<p>Asan can also detect problems with initialization order by setting the environmental variable <code>ASAN_OPTIONS</code> to <code>check_initialization_order=1</code>.</p>
 <p>Memory sanitizer checks for unitialized reads. Use <code>-fsanitize=memory</code>.</p>
-<h2 id="thread-sanitizer"><a class="header" href="#thread-sanitizer">Thread Sanitizer</a></h2>
+<h3 id="thread-sanitizer"><a class="header" href="#thread-sanitizer">Thread Sanitizer</a></h3>
 <p>This is similar to Valgrind's Helgrind and DRD. We enable this one by applying the flag <code>-fsanitize=thread</code>.
 Thread Sanitizer checks for data races, and I'd reccomend this one over Valgrind if that's what you're
 interested in.</p>
-<h2 id="undefined-behavior-sanitizer"><a class="header" href="#undefined-behavior-sanitizer">Undefined Behavior Sanitizer</a></h2>
+<p>Let's look at an example output:</p>
+<pre><code>WARNING: ThreadSanitizer: data race (pid=20495)
+  Write of size 1 at 0x7b1000006959 by thread T10:
+    #0 cmr::ASCIIMsgManager&lt;...&gt;::addMsgIdentifier(...) /.../msg_manager.h:158 (action_client_test+0x197ccd)
+    #1 cmr::MsgManager::addMsgIdentifier(...) /.../msg_manager.h:35 (action_client_test+0x19402b)
+    #2 cmr::msgFmt::ASCIIMsgFormatter::addMsgId(...) const /.../msg_formatter.cc:37 (action_client_test+0x19402b)
+    #3 cmr::msgFmt::ASCIIMsgFormatter::nvi_formatReadMsg(...) const /.../msg_formatter.cc:47 (action_client_test+0x19402b)
+    #4 ...
+    #5 cmr::UartHal::readSensor&lt;double, void&gt;(...)::{lambda()#1}::operator()() const /.../uart_hal.h:201 (action_client_test+0x1a771f)
+    ...
+    #24 std::thread::_Invoker&lt;std::tuple&lt;std::function&lt;void ()&gt; &gt; &gt;::operator()() /usr/include/c++/9/thread:251 (action_client_test+0x1e7565)
+    #25 std::thread::_State_impl&lt;std::thread::_Invoker&lt;std::tuple&lt;std::function&lt;void ()&gt; &gt; &gt; &gt;::_M_run() /usr/include/c++/9/thread:195 (action_client_test+0x1e7565)
+    #26 &lt;null&gt; &lt;null&gt; (libstdc++.so.6+0xd44bf)
+
+  Previous write of size 1 at 0x7b1000006959 by thread T9:
+    #0 cmr::ASCIIMsgManager&lt;std::atomic&lt;unsigned char&gt;, void&gt;::addMsgIdentifier(...) (action_client_test+0x197ccd)
+    #1 cmr::MsgManager::addMsgIdentifier(...) (action_client_test+0x19412a)
+    #2 cmr::msgFmt::ASCIIMsgFormatter::addMsgId(...) (action_client_test+0x19412a)
+    #3 cmr::msgFmt::ASCIIMsgFormatter::nvi_formatWriteMsg(...) (action_client_test+0x19412a)
+    #4 ...
+    #5 operator() /.../uart_hal.cc:151 (action_client_test+0x1a2cc7)
+    #6 _M_invoke /usr/include/c++/9/bits/std_function.h:300 (action_client_test+0x1a2cc7)
+    #7 std::function&lt;void ()&gt;::operator()() const /usr/include/c++/9/bits/std_function.h:688 (action_client_test+0x19c93c)
+    #8 cmr::resultFromExceptions(std::function&lt;void ()&gt;) /.../uart_hal.cc:36 (action_client_test+0x19c93c)
+    #9 cmr::UartHal::setMotor(...) /.../uart_hal.cc:156 (action_client_test+0x19cbbd)
+    #10 cmr::UartHal::setMotorEffort(...) /.../uart_hal.cc:161 (action_client_test+0x19cce2)
+    ...
+
+  Location is heap block of size 64 at 0x7b1000006940 allocated by main thread:
+    #0 operator new(unsigned long) &lt;null&gt; (libtsan.so.0+0x8e62e)
+    ...
+    #10 main /ws/src/Superproject/cmr_hal/test/messaging_thread_test.cpp:305 (action_client_test+0xb2f9c)
+
+  Thread T10 (tid=20510, running) created by thread T6 at:
+    #0 pthread_create &lt;null&gt; (libtsan.so.0+0x5fe84)
+    #1 std::thread::_M_start_thread(...) &lt;null&gt; (libstdc++.so.6+0xd4765)
+    ...
+
+  Thread T9 (tid=20509, running) created by thread T6 at:
+    #0 pthread_create &lt;null&gt; (libtsan.so.0+0x5fe84)
+    #1 std::thread::_M_start_thread(...) &lt;null&gt; (libstdc++.so.6+0xd4765)
+    ...
+
+SUMMARY: ThreadSanitizer: data race /.../msg_manager.h:158 in 
+cmr::ASCIIMsgManager&lt;std::atomic&lt;unsigned char&gt;, void&gt;::addMsgIdentifier(...)
+</code></pre>
+<p>I used <code>...</code> to cut out paths, function argument types, and parts of stacktraces to make this easier to read. 
+The big thing to look at is the <code>SUMMARY</code> line Tsan gives you, which gives you the file and line number
+of the data race.</p>
+<p>Similar to DRD, it will give you the stacktrace of the access for each thread. However this tool will also give
+you stacktraces for where the conflicting threads are created, and give you a memory location for the data
+that it detected a data race for.</p>
+<h3 id="undefined-behavior-sanitizer"><a class="header" href="#undefined-behavior-sanitizer">Undefined Behavior Sanitizer</a></h3>
 <p>As the name implies, this one checks for undefined behavior. We can compile with the <code>-fsanitize=undefined</code> flag.
 You might also want to use <code>-fsanitize=nullability</code> in conjunction.</p>
-<h2 id="leak-sanitizer"><a class="header" href="#leak-sanitizer">Leak Sanitizer</a></h2>
+<h3 id="leak-sanitizer"><a class="header" href="#leak-sanitizer">Leak Sanitizer</a></h3>
 <p>As the name implies, this one checks for memory leaks. To use this one, you guessed it, link with <code>-fsanitize=leak</code>.</p>
 <hr />
-<p>For more information on Sanitizers, check out <a href="https://clang.llvm.org/docs/index.html">clang's compiler documentation</a> and for more information on Cachegrind, check out <a href="https://valgrind.org/">their website</a>.</p>
+<p>For more information on Sanitizers, check out <a href="https://clang.llvm.org/docs/index.html">clang's compiler documentation</a> and for more information on Valgrind, check out <a href="https://valgrind.org/">their website</a>.</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="doxygen"><a class="header" href="#doxygen">Doxygen</a></h1>
 <p>Doxygen is a popular tool to generate documentation from the comments we write in code. 
 It can generate HTML, XML, LaTeX, and more. Doxygen recognizes a lot of commenting styles but probably the most popular are three slashes <code>///</code> 
@@ -12822,8 +12914,7 @@ For Windows, you should add <code>dot</code> to your path system variable via th
 <p>Static analysis tools look at the source code and warn you of any possible errors. Some static analysis tools also warns about code
 that doesn't adhere to certain guidelines such as the core guidelines.</p>
 <p><code>cppcheck</code> is a popular static analysis tool. It focuses on issues that might cause bugs, however it also 
-has extensions to enforce coding style checks. <code>clang-tidy</code>, another
-static analysis tool that enforces the Cpp Core Guidelines can also be used from <code>cppcheck</code>.</p>
+has extensions to enforce some coding style checks.</p>
 <p>Unix users can simply download it from your package manager. It has a command line and GUI interface (<code>cppcheck-gui</code>).
 Source code and Windows installer are available <a href="http://cppcheck.sourceforge.net/">here</a>.
 On Windows, make sure to add <code>C:/ProgramFiles/CppCheck</code> (or whatever its download location is), to your PATH
@@ -12838,6 +12929,11 @@ also has a cppcheck plugin, however it seems to only work for Visual Studio proj
 <li><code>--enable=&lt;check&gt;</code> - enables checks with the given name, such as <code>all</code>, which enables all checks</li>
 <li><code>--platform=&lt;type&gt;</code> - sets the platform type (such as <code>unix64</code>, <code>win64</code>, <code>avr8</code>, etc.)</li>
 <li><code>--std=&lt;std&gt;</code> - sets the standard version (ex. <code>c11</code>, <code>c89</code>, <code>c++11</code>, <code>c++17</code>, <code>c++03</code>). The current default is <code>c++20</code>.</li>
+<li><code>--output-file=&lt;file&gt;</code> - writes results to an output file instead of <code>stderr</code></li>
+<li><code>--cppcheck-build-dir=&lt;dir&gt;</code> - specifies the build directory. These speeds up repeated analysis times by only checking files that changed.</li>
+<li><code>-i &lt;dir&gt;</code> - exclude a directory or file</li>
+<li><code>--max-ctu-depth=&lt;N&gt;</code> - sets the maximum analysis depth. Higher values are slower but can catch more errors. The default is 2.</li>
+<li><code>--project=&lt;file&gt;</code> - specify the project file to use. This file can be a Visual studio <code>.sln</code>, it can be a <code>compile_commands.json</code>, or it can be a <code>.cppcheck</code> xml file which stores the options for checking a given directory. These are generated by the cppcheck gui, but can also be written manually.</li>
 </ul>
 <p>For the following file structure:</p>
 <pre><code>Project
@@ -12855,7 +12951,23 @@ also has a cppcheck plugin, however it seems to only work for Visual Studio proj
 <p>we can run <code>cppcheck</code> with the command</p>
 <pre><code>cppcheck -I Project/include/ Project/src/ Project/test/ --library=googletest --std=c++17
 </code></pre>
-<p>More information can be found online.</p>
+<p>Another thing to note is that CMAKE can generate a cppcheck project file for us by enabling <code>CMAKE_EXPORT_COMPILE_COMMANDS</code>.
+This can be done with <code>set(CMAKE_EXPORT_COMPILE_COMMANDS ON)</code>. This outputs a <code>compile_commands.json</code> file which we can specify
+to cppcheck to use via <code>--project</code>. Specifically, what this does it it creates a compilation database which stores
+information such as the compiler options used, source files, and include directories. Using a compiltation database makes
+satic analysis tools more effective by providing them more information to work with.</p>
+<h3 id="clang-tidy"><a class="header" href="#clang-tidy">Clang-tidy</a></h3>
+<p><code>clang-tidy</code> is another static analysis tool that focuses more on stylistic checks than <code>cppcheck</code>. It is only available for Unix,
+however on Windows you can use the the Code Analysis tools built into Visual Studio which are very good. This tool
+incorporates some of the CPP Core Guidelines into their checks.</p>
+<p>We can use it like so:</p>
+<pre><code>clang-tidy -header-filter=.* -checks=* src/* include/*
+</code></pre>
+<p>The <code>-header-filter</code> argument is used to filter which header files the tool will look at. In this example, we have it analyze
+all the headers. The <code>-checks</code> argument is passed a pattern to filter which checks to enable, here we enable all checks.</p>
+<h3 id="windows"><a class="header" href="#windows">Windows</a></h3>
+<p>For Windows, Visual Studio (not VSCode) has code analysis under the <code>Analyze</code> tab. Microsoft has further information and documentation
+about this <a href="https://docs.microsoft.com/en-us/cpp/code-quality/code-analysis-for-c-cpp-overview?view=msvc-170">online</a>. The VS code analysis is quite good and incorportates the CPP Core Guidelines. You can also use it by using the <code>/analyze</code> flag on MSVC compiler.</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="project"><a class="header" href="#project">Project</a></h1>
 <p>To put all of this together, we're going to make an HTTP client and server utility. The program will be able to host web servers and connect to others as well. 
 It will be a command line program that accepts the following commands:</p>
