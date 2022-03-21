@@ -288,6 +288,24 @@ dblBreak:
 Here's a funny story: the first time I needed an unconditional jump, I actually didn't know C++ had a <code>goto</code>, so instead I used inline assembly only to think how
 pointless it was to write something so simple in assembly. And that's the day I discovered C++ did indeed have a <code>goto</code>. 
 The only good usage I can think of off the top of my head is to break out of nested loops like so. We first create a label by typing a name followed by a colon, then we put that name after <code>goto</code> to jump to it.</p>
+<h3 id="comma-operator"><a class="header" href="#comma-operator">Comma Operator</a></h3>
+<p>The comma operator will execute the operations in order, from left to right but will only return the result of the last expression.</p>
+<pre><code class="language-C++">const auto y = 10, 20;
+// y = 20;
+
+const auto x = y++, ++y, y++;
+// y = 23
+// x = 22
+</code></pre>
+<h3 id="ternary-operator"><a class="header" href="#ternary-operator">Ternary Operator</a></h3>
+<p>This operator looks like <code>&lt;condition&gt; ? &lt;true_branch&gt; : &lt;false_branch&gt;</code>.
+If the condition is true, it will evaluate the expression on the left side of the colon,
+otherwise it will evaluate the expression on the right side.</p>
+<pre><code class="language-C++">const auto age = 10;
+
+const auto free_time = age &lt; 16 ? 8 : 1;
+// free_time is 8
+</code></pre>
 <h4 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h4>
 <p><a href="https://github.com/yanshengjia/cpp-playground/blob/master/cpp-primer/resource/C%2B%2B%20Primer%20(5th%20Edition).pdf">C++ Primer 5th Ed</a> 1.4 - 1.4.4 and 5.3 - 5.5.3</p>
 

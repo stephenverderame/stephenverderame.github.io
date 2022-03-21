@@ -365,8 +365,7 @@ and observers would be the subscribers. Publisher/subscriber architecture typica
 Events are typically published on a message channel, which is an intermediary module, process, or program that sends the messages
 to the subscribers. Publisher/subscriber architecture is basically the Observer pattern but along a stronger boundary.
 While Observer is typically implemented to have different modules communicate, publisher/subscriber architecture typically
-facilitates communication of components that are different processes, threads, programs, or even on different machines.
-ROS nodes use this structure.</p>
+facilitates communication of components that are different processes, threads, programs, or even on different machines.</p>
 <h3 id="command"><a class="header" href="#command">Command</a></h3>
 <p>The command pattern is basically a callable object. In our previous Observer example, we had an <code>Event</code> object which encapsulated information
 about the event raised. Let's say that, instead of passing state, we passed instructions (code) on the action to perform. This is basically the

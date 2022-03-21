@@ -180,10 +180,6 @@ Hopefully, I'm able to start you down a path of writing idiomatic and clean mode
 and point you in the right direction towards more information.
 I also hope I'm able to start good software engineering habits in those newer to the field.
 See the <a href="resources.html">other resources page</a> for books that I think helped me a ton.</p>
-<p>We'll discuss some aspects of cross-platform and systems development, but mostly focus on C++.
-I'll make allusions to ROS (Robot Operating System), Java, and Cornell CS classes (such as CS 3110) sparsely throughout this guide.
-If you are unfamiliar with any of these, just ignore my comments regarding them.
-They should have no bearing on the guide and hopefully these references don't affect the ineligibility of the content.</p>
 <p>Please feel free to reach out with comments, criticisms, or questions, and let me know if you spot a typo,
 mistake, or other error.</p>
 <p>- 08/19/2021</p>
@@ -202,11 +198,10 @@ If you use Visual Studio (the IDE not VS Code), MSVC and CMake are installed whe
 <p>You're more than welcome to use an IDE, but I will be giving instructions for operating on the command line. 
 The GUIs and IDEs should be rather self-explanatory though. Due to the nature of working on embedded systems, I would suggest getting used to using the command line one way or another. 
 You never know when the team laptop's UI dies...</p>
-<p>Now unlike other languages, C++ has a Standards Committee which agrees upon the specifications of the language. 
+<p>C++ has a Standards Committee which agrees upon the specifications of the language. 
 From there different vendors such as GNU and Microsoft implement their own compilers which adhere to the language specification. 
 Furthermore, since 2011 the Standards Committee has agreed to release a new specification every 3 years. 
-For this book we will be using C++17, and I will talk about a few points in C++20, but I will explicitly note when topics only apply to C++20. 
-As of now, ROS officially supports C++14 but C++17 rarely causes a problem (and it will work as long as its ABI compatible).</p>
+For this book we will be using C++17, and I will talk about a few points in C++20, but I will explicitly note when topics only apply to C++20. </p>
 <p>So, enough introduction! Let's get started!</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="hello-world"><a class="header" href="#hello-world">Hello World</a></h1>
 <p>Let's get coding! Create a file called <code>main.cpp</code>. Common file extensions for C++ source code are <code>.cpp</code>, <code>.cc</code>, and <code>.cxx</code>. Here's a Hello World program in C++</p>
@@ -523,7 +518,8 @@ int main() {
     displayWin(secretNum, tries);
 }
 </code></pre>
-<p>One thing to note is that we define all of our functions before they are used. This is necessary in C++ while not something done in Java. 
+<p>One thing to note is that we define all of our functions before they are used. This is necessary in C++ because the compiler
+essentially compiles the code line by line, and it needs to know the definition of things before it sees it in use.
 It's a good idea to put the function definitions close to where they are going to be called. It's also good to keep functions within about 80 characters wide and 20 lines long. 
 Is this a hard and fast rule? No, far from it but I think it's a nice guideline that can help keep functions short, which is generally accepted as easier to reason about and thus
 less error prone. Most of a developer's time is spent reading code, so it's worthwhile to put in the effort to make that part of the job easier.</p>
@@ -666,6 +662,24 @@ dblBreak:
 Here's a funny story: the first time I needed an unconditional jump, I actually didn't know C++ had a <code>goto</code>, so instead I used inline assembly only to think how
 pointless it was to write something so simple in assembly. And that's the day I discovered C++ did indeed have a <code>goto</code>. 
 The only good usage I can think of off the top of my head is to break out of nested loops like so. We first create a label by typing a name followed by a colon, then we put that name after <code>goto</code> to jump to it.</p>
+<h3 id="comma-operator"><a class="header" href="#comma-operator">Comma Operator</a></h3>
+<p>The comma operator will execute the operations in order, from left to right but will only return the result of the last expression.</p>
+<pre><code class="language-C++">const auto y = 10, 20;
+// y = 20;
+
+const auto x = y++, ++y, y++;
+// y = 23
+// x = 22
+</code></pre>
+<h3 id="ternary-operator"><a class="header" href="#ternary-operator">Ternary Operator</a></h3>
+<p>This operator looks like <code>&lt;condition&gt; ? &lt;true_branch&gt; : &lt;false_branch&gt;</code>.
+If the condition is true, it will evaluate the expression on the left side of the colon,
+otherwise it will evaluate the expression on the right side.</p>
+<pre><code class="language-C++">const auto age = 10;
+
+const auto free_time = age &lt; 16 ? 8 : 1;
+// free_time is 8
+</code></pre>
 <h4 id="further-reading"><a class="header" href="#further-reading">Further Reading</a></h4>
 <p><a href="https://github.com/yanshengjia/cpp-playground/blob/master/cpp-primer/resource/C%2B%2B%20Primer%20(5th%20Edition).pdf">C++ Primer 5th Ed</a> 1.4 - 1.4.4 and 5.3 - 5.5.3</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="primitive-types"><a class="header" href="#primitive-types">Primitive Types</a></h1>
@@ -734,12 +748,14 @@ num += 10; //error
 mutNum += 10; //good
 </code></pre>
 <h3 id="initialization"><a class="header" href="#initialization">Initialization</a></h3>
-<p>In Java, when you declare a variable, it is set to a default value. 
+<p>In many languages, when you declare a variable, it is set to a default value. 
 This isn't the case in C++ since there's no reason for the extra instruction to set a default if the programmer is going to set it to something else anyway. 
 It's part of the &quot;pay for only what you use&quot; mentality of C++.
 Thus, if you don't initialize a primitive variable to a value, it essentially holds a garbage value. 
 What really happens is it will just keep whatever bytes in memory happen to be where the variable now occupies. 
-Therefore, <strong>you should always initialize your variables</strong>.</p>
+Therefore, <strong>you should always initialize your variables</strong>. This is one of the reasons why it's good practice to 
+declare variables to have type <code>auto</code>: the compiler needs an initial value to figure out what type the variable is,
+so using <code>auto</code> will prevent you from forgetting to initialize your variables.</p>
 <p>Now you might be asking: &quot;now hold on, you're saying to manually give each of my variables a default value?
 So then what's the point of the compiler not doing it?&quot; Well, if you <em>introduce the variable immediately before you need it (and no earlier)</em>, 
 chances are the initial value you set it to has some bearing on your computation. 
@@ -758,10 +774,8 @@ int powi(int base, unsigned exp) {
 }
 </code></pre>
 <p>Notice how <code>res</code> is introduced right when we need it, and therefore has an initial value which has a meaning for our computation.
-Moreover, defining variables as late as possible makes code easier to read. </p>
-<p>Notice that <code>auto</code> prevents us from forgetting to initialize a variable.
-This is because without an initial value, the compiler would have no idea what type to deduce for <code>auto</code>.
-This is another good reason to always use <code>auto</code>.</p>
+Moreover, defining variables as late as possible (and in the smallest scope its needed) makes code easier to read. </p>
+<p>Global and static variables, on the other hand, are initialized to their default value. For most basic data types this is <code>0</code>.</p>
 <h3 id="names"><a class="header" href="#names">Names</a></h3>
 <p>Part of the challenge of programming is giving good names to variables. You want your variables to be self-documenting. Consider the following:</p>
 <pre><code class="language-c++">long timeout; ///&lt; socket timeout in milliseconds
@@ -1404,7 +1418,7 @@ The obvious problem with this idea is that we'll end up duplicating a lot of cod
 </blockquote>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="classes"><a class="header" href="#classes">Classes</a></h1>
 <p>C++ provides the access modifiers <code>private</code>, <code>public</code>, and <code>protected</code>. 
-Unlike Java, these modifiers define sections of definitions that belong to that modifier instead of having to specify it for each member. 
+These modifiers define sections of definitions that belong to that modifier instead of having to specify it for each member. 
 Public members are part of the class's public interface and accessible to everyone, <code>private</code> is accessible to itself and friends only and <code>protected</code> is accessible to itself, friends, and subclasses. 
 A class's members are <code>private</code> by default.</p>
 <p>The class scope begins at the opening <code>{</code> after the class name and extends to the closing one. 
@@ -1650,8 +1664,7 @@ mail::sendMessage(addr, &quot;Hello There&quot;);
 <li><strong>subtype</strong> - a type that implements the same interface as another.</li>
 </ul>
 <h3 id="the-term-object"><a class="header" href="#the-term-object">The term 'object'</a></h3>
-<p>If you're used to Java, to you, 'object' probably means an instance of a class. 
-Therefore, an int would, by Java terms, not really be considered an object. 
+<p>In some languages the term 'object' refers to an instance of a class. 
 But in C++, the standard defines an 'object' as a &quot;region of storage&quot;. 
 Objects can consist of sub-objects, and every variable is an object. Objects take up one or more memory locations, except bit fields which are separate objects but share a memory location.</p>
 <p>What is a bit field? Well, it's a member variable designated to take up a different amount of bits than the amount of bits typically used by an object of its type.</p>
@@ -1950,14 +1963,21 @@ std::ostream&amp; operator&lt;&lt;(std::ostream&amp; stream, const Rational&amp;
 </ol>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="interfaces"><a class="header" href="#interfaces">Interfaces</a></h1>
 <p>What we saw last chapter was a <em>concrete</em> class. Concrete types have their representation part of their definition. 
-Unlike concrete types, abstract types cannot be instantiated, but instead provide an interface for other concrete classes to implement. 
-Abstract types must be used via pointers or references, while concrete types can be used directly. Concrete types can be placed on the stack, and be members of other classes much more simply than abstract types.</p>
-<p>In Java and other languages, all functions of a superclass may be overridden. This isn't the case in C++. A function that you want a derived class to be able to override must be declared <code>virtual</code>. 
+Unlike concrete types, abstract types cannot be instantiated, but instead provide an interface for other concrete classes to implement. </p>
+<p>An interface is the contract between clients (users of the interface), and implementors. A client doesn't know or 
+care how an interface is implemented. The client just assumes that the implementation does what the interface says it does.
+An analogy for an interface might be a menu. A menu gives you a general gist of the dishes available and lists the costs and 
+maybe some key ingredients. But each chef is free to make the dish however they want. If the head chef calls in sick,
+someone else might be able to take over. Multiple people might work on different parts of the dish and things like 
+spice combinations, oven temperatures, how long the pan is preheated, and the ordering of some steps might differ. 
+All of these details are abstracted from the client, which allows the implementors (the kitchen in this analogy)
+to be free to change things up.</p>
+<p>Abstract types must be used via pointers or references, while concrete types can be used directly. Concrete types can be placed on the stack, and be members of other classes much more simply than abstract types.</p>
+<p>A function that you want a derived class to be able to override must be declared <code>virtual</code>. 
 The reason is that the presence of a <code>virtual</code> function requires something known as a virtual table or vtable. This is an area in memory that each instance has access to that allows the 
 compiler to perform dynamic dispatch by looking up the specific function to call at runtime. More accurately, each instance has a pointer to its respective virtual table. 
 Since C++ is &quot;pay for what you use&quot;, this vtable isn't created unless a class declares a function <code>virtual</code> which enables dynamic dispatch for that function and allows subclasses to override it.</p>
-<p>An abstract type contains at least one <em>pure virtual</em> functions, which is a function that subclasses <strong>must</strong> override because the superclass does not implement it. 
-The C++, the equivalent of a Java <code>interface</code> would be a class containing only pure virtual functions.</p>
+<p>An abstract type contains at least one <em>pure virtual</em> functions, which is a function that subclasses <strong>must</strong> override because the superclass does not implement it. </p>
 <pre><code class="language-C++">class Person {
 public:
     virtual std::string speak() const = 0; // pure virtual function
@@ -2739,8 +2759,7 @@ public:
 } // socket closed when s is destroyed
 </code></pre>
 <p>So what's the advantage of RAII you ask? Well now you need not worry about <code>Socket</code> being cleaned up. 
-If an exception is thrown or the variable goes out of scope, the resource is automatically released. 
-If you ask me this is quite a lot nicer than try-catch-finally blocks or Java's try-with-resources.</p>
+If an exception is thrown or the variable goes out of scope, the resource is automatically released. </p>
 <p>When you have behavior that must run on every single execution path, think RAII! 
 If you have to cleanup a resource or call a resource freeing function (something like <code>free</code>, <code>delete</code>, <code>cleanup</code>, etc.), think RAII.</p>
 <pre><code class="language-C++">class BlanketErrorLogger {
@@ -4190,10 +4209,10 @@ s3.a; //1 - s3 was copied so it's still valid to use
 </code></pre>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="arrays"><a class="header" href="#arrays">Arrays</a></h1>
 <p>Let's start with the modern array. A C++ array is a fixed-sized container of elements of a fixed type stored contiguously is memory. 
-Unlike Java, the size of the array must be known at compile time and cannot change. This because the memory for an array is allocated on the stack statically.
+The size of the array must be known at compile time and cannot change. This because the memory for an array is allocated on the stack statically, so the compiler needs to know how much space to make.
 While this means that arrays aren't as flexibly as a dynamically sized container, it also means that the memory allocations are much more efficient.
 <code>std::vector</code> would be your go-to dynamically sized container in C++. Arrays are a class, and part of the STL (standard template library). 
-For now, think of a template like a Java Generic or simply as a type parameter that can be supplied to classes or functions. 
+We'll discuss templates a lot more later, but for now simply think of them as a parameter that can be supplied to classes or functions at compile time. Unlike normal function parameters, template parameters can be, and often are, types.
 This allows us to create one class for the concept of an array, and <em>instantiate</em> that class on any type we want such as <code>int</code> or <code>std::string</code> or a custom user-defined type. 
 Templates are a big topic we'll discuss later. The interface for the array is declared in the <code>array</code> header and therefore must be included via <code>#include &lt;array&gt;</code>.</p>
 <pre><code class="language-C++">#include &lt;array&gt;
@@ -4212,7 +4231,7 @@ int main() {
     return 0;
 }
 </code></pre>
-<p>We could not declare <code>num</code> to be <code>auto</code> because by default a list of elements surrounded by braces will be deduced as something else called an <code>std::initializer_list</code>. 
+<p>We could not declare <code>nums</code> to be <code>auto</code> because by default a list of elements surrounded by braces will be deduced as something else called an <code>std::initializer_list</code>. 
 After <code>nums</code> has been created, we cannot change the size of <code>nums</code>, or the type of elements <code>nums</code> store.</p>
 <p>In fact, the full definition of <code>nums</code> in reality looks like this: <code>std::array&lt;int, 5&gt; nums = //...</code>. 
 But the compiler is smart enough to deduce the type and size of <code>nums</code> since we initialize it with values. 
@@ -4244,7 +4263,7 @@ twoDArray.front().front(); //1
 twoDArray.back(); // {3, 2, 3}
 twoDArray.empty(); // false
 </code></pre>
-<p>Why are arrays so limiting? Well the compiler does not dynamically allocate arrays like Java. The memory is allocated on the stack like other variables with automatic lifetimes, which is much more efficient then dynamic allocations. 
+<p>Why are arrays so limiting? Well the compiler does not dynamically allocate arrays. The memory is allocated on the stack like other variables with automatic lifetimes, which is much more efficient then dynamic allocations. 
 Obviously, there are times when dynamic allocation is necessary and for those times we have the <code>std::vector</code>.</p>
 <h2 id="c-array"><a class="header" href="#c-array">C Array</a></h2>
 <p>Before looking at more STL containers, first I want to take some time to look at the C array. 
@@ -7783,7 +7802,9 @@ if(any.has_value()){
 int n = std::any_cast&lt;int&gt;(anything);
 </code></pre>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="algorithms"><a class="header" href="#algorithms">Algorithms</a></h1>
-<p>STL algorithms are in the <code>&lt;algorithms&gt;</code> header. These are generic algorithms which operate on pairs of iterators. 
+<p>STL algorithms are in the <code>&lt;algorithms&gt;</code> header. These are generic algorithms which operate on pairs of iterators (a start and end iterator). 
+C++20 includes versions of these algorithms that operate on ranges and views. This is discussed more in the C++20 section
+of the book, but ranges and views are basically like an abstraction over a pair of iterators.
 Often times they will take a callable object to perform some computation. 
 Whenever you write a for loop, the first though should be &quot;is there an algorithm which does this for me?&quot;. 
 Generally, we want to use algorithms as much as possible because they help us avoid making simple indexing or iterator mistakes and are well tested. 
@@ -7792,6 +7813,8 @@ Thus, using STL algorithms, one parameter is all it takes to convert sequential 
 I'll briefly discuss a few common ones, but more information can be found on the documentation of the algorithms library.</p>
 <p>A predicate is a function that takes in an element and returns true if that element matches the criteria. 
 A comparator is a function that takes in two arguments and returns true if the first argument should be ordered before the second.</p>
+<p>If you are familiar with functional programming, some of the algorithms are very much like common operations in functional
+languages such as <code>map</code> or <code>fold</code>. I indicate that in the following list with the phrase &quot;analogous to ...&quot; or &quot;similar to ...&quot;</p>
 <ul>
 <li><code>std::for_each(It begin, It end, Func f)</code> - analogous to <code>iterate</code>
 <ul>
@@ -10814,7 +10837,6 @@ we need the <code>template</code> keyword.</p>
 <p>Modules help with some problems of includes in C++.
 They are compiled independently of the transnational units that import them and unlike headers, are saved in a binary format.
 Thus, once they're compiled, they are quick to load and remain unchanged and independent of the code that depends on them.
-They are similar to Java's .class files but with greater encapsulation.
 You may define a module in separate interface and implementation files, or all in one file.
 In modules, code is not available outside the module unless it's explicitly exported.
 Furthermore, macros and includes used in one module do not affect the code that imports the module. Here's an example:</p>
@@ -11473,8 +11495,7 @@ int main() {
 </code></pre>
 <p>Once again, notice no <code>co_await</code> calls were performed in main.</p>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h2 id="rocketship-operator"><a class="header" href="#rocketship-operator">Rocketship Operator</a></h2>
-<p>This is actually called the 3-way-comparison operator, but it's colloquially known as the Rocketship Operator.
-This is basically a type-safe version of Java's <code>comareTo()</code> method.</p>
+<p>This is actually called the 3-way-comparison operator, but it's colloquially known as the Rocketship Operator.</p>
 <p>If you've ever implemented a comparable type, you may know the pain of manually defining all <code>&lt;=, ==, !=, &gt;= &lt;, &gt;</code> and then defining them again so that they are commutative.
 If so, then the three-way comparison <code>( &lt;=&gt; )</code> is what you need! Given the following syntax:
 <code>a &lt;=&gt; b</code>
@@ -13205,8 +13226,7 @@ Ex: <code>localhost:3000</code></p>
 </blockquote>
 <div id="chapter_begin" style="break-before: page; page-break-before: always;"></div><h1 id="software-engineering-tips"><a class="header" href="#software-engineering-tips">Software Engineering Tips</a></h1>
 <p>I'm going to talk about a few things that I thought helped me become a better software engineer.
-I'll hit a few points briefly, but most of this comes from <em>The Pragmatic Programmer</em> and <em>Clean Architecture</em>.
-The former is a course textbook for CS 3110.</p>
+I'll hit a few points briefly, but most of this comes from <em>The Pragmatic Programmer</em> and <em>Clean Architecture</em>.</p>
 <p>First let's discuss what I mean when I say module and component.
 A module is often realized by a class in OOP languages.
 You can think of it as a single unit of <u>independent</u> work.
@@ -13567,8 +13587,7 @@ and observers would be the subscribers. Publisher/subscriber architecture typica
 Events are typically published on a message channel, which is an intermediary module, process, or program that sends the messages
 to the subscribers. Publisher/subscriber architecture is basically the Observer pattern but along a stronger boundary.
 While Observer is typically implemented to have different modules communicate, publisher/subscriber architecture typically
-facilitates communication of components that are different processes, threads, programs, or even on different machines.
-ROS nodes use this structure.</p>
+facilitates communication of components that are different processes, threads, programs, or even on different machines.</p>
 <h3 id="command"><a class="header" href="#command">Command</a></h3>
 <p>The command pattern is basically a callable object. In our previous Observer example, we had an <code>Event</code> object which encapsulated information
 about the event raised. Let's say that, instead of passing state, we passed instructions (code) on the action to perform. This is basically the
