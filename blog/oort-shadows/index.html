@@ -1,0 +1,95 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>The Case of the Disappearing Shadow Gradual Shadow Fading -</title><meta property="og:title" content="The Case of the Disappearing Shadow: Gradual Shadow Fading - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/oort-shadows/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-shadows/invisibility.gif"><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-shadows/problem1.svg"><link rel="shortcut icon" href=/img/fav.ico><link rel=stylesheet href=/css/main.min.f8310307e7689f75fe430255441a49dac41c2321ae5a250ff11775d4080e4365.css integrity="sha256-+DEDB+don3X+QwJVRBpJ2sQcIyGuWiUP8Rd11AgOQ2U=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}</style></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=/#about>About</a>
+<a class=navbar-item href=/#experience>Experience</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=/#contact>Contact</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/oort-shadows/>The Case of the Disappearing Shadow: Gradual Shadow Fading</a></h2><div class=post-data>Aug 15, 2023
+|
+5 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=The%20Case%20of%20the%20Disappearing%20Shadow%3a%20Gradual%20Shadow%20Fading%20https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-shadows%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-shadows%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-shadows%2f&amp;description=The%20Case%20of%20the%20Disappearing%20Shadow%3a%20Gradual%20Shadow%20Fading" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/graphics>graphics</a>,
+<a href=/%20/tags/projects>projects</a></p></div><div class="container markdown top-pad"><p>When implementing the cloaking ability for Project Oort, I came upon a somewhat
+interesting problem: At what point during the gradual disappearing process should
+the object&rsquo;s shadow disappear?</p><p>At first, I just had the object abruptly stop writing to the depth buffer at a
+certain transparency threshold. This would cause the shadow to simply cut out
+at an arbitrary point. I didn&rsquo;t like the look of that and decided that I wanted
+the shadow to fade in and out gradually.</p><p>To do this, I needed a way to know the transparency factor of the object which
+cast each shadow. With this information, it would then be trivial to change
+the shadow opacity by multiplying the shadow factor
+(where <code>1.0</code> is in total shadow and <code>0.0</code> is in total light) with an object
+opacity. This would look something like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>float</span> shadowFac <span style=color:#719e07>=</span> calcShadow(norm) <span style=color:#719e07>*</span> visibilityFactor;
+</span></span><span style=display:flex><span><span style=color:#719e07>vec3</span> ambient <span style=color:#719e07>=</span> (kd <span style=color:#719e07>*</span> diffuse <span style=color:#719e07>+</span> specular) <span style=color:#719e07>*</span> ao <span style=color:#719e07>*</span> (<span style=color:#2aa198>1.0</span> <span style=color:#719e07>-</span> shadowFac);
+</span></span></code></pre></div><p>A nicer approach, since I already implemented PCSS<sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup>, would be to effectively
+increase the blur on the shadow as the caster became more transparent until the
+shadow would be unnoticeable. This is more expensive, so I didn&rsquo;t go for it.</p><p>As for determining the transparency of a shadow&rsquo;s caster, this could be achieved
+pretty simply by using a <code>GL_RG32F</code> texture instead of a traditional single channel
+depth texture and writing both the depth and object transparency during the depth
+pass. The shader would therefore look something like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>in</span> <span style=color:#719e07>float</span> depth;
+</span></span><span style=display:flex><span><span style=color:#719e07>uniform</span> <span style=color:#719e07>float</span> inv_fac;
+</span></span><span style=display:flex><span><span style=color:#719e07>out</span> <span style=color:#719e07>vec2</span> depth_inv;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>void</span> main() {
+</span></span><span style=display:flex><span>    depth_inv <span style=color:#719e07>=</span> <span style=color:#719e07>vec2</span>(depth, inv_fac);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=the-problem class=anchor-link><a href=#the-problem>The Problem</a></h3><p>Now if it were that easy, I wouldn&rsquo;t be talking about it. And, you may have already
+noticed an issue.</p><p><img src=problem1.svg style=all:unset;margin-left:auto;margin-right:auto;display:block></img></p><p>In the diagram, suppose the blue box is a transparent object and the red circle
+is an opaque object. With the above description, the depth information of the
+transparent object would overwrite the depth information of the opaque block and
+there would be a part of the opaque object&rsquo;s shadow that fades away.</p><p>My first thought was to use stencil testing to try and include the invisibility
+factor in the computation for determining whether to render to the depth map.
+One small issue, is this would require quantizing the 32-bit floating point
+invisibility factor into 256 levels so that it could fit in an 8-bit integral
+stencil value and setting the stencil function for each object.</p><p>Recall that stencil testing involves comparing the masked current value in the stencil
+buffer with a masked value specified in the stencil function. If the comparison
+<code>(ref & mask) CMP_OP (cur_val & mask)</code> succeeds, then we continue in the rendering
+pipeline and update the stencil buffer according to a specified update operation.</p><p>Ultimately, what killed this idea was that the stencil test occurs before
+the depth test, but we want to look at depth information first. This is because,
+looking back at the above diagram, the transparent object should cast a shadow on the opaque object
+(during the time it is transitioning from opaque to transparent),
+but using the stencil test approach this wouldn&rsquo;t happen since the overlapping part of
+the blue box wouldn&rsquo;t be rendered to the depth map.
+I thought of encoding depth information in the stencil buffer, but the limited precision
+would not be acceptable for depth data.</p><h3 id=the-solution class=anchor-link><a href=#the-solution>The Solution</a></h3><p>I&rsquo;m not sure what the best real-time solution for this problem is, but I can
+share my solution.</p><p>My first idea was to render all the transparent objects&rsquo; depth/invisibility info
+in a separate depth map, and use logic in the fragment shader to incorporate this data.
+However, this brings us right back to where we started!
+The earlier discussion still applies, just substitute &ldquo;opaque&rdquo; for &ldquo;nearly opaque&rdquo;
+and &ldquo;transparent&rdquo; for &ldquo;nearly transparent&rdquo;.</p><p>Therefore, we need a depth map for <strong>every</strong> transparent object to prevent losing depth
+and transparency information that may become necessary later. Project Oort uses
+cascading shadow maps, so this amounts to <code>c * N</code> extra depth maps
+where <code>c</code> is the number of cascades and <code>N</code> is the number of objects. Luckily for me,
+only the player can turn invisible, so there is only 1 possible transparent object
+(<code>N = 1</code>).</p><p>To make this change we first start with passing the extra shadow maps to the
+fragment shader.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>uniform</span> <span style=color:#719e07>sampler2D</span> cascadeTransMaps[<span style=color:#2aa198>3</span>];
+</span></span><span style=display:flex><span><span style=color:#719e07>uniform</span> <span style=color:#719e07>sampler2D</span> cascadeTransFacs[<span style=color:#2aa198>3</span>];
+</span></span></code></pre></div><p>We use a transparency factor where <code>1.0</code> is fully transparent, and <code>0.0</code> is opaque.</p><p>When searching for blocking objects to compute the average occluder distance for
+PCSS, we include semi-transparent objects as if they were opaque.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>for</span>(<span style=color:#719e07>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> blocker_search_samples; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>vec2</span> rand_offset <span style=color:#719e07>=</span> poissonDisc[i] <span style=color:#719e07>*</span> searchWidth;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>vec2</span> pos <span style=color:#719e07>=</span> shadowCoords.xy <span style=color:#719e07>+</span> rand_offset;
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// depth_map is the regular depth map of the ith cascade</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// trans_depth_map is the depth map for any transparent objects</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>float</span> sample_depth <span style=color:#719e07>=</span> min(texture(depth_map, pos).r, texture(trans_depth_map, pos).r);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (sample_depth <span style=color:#719e07>&lt;</span> shadowCoords.z <span style=color:#719e07>-</span> bias) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>++</span>blockers;
+</span></span><span style=display:flex><span>        avgBlockerDistance <span style=color:#719e07>+=</span> sample_depth;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Then, when computing pcf, we independently compute the shadow factor for
+opaque occluders and semi-transparent occluders. We blend these shadow factors
+to compute the final shadow factor:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>float</span> calcShadow(<span style=color:#719e07>vec3</span> norm) {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>vec3</span> s <span style=color:#719e07>=</span> calcShadowFrom(norm);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>float</span> opaqueShadow <span style=color:#719e07>=</span> s.x;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>float</span> transShadow <span style=color:#719e07>=</span> s.y;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>float</span> blendFac <span style=color:#719e07>=</span> s.z;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> min((<span style=color:#2aa198>1.0</span> <span style=color:#719e07>-</span> blendFac) <span style=color:#719e07>*</span> transShadow <span style=color:#719e07>+</span> opaqueShadow, <span style=color:#2aa198>1.0</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Note that we don&rsquo;t use a traditional alpha blend (<code>(1.0 - blendFac) * transShadow + opaqueShadow * blendFac</code>). If a fragment is in the shadow of an opaque object, it also being in the shadow
+of a transparent object should not lighten the shading.</p><p>The result ended up looking like so:</p><p><img src=invisibility.gif alt="Invisibility demo"></p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>Fernando, R. (2005). Percentage-Closer Soft Shadows - Nvidia. <a href=https://developer.download.nvidia.com/shaderlibrary/docs/shadow_PCSS.pdf>https://developer.download.nvidia.com/shaderlibrary/docs/shadow_PCSS.pdf</a>&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/ProjectOort/blob/main/game/src/graphics_engine/shaders/pbr.fs><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text><a href=https://github.com/victoriadrake/hugo-theme-introduction/><strong>Introduction</strong></a> theme for <a href=http://gohugo.io/>Hugo</a>. Made with <a href=https://victoria.dev><i class="fa fa-heart"></i> and <i class="fa fa-coffee"></i></a> by open source contributors.</span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

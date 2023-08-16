@@ -1,0 +1,73 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Cornell Mars Rover -</title><meta property="og:title" content="Cornell Mars Rover - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/projects/cmr/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/projects/cmr/icon.png"><meta property="og:image" content="https://stephenverderame.github.io/projects/cmr/HAL_control_flow.png"><meta property="og:image" content="https://stephenverderame.github.io/projects/cmr/IMG_6177.jpg"><meta property="og:image" content="https://stephenverderame.github.io/projects/cmr/IMG_6181.jpg"><meta property="og:image" content="https://stephenverderame.github.io/projects/cmr/IMG_6182.jpg"><link rel="shortcut icon" href=/img/fav.ico><link rel=stylesheet href=/css/main.min.f8310307e7689f75fe430255441a49dac41c2321ae5a250ff11775d4080e4365.css integrity="sha256-+DEDB+don3X+QwJVRBpJ2sQcIyGuWiUP8Rd11AgOQ2U=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}</style><link rel=stylesheet href=https://stephenverderame.github.io/styles/owlCarousel.min.b1f26e29c43c61fe8b5a6f225b4ee7c5f969a7b33cfe512706271e07246d93d1.css integrity="sha256-sfJuKcQ8Yf6LWm8iW07nxflpp7M8/lEnBiceByRtk9E=" crossorigin=anonymous media=screen></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Cornell Mars Rover</h1><div class="post-data post-subtitle">Nov 2020 - Present</div></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=/#about>About</a>
+<a class=navbar-item href=/#experience>Experience</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Back to Projects</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Blog</a>
+<a class=navbar-item href=/#contact>Contact</a></div></nav><hr></div><div class="container markdown top-pad"><div class=has-text-centered><div class="owl-carousel owl-theme"><div class="item owl-height"><img src=/projects/cmr/icon_hu8672452022952600910b923f075a3cc7_73073_1000x0_resize_box_3.png class=img-responsive alt=icon.png style=max-height:50vw;width:auto></div><div class="item owl-height"><img src=/projects/cmr/HAL_control_flow_huc1ae8eb7be4779c9a71cae6e0c26e2c8_48014_1000x0_resize_box_3.png class=img-responsive alt=HAL_control_flow.png style=max-height:50vw;width:auto></div><div class="item owl-height"><img src=/projects/cmr/IMG_6177_hudd3aba22724412286bac560e038d2029_2689713_1000x0_resize_q75_box.jpg class=img-responsive alt=IMG_6177.jpg style=max-height:50vw;width:auto></div><div class="item owl-height"><img src=/projects/cmr/IMG_6181_huaf4f174e07e86cb4c91b2266ef89cf37_2373781_1000x0_resize_q75_box.jpg class=img-responsive alt=IMG_6181.jpg style=max-height:50vw;width:auto></div><div class="item owl-height"><img src=/projects/cmr/IMG_6182_hu7d9e1f30371ff0e4c8d958fb17acedb2_2971164_1000x0_resize_q75_box.jpg class=img-responsive alt=IMG_6182.jpg style=max-height:50vw;width:auto></div></div></div><p>During my freshman year, I was accepted into the Cornell Mars Rover project team.
+I&rsquo;ve been a member of the team ever since and was the Software Subteam lead
+for the 22-23 school year. For my senior year, I&rsquo;ve decided to take a bit of a
+backseat role to make sure I have time for other things I want to do
+this year such as research.</p><p>We compete every year in the University Rover Challenge, held in Utah.</p><p>During my time on the team, I:</p><ul><li>Lead a team of 12 to iteratively develop software for a rover using ROS (Robot Operating System), C++,
+and Python</li><li>Redesigned the codebase to focus on code quality, maintainability, documentation, testing, readability, and reliability</li><li>Created a runtime fault handling and dependency management system, and wrote a 300+ page Modern C++ reference guide</li><li>Improved the pathfinding algorithm to support the autonomous location of AR tags and traversal through goalposts</li><li>Implemented a multithreaded hardware abstraction layer and a communication format to support greater message throughput to the microcontroller. This improved performance by over 400%, reduced code coupling, and drastically increased testability</li></ul><h3 id=ascii-hw-message-format-first-year class=anchor-link><a href=#ascii-hw-message-format-first-year>ASCII HW Message Format (First Year)</a></h3><p>The first thing I worked on was implementing the CS side of a new message
+format that transmitted messages to the microcontroller managed by the electrical
+subteam. The previous year, the team decided to switch from a binary to an
+ASCII representation for easier debugging.</p><h3 id=concurrent-hardware-abstraction-layer-first-year class=anchor-link><a href=#concurrent-hardware-abstraction-layer-first-year>Concurrent Hardware Abstraction Layer (First Year)</a></h3><p>After the message format, I was tasked with improving message throughput
+so that our HW abstraction layer can handle the number of messages
+sent by the inverse kinematics controller for the arm, which was new
+the previous year.</p><p>To do this, my first thought was to use asynchronous programming (in fact,
+the project was dubbed Async HAL), however, this would require changing
+a lot of the code that interfaced with HAL which was written with
+sequential communication in mind. Since we used ROS, each module in our
+software was run in separate processes (known as nodes), which communicate over
+two-way channels known as actions. Therefore, what I ended up doing was
+multithreading the action server with a thread pool that handles action requests on the HAL side so
+that many clients can send requests at once. So for each request, the action server
+would push the request onto a thread pool to be processed in parallel with other
+requests.</p><p>Of course, we still only had one port going to the actual HW. To work around this,
+I designed a new port interface for reading and writing data and a port decorator
+which made accessing a decorated port thread-safe. This was achieved by having
+all calls to write to the port copy the message into a shared buffer and having
+a single thread handle sending the buffered messages to the HW. Reading was done
+similarly but in reverse with a single thread reading the port and distributing
+the messages to the correct client threads by matching message IDs of the SW requests
+and HW responses.</p><p><img src=HAL_control_flow.png alt=HAL></p><p>The new port interface also allowed SW testing. All we had to do was create
+a port that would read and write a memory buffer, and the complex logic
+of the decorator could be tested by decorating the memory port.</p><p>Things did not go smoothly though. I stumbled through bugs caused by race
+conditions for over three months where I was a slave to the green <code>PASSED</code>
+and red <code>FAILED</code> messages of my unit tests. I don&rsquo;t remember what eventually fixed it,
+but I think it had something to do with calling a function
+that, unbeknownst to me, yielded control back to ROS.</p><h3 id=autonomy-refactor-second-year class=anchor-link><a href=#autonomy-refactor-second-year>Autonomy Refactor (Second Year)</a></h3><p>During my sophomore year, I updated our autonomy algorithm
+to support passing through goalposts instead of just arriving near an AR tag.
+While doing this, I also refactored and completely reimplemented the algorithm
+using the State design pattern.</p><p>We use ROS to handle the obstacle avoidance and navigation to GPS coordinates,
+but it is up to us to implement the logic so that our rover can search for AR tags
+and navigate through goals.</p><p>Our algorithm revolves around a simple, yet very clever and effective idea that
+I won&rsquo;t disclose.</p><p>I have some design documents and presentations I wrote describing this in more
+detail, but cannot share them here.</p><h3 id=fault-handling-third-year class=anchor-link><a href=#fault-handling-third-year>Fault Handling (Third Year)</a></h3><p>As the subteam lead, I didn&rsquo;t do a whole lot of implementation work
+during my third year. However, one thing I did do was create a decentralized
+fault-handling system.</p><p>The core idea is that we have a dependency graph of nodes. We never want
+a node to be running when something it depends on is not running, and we&rsquo;d like
+that no nodes whose sole purpose was to serve another node are running when the
+system they exist to support is not alive.</p><p>To achieve this goal, when a node starts up, it would activate its chain
+of dependencies in topological order and would wait until all dependencies
+are running before continuing. On error, the node would do a similar process,
+notifying all nodes it supports that they must shut down and all nodes that support
+it that a depender is shutting down. After a few seconds, a fault handler would
+attempt to restart all of the shutdown nodes in topological order.</p><h3 id=subteam-lead-third-year class=anchor-link><a href=#subteam-lead-third-year>Subteam Lead (Third Year)</a></h3><p>My main role was working with the other subteams on integration,
+assigning tasks, providing guidance, and other miscellaneous work.</p><p>This year, we were migrating from ROS 1 to ROS 2 which entailed
+reimplementing everything. We focused a lot more on using
+ROS libraries to avoid the extra work.</p><p>At the beginning of the year, I set up a lot of DevOps stuff:</p><ul><li>Doxygen-generated code docs</li><li>Switched over to Clang, Clang-tidy, Clang-format</li><li>Created formatting rules loosely based on Google&rsquo;s style guide</li><li>Established linting rules and a coding standard</li><li>Created a Python unit testing library on top of Pytest</li><li>Setup a CI and nightlies with Github Actions</li></ul><p>I also introduced a new Agile-ish development model that focused on iterative
+development instead of the old, design-implement-test workflow that would
+delay testing until the spring. We used 3-4 week-long sprints, where I would
+help break up everybody&rsquo;s projects into tasks that can be accomplished in
+a few weeks. I found it helpful to scope each task ahead of time, providing
+resources and a rough idea of steps to follow. These changes, along with
+a greater focus on early SW testing in the simulation
+were well-received by the team.</p><p>We met for three, 2-hour work sessions a week along with independent work.
+While I was initially opposed to that much &ldquo;oversight&rdquo;, we found the designated
+work times to be really helpful to avoid getting too busy with other classes,
+and a set period where I am available to answer questions in-person
+also proved useful.</p><hr><p>The source code cannot be provided</p></div><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text><a href=https://github.com/victoriadrake/hugo-theme-introduction/><strong>Introduction</strong></a> theme for <a href=http://gohugo.io/>Hugo</a>. Made with <a href=https://victoria.dev><i class="fa fa-heart"></i> and <i class="fa fa-coffee"></i></a> by open source contributors.</span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script>
+<script src=https://stephenverderame.github.io/js/bundleOwlCarousel.bc6b73f0a36bf19c70c5df8fc352d322988ca2bc40743fb836ee7371d555c28a.js integrity="sha256-vGtz8KNr8Zxwxd+Pw1LTIpiMorxAdD+4Nu5zcdVVwoo="></script></body></html>
