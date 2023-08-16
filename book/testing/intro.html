@@ -1,0 +1,288 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Testing - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html" class="active"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="testing-and-debugging"><a class="header" href="#testing-and-debugging">Testing and Debugging</a></h1>
+<p>In this chapter we'll look at useful tools for testing and debugging. 
+Besides the obvious usage of finding bugs, testing also forces us to program with an interface in mind, not an implementation. 
+A lot of times, to write tests we'll be forced to create a test implementation and a real one. 
+Thus, this forces us to create an interface in which both implementations can subtype. For example, when testing an HTTP client, it can be hard to write tests using a live connection to an HTTP server. 
+First of all if the reading logic is incorrect, it becomes terribly difficult to even see the error responses from the server. 
+Secondly, such error messages aren't going to be the most useful in tracking down bugs in your code. 
+So, we can abstract away the live connection behind an interface, and have a live implementation and test implementation which might just write data to a buffer in memory.</p>
+<p>A common misconception is that testing early and often is a tradeoff: more time spent now means less time debugging later and that we can streamline the development process, if necessary, 
+by putting off tests until later. While it makes sense, Jason Gorman and Uncle Bob have found that lack of testing takes more time in both the short and long term. 
+Testing can guide our design process, identify oversights in the specification, help us learn new libraries, and more.</p>
+<h2 id="tdd"><a class="header" href="#tdd">TDD</a></h2>
+<p>TDD stands for test-driven development, and it's the common unit testing methodology to write tests before you write the code that it's testing. The TDD programming cycle is as follows:</p>
+<ol>
+<li>Create a failing unit test</li>
+<li>Write code to make that unit test pass</li>
+<li>Clean, refactor, and ensure it still passes</li>
+<li>Repeat</li>
+</ol>
+<p>Some advocate the following 3 laws of TDD, which lock you into cycles of roughly 30 to 60 seconds:</p>
+<ol>
+<li>Do not write code until you write a failing unit test</li>
+<li>Do not write more test code than is sufficient to fail. Not compiling is failing.</li>
+<li>Do not write more production code than is necessary to make a failing test pass.</li>
+</ol>
+<p>Sometimes the amount of test code to rival or exceed the amount of production code. 
+Furthermore, many advocate that test code should be just as clean and well-designed as production code. 
+This is because that test code must be as easy to change as production code, the two code bases must grow and evolve together. 
+If the test code is rigid, then they'll either have to be rewritten every time the production code changes (leaving you vulnerable to forgetting corner cases), 
+or the rigidness of the test code will make you unwilling to make the necessary changes to production code. 
+Ideally, the only different between test and production code is performance. 
+For example, in production you might want to have overloads for passing and returning lvalue and rvalue references while during testing you might find it sufficient to simply pass by value. 
+However, it's vital that test code be as readable and clean as production. 
+Clean test code can even serve as documentation (in Rust, examples written in documentation comments, can be run by the test framework to ensure they pass).</p>
+<p>Tests should be:</p>
+<ul>
+<li><strong>F</strong>ast - quick and easy to run. One command or one button to run all tests and get a quick result.</li>
+<li><strong>I</strong>ndependent - should not rely on any order of tests being run and not depend on other tests</li>
+<li><strong>R</strong>epeatable - run in any environment on any machine</li>
+<li><strong>S</strong>elf-validating - have a single boolean (pass/fail) output</li>
+<li><strong>T</strong>imely - should be able to write somewhat quickly before writing production code</li>
+</ul>
+<p>To state TDD another way, the steps are basically: Red, Green, Refactor. 
+First you make it Red: create a failing test. This is vital because you need to know your test doesn't always pass. 
+It would get cumbersome to have tests of tests so this red step is essentially the manual testing of our test case. 
+Then you make it Green: make the test pass as fast as possible. Embrace bad engineering, don't worry about design patterns in this step just figure out how to implement the feature in the simplest way possible. 
+In this step the goal is to wrap your head around a correct solution. It's hard to do two things at once so trying to make something clean and correct at the same time can make things extremely difficult. 
+Finally, refactor: you've already implemented a solution once, so you will have a better idea of what patterns and idioms will work to clean up the code. 
+You'll be able to more easily organize the code since you already know what it's doing. This step should NOT lead you to write new tests.</p>
+<p>You should test to an interface, not an implementation. 
+In other words, only test the public API. The thing that should trigger writing a test case is not a new function or class, but rather a new requirement of the software, or a new behavior in an interface. 
+Some people find that &quot;Behavior Driven Development&quot; is a better name than &quot;Test Driven Development&quot; for this reason. 
+So for example, when developing a helper method, you most likely shouldn't start by writing a failing test case for it, the tests for methods the helper is used in cover it already. 
+This isn't always the best approach however: you might not be sure if the helper method is correct, or you might not be sure how to go about implementing whatever algorithm you're trying to write. 
+In this case we can drop down into a lower &quot;gear&quot; and use TDD for the implementation details. However, once the algorithm is implemented, these tests should be deleted because they rely on an 
+implementation and thus make the implementation details rigid. Tests should not know about the implementation. 
+This should not be confused with me saying &quot;glass-box testing is bad&quot;, rather what I'm saying is you don't want to enforce any constraints on the implementation. 
+You may very well pick corner cases to test based on the implementation and code coverage, but changing the implementation or refactoring should not make these tests fail.</p>
+<p>Sometimes, you might find you have a clear idea of what you're trying to implement. 
+In this case we can &quot;shift&quot; into a higher &quot;gear&quot; and streamline this red, green, refactor process. You might choose to go straight from red to refactor and make a clean solution as you are making a correct one. 
+Sometimes you might find that what you're implementing is so simple, it doesn't even warrant TDD.</p>
+<p>The &quot;unit&quot; in unit testing is often times a module, and although OOP languages realize modules as classes, this does not mean every class is a module. 
+A module satisfies an abstraction, and can be composed of multiple classes. But even so, a module may not be a &quot;unit&quot;. 
+Kent Beck highlights that the &quot;unit&quot; in a unit test is the test itself. In this sense he means that tests must be independent of each other.</p>
+<blockquote>
+<p>&quot;I'm not a great programmer; I'm just a good programmer with great habits.&quot;</p>
+<p>- Kent Beck</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../testing/tools.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../testing/gtest.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../testing/tools.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../testing/gtest.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

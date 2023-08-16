@@ -1,0 +1,456 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Project - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="about.html">About</a></li><li class="chapter-item expanded "><a href="intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="project.html" class="active"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="project"><a class="header" href="#project">Project</a></h1>
+<p>To put all of this together, we're going to make an HTTP client and server utility. The program will be able to host web servers and connect to others as well. 
+It will be a command line program that accepts the following commands:</p>
+<ul>
+<li><code>-serve &lt;directory&gt;</code> - create a server with the specified root directory</li>
+<li><code>-get &lt;url&gt;</code> - GET request</li>
+<li><code>-post &lt;url&gt;</code> - POST request</li>
+<li><code>-port &lt;port&gt;</code> - set the port number on the server or request
+<ul>
+<li>Overrides any port specified in the URL for a request</li>
+</ul>
+</li>
+<li><code>--&lt;header&gt; &lt;value&gt;</code> - set a HTTP header in a request</li>
+<li><code>-content [-f] &lt;text&gt;</code> - specifies the content in a request or server. An optional <code>-f</code> command may follow indicating that the content is to be read from the specified file. If the content contains spaces, it must be enclosed with quotes. If content is specified for a server, this essentially specifies the <code>index.html</code>.</li>
+<li><code>-ssl [-only] &lt;certificate&gt;</code> - makes the server use SSL using the specified certificate file. If the <code>-only</code> flag is set the server rejects plaintext</li>
+<li><code>-o &lt;file&gt;</code> - stores the result of a request into the specified file</li>
+<li>If no arguments are passed, or invalid/incorrect arguments are used, a help message containing the above information should be shown.</li>
+</ul>
+<p>The program should be cross-compatible on Windows and Unix systems. For windows, you will have to link with <code>Ws2_32.lib</code> and most of the networking stuff will be in the <code>WinSock2.h</code> header. You may also need <code>WS2tcpip.h</code> (and others). For Unix, you may want to look at <code>sys/socket.h, sys/types.h, netinet/in.h, sys/select.h, fcntl.h, arpa/inet.h, sys/ioctl.h, unistd.h, netdb.h</code>. The socket API for both libraries are very similar, but there are a few slight differences: (these are not the only ones)</p>
+<div class="table-wrapper"><table><thead><tr><th>Windows</th><th>Unix</th></tr></thead><tbody>
+<tr><td><code>ioctlsocket(socket, long cmd, u_long* arg)</code></td><td><code>ioctl(int fd, long cmd, ...) (sort of equal but not quite)</code></td></tr>
+<tr><td><code>closesocket(socket)</code></td><td><code>shutdown(sock, SHUT_RDWR); close(sock)</code> (the <code>shutdown()</code> isn't necessary)</td></tr>
+<tr><td><code>WSAGetLastError()</code></td><td><code>errno</code></td></tr>
+</tbody></table>
+</div>
+<p>Winsock requires manual initialization with <code>WSAStartup()</code> and <code>WSACleanup()</code>.</p>
+<p>Start with whatever OS you natively have, then try to support the other afterwards. This is a good case for extracting the OS specific code into a policy which can be passed to the socket classes as a template argument.</p>
+<p>Since both of these APIs are C APIs, most of their functions return error codes. It's important to make sure these errors are handled.</p>
+<h2 id="setup"><a class="header" href="#setup">Setup</a></h2>
+<p><a href="https://github.com/stephenverderame/CppBookProject">Starter code available here</a>.
+You will also need to install OpenSSL.
+For windows, you can download pre-compiled binaries via an installer <a href="https://slproweb.com/products/Win32OpenSSL.html">here</a>.
+OpenSSL also have a list of some other recommended third parties for getting the pre-compiled binaries <a href="https://wiki.openssl.org/index.php/Binaries">here</a>.</p>
+<p>For Unix users, you can simply install <code>libssl-dev</code> and <code>openssl</code> from your package manager.
+You will also need to make sure you have CMake and Doxygen installed. Ubuntu users can simply install <code>cmake</code> and <code>doxygen</code> from <code>apt</code>
+(other distros might have the binaries available from the package manager, otherwise go the the link),
+and Windows users can find installations for <a href="https://cmake.org/download/">cmake here</a> and
+<a href="https://www.doxygen.nl/download.html">doxygen here</a>.
+You may need to install GraphViz (what Doxygen uses to generate inheritance graphs)
+separately <a href="https://graphviz.org/download/">here</a>. For Windows, you should add <code>dot</code> to your path system variable via the installer.</p>
+<p>The starter code has the following architecture. Black boxes indicate already provided modules. The double angled brackets indicates an interface,
+an open arrow indicates a subtyping relationship, and a closed arrow indicates a dependency. Boxes with dotted lines indicates
+unimplemented modules and only show <strong>a possible</strong> implementation.
+You may find that this possible architecture poses problems (I just drew it up quickly).
+Furthermore, in the spirit of YAGNI (&quot;you ain't gonna need it&quot;), you may find some things (such as an abstract server and client)
+unnecessary.</p>
+<p><img src="res/CppBookProjectSetup.png" alt="Image of Possible Architecture" /></p>
+<p>The starter code contains a <code>Networking.h</code> file that has os dependent includes. Ideally, you should minimize dependencies of every module, thus
+this file should really only be included in source files or header files that do not need to be directly included by the client.</p>
+<h2 id="goals"><a class="header" href="#goals">Goals</a></h2>
+<ul>
+<li>Gain experience with GTest, GMock, and CMake</li>
+<li>Practice with static and dynamic polymorphism in C++ and programming to an interface</li>
+<li>Practice designing template function and classes</li>
+<li>Use C++ Idioms, Clean Architecture and Design Patterns</li>
+<li>Familiarize yourself with the standard library</li>
+<li>Learn about socket programming</li>
+<li>Experience with Doxygen</li>
+</ul>
+<h3 id="what-youll-probably-need-to-know"><a class="header" href="#what-youll-probably-need-to-know">What you'll (probably) need to know</a></h3>
+<ul>
+<li>Section 2 (Basics to Basic Containers)</li>
+<li>Template Basics Chapter (at least to specialization)</li>
+<li>STL Functional Programming Chapter</li>
+<li>Section 4 (Tools and Project)</li>
+</ul>
+<h2 id="tasks"><a class="header" href="#tasks">Tasks</a></h2>
+<ul>
+<li>Implement the Socket Class
+<ul>
+<li>This class will adhere to the RemotePort concept (see <code>Port.h</code>)</li>
+<li>It will take a policy class that handles code changes depending on the OS</li>
+<li>Test your implementation in <code>SocketTest.cpp</code></li>
+<li>Use <code>SSLSocket</code> for guidance</li>
+<li>For Windows: create a RAII class for initialization and cleanup of Winsock. You might want to make this a singleton</li>
+</ul>
+</li>
+<li>Implement Exception class(es)
+<ul>
+<li>I crudely throw integers just to show which function gets the error code you'd want to look at, this isn't that helpful for displaying error messages or catching exceptions</li>
+<li>Implement an exception class or exception hierarchy </li>
+</ul>
+</li>
+<li>Implement the HTTP request and response frames
+<ul>
+<li>User should be able to choose HTTP version (parameter to <code>compose</code> method or pass to constructors?)</li>
+</ul>
+</li>
+<li>Implement the HTTP client
+<ul>
+<li>Should take ownership of a <code>Port</code> -&gt; reads and writes requests on this port</li>
+<li>Be able to send request Http Frames and receive response frames</li>
+<li>User should not have to do any string formatting (except for any content encoding)</li>
+</ul>
+</li>
+<li>Implement HTTP content and transfer encodings:
+<ul>
+<li>Need to support chunked transfer encoding, and url type data </li>
+<li>Design Ideas:
+<ul>
+<li>HTTP writer decorators:
+<ul>
+<li>A class that would subtype some kind of HTTP interface and be composed of an implementation of that interface</li>
+<li>A high level <code>set_content</code> or <code>write</code> (member or overrided from interface) function would then set the content of the underlying HTTP writer following the specified format and all relevant headers</li>
+</ul>
+</li>
+<li>Transaction Scripts:
+<ul>
+<li>Non-member helper functions set the writer's content and relevant headers following the specified format</li>
+</ul>
+</li>
+<li>Encoding strategy:
+<ul>
+<li>A callable object or implementation of some kind of strategy interface is passed to a <code>write</code> function</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>See <code>ChunkedTest</code> and <code>QueryTest</code></li>
+</ul>
+</li>
+<li>Implement the HTTP server
+<ul>
+<li>Should take ownership of a <code>Port</code> -&gt; reads and writes requests on this port</li>
+<li>Root directory (where all the paths in the request are relative to) should be customizable</li>
+<li>Handles <code>GET</code> and <code>POST</code> requests</li>
+<li>Supports URL encoding</li>
+<li>See <code>ChunkedTest</code> and <code>QueryTest</code></li>
+</ul>
+</li>
+<li>Implement the command line argument marshallers
+<ul>
+<li>Recognize command line arguments</li>
+<li>The arguments can be specified in any order</li>
+</ul>
+</li>
+<li><del>Feel free to</del> add your own tests and expand upon the existing ones</li>
+<li>Tie it all together:
+<ul>
+<li>Create a website with a C++ backend:
+<ul>
+<li>More than 1 page</li>
+<li>Something that accepts user input</li>
+<li>Bonus:
+<ul>
+<li>CRUD (create, read, update, delete) operations on some &quot;database&quot;</li>
+<li>Fetching images (or some other non-plaintext data) from the site</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Use Doxygen to generate documentation for your project
+<ul>
+<li>Comment your code in a Doxygen recognized format</li>
+</ul>
+</li>
+<li>(Optional) Implement <code>FdSet</code>
+<ul>
+<li>Not really necessary because HTTP is a stateless connection protocol</li>
+<li>But if you needed to keep track of active connections this would be vital</li>
+</ul>
+</li>
+<li>(Optional) Add IPv6 Support to <code>Address</code>
+<ul>
+<li>Make Address a template accepting a policy which controls:
+<ul>
+<li>type of the <code>addrData</code> member. (<code>sockaddr_in</code> vs <code>sockaddr_in6</code>)</li>
+<li>family <code>AF_INET</code> vs <code>AF_INET6</code></li>
+<li>the <code>is_ip</code> member function</li>
+</ul>
+</li>
+<li>OR use runtime polymorphism and a factory function so that the correct Address class can be chosen at runtime based on the IP address passed to the factory function</li>
+</ul>
+</li>
+<li>(Optional) Add JSON support
+<ul>
+<li>JSON object and array types which can be serialized from and into JSON text</li>
+<li>Support for sending and receiving JSON data in the HTTP client and server</li>
+</ul>
+</li>
+</ul>
+<h2 id="possibly-useful"><a class="header" href="#possibly-useful">Possibly Useful</a></h2>
+<ul>
+<li><a href="https://github.com/stephenverderame/webchat">Similar project I developed a few years ago</a>
+<ul>
+<li>Neither implementation is the best designed, however WebLib2 is better</li>
+</ul>
+</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview">HTTP Reference on MSDN</a></li>
+<li><a href="https://en.cppreference.com/w/cpp/regex">C++ Regex Library</a></li>
+<li><a href="https://en.cppreference.com/w/cpp/filesystem">C++ Filesystem Lib</a></li>
+<li><a href="https://en.cppreference.com/w/cpp/io">C++ Streams Lib</a></li>
+<li><a href="https://docs.microsoft.com/en-us/windows/win32/winsock/getting-started-with-winsock">Microsoft Docs for Winsock</a></li>
+<li><a href="https://man7.org/linux/man-pages/man2/socket.2.html">Man Pages for POSIX Functions</a></li>
+</ul>
+<h2 id="other-notes"><a class="header" href="#other-notes">Other Notes</a></h2>
+<p>You can use preprocessor conditions around the definition of <code>WIN32</code> to conditionally enable code depending on if using Windows or Unix. 
+<code>WIN32</code> is a macro defined by the compiler when compiling on Windows (even Win64).
+In the CMake, I also define <code>WINDOWS</code> when the platform is Windows and <code>UNIX</code> when it is not.</p>
+<pre><code class="language-C++">#ifdef WIN32
+// windows only code
+
+// ifdef -&gt; &quot;if defined&quot;
+// if the macro WIN32 is defined, include this code
+#else
+// non-windows code
+#endif
+</code></pre>
+<p>Feel free to change the implementation or design of anything.
+Although there is a comment saying not to, you may change the Port interface so long as you make sure to have tests.</p>
+<p>The current project structure is as follows:</p>
+<pre><code>&lt;Project Directory&gt;
+|   CMakeLists.txt
+|---HttpProject
+|   |   CMakeLists.txt
+|   |---include
+|   |---src
+|   |---test
+|   |   |   CMakeLists.txt
+|   |   |---data
+|   |
+|---external
+|---out
+|
+</code></pre>
+<p>To connect to a HTTP server running on your machine, you can simply type <code>localhost</code> or <code>127.0.0.1</code> into the address bar of your browser.
+If you use a port other than <code>80</code> for HTTP and <code>443</code> for HTTPS, then the port must be specified by a colon and port number following the address.
+Ex: <code>localhost:3000</code></p>
+<p>Other devices on the same network as you can connect via your LAN address which is listed when you run the command <code>ipconfig</code> on Windows or <code>ifconfig</code> on Unix.</p>
+<hr />
+<blockquote>
+<p>&quot;Most good programmers do programming not because they expect to get paid or get adulation by the public, but because it is fun to program.&quot;</p>
+<p>- Linus Torvalds</p>
+</blockquote>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="testing/analysis.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="swe_tips.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="testing/analysis.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="swe_tips.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

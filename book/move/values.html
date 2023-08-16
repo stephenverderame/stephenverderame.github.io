@@ -1,0 +1,528 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Lvalues, Rvalues, and more; Oh My! - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html" class="active"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="alphabet-soup-of-values"><a class="header" href="#alphabet-soup-of-values">Alphabet Soup of Values</a></h1>
+<p>What we've seen so far are <em>rvalues</em> and <em>lvalues</em>. Both are these come from pre C++11 and the names originate from the idea than a lvalue can go on the left side of the equals sign and 
+rvalues may only go on the right side. A little better criteria is that a lvalue is something you can take an address of and a rvalue you cannot. 
+Another possible distinction is that rvalues are temporary values while lvalues are named values.</p>
+<pre><code class="language-C++">int age = 5;
+Person p = Person(&quot;Bob&quot;, 20);
+int ageBob = p.getAge();
+long long bigAge = age;
+</code></pre>
+<p>Here, <code>age, p, ageBob, and bigAge</code> are lvalues. <code>5</code>, the result of the <code>Person</code> constructor, and the temporary result of <code>p.getAge()</code> are all rvalues. 
+Once again, you can think of rvalues as temporary values. We can't take the address of the result of the <code>Person</code> constructor, <code>5</code>, nor the result of <code>p.getAge()</code>. Although we can do this:</p>
+<pre><code class="language-C++">int foo();
+&amp;foo; // adress of foo
+// not the address of the result of calling foo
+
+int * resPtr = &amp;(foo()); // error
+// return from function is not an lvalue
+</code></pre>
+<p>Although we cannot have pointers to rvalues, we can have references to rvalues. Lvalue references are denoted with <code>&amp;</code> and rvalue references are denoted with <code>&amp;&amp;</code>. 
+Now confusingly, the rvalue reference itself is a lvalue. This lvalue just so happens to store a reference to a rvalue. Using rvalue references, we can avoid an excess construction when using rvalues.</p>
+<pre><code class="language-C++">
+auto makePerson() {
+    return Person();
+}
+
+auto funcL(const Person &amp; p) {
+
+}
+
+auto funcR(Person &amp;&amp; p) {
+
+}
+
+Person p;
+
+funcL(p); // no construction
+funcR(p); // error, p is not an rvalue
+funcL(makePerson()); // construct a new Person from the temporary return, pass the reference of this new Person to funcL
+funcR(makePerson()); // no construction
+</code></pre>
+<p>As you may notice, this <code>&amp;&amp;</code> syntax is exactly what we use in the move constructor. 
+As a rvalue reference indicates a temporary or value we don't care about, this means that when passed to a move constructor, we're allowing that constructor to steal the rvalues internals and leave behind a &quot;shell&quot; 
+of an object.</p>
+<p>In order to move, we need a non-const rvalue reference (otherwise we couldn't modify the old value to invalidate it, and we'd effectively perform a copy). 
+Thus, since rvalue references are primarily used for moving, we don't often use <code>const</code> rvalue references. 
+This is because, if we tried to move construct from a <code>const</code> rvalue reference, the compiler would silently perform a copy since a <code>const &amp;&amp;</code>
+cannot bind to <code>&amp;&amp;</code> but it can bind to <code>const &amp;</code> (copy constructor!).</p>
+<pre><code class="language-C++">
+Person getPerson() {
+    Person newPerson;
+    //...
+    return newPerson;
+}
+
+// accepts an rvalue reference!
+void doStuff(Person &amp;&amp; p) {
+    std::cout &lt;&lt; p.getName() &lt;&lt; &quot;\n&quot;;
+}
+
+void doStuff2(const Person &amp; p) {}
+
+doStuff(getPerson());
+doStuff2(getPerson()); // construct Person from return of getPerson
+
+doStuff(Person(&quot;Joe&quot;, 10));
+doStuff2(Person(&quot;Joe&quot;, 10)); // construct another Person from constructed person
+
+doStuff(std::move(lvaluePerson));
+lvaluePerson.getName(); // BAD, lvaluePerson has been moved
+// internals could be empty
+</code></pre>
+<p>Notice <code>getPerson()</code> doesn't return a <code>Person&amp;&amp;</code> nor do we explicitly move <code>newPerson</code>, but the resulting behavior is still to move <code>newPerson</code> and bind that temporary to the rvalue reference. 
+It's generally not a good idea to have a return type as a rvalue reference nor should we explicitly return by <code>std::move()</code> because this inhibits some compiler optimizations we'll talk about later.</p>
+<p>So what's the point of all this? Well, since we are using a reference to an existing object, we don't have to reconstruct the object from the temporary. 
+Furthermore, a rvalue indicates a temporary object. Thus, when we use rvalues we get to assume they the object is being discarded, and we can construct new objects from rvalues very cheaply via swapping. 
+Instead of having to copy the state from the existing object to the new instance, we can sort of just steal the state of the temporary and take ownership of it. 
+After all, a rvalue is just a temporary about to be destroyed. </p>
+<pre><code class="language-C++">auto sumVec(const std::vector&lt;int&gt; &amp; v) {
+    return std::accumulate(v.begin(), v.end());
+}
+
+// rvalue overload
+auto sumVec(std::vector&lt;int&gt; &amp;&amp; v){
+    std::vector&lt;int&gt; * ptr = &amp;v;
+    // this is valid, so v is an lvalue
+
+
+    return sumVec(v);
+    // calls lvalue reference version
+    // since v is an lvalue
+}
+std::vector&lt;int&gt; * invalid = &amp;std::vector&lt;int&gt;({20, 30, 40, 560}); // error! not an lvalue
+
+const auto sum = sumVec({20, 30, 40, 560}); // bind to rvalue overload
+// the vector is constructed once, that single object is passed by reference to both functions
+
+
+std::vector vec = {1, 2, 3, 4};
+
+const auto sum2 = sumVec(vec); // calls lvalue overload
+// again vector is constructed once (at its definition)
+</code></pre>
+<p>Later we'll see how universal references (aka forwarding references) can be used to have one function for both lvalues and rvalues. 
+For now, a good method (and sometimes preferable to forwarding references) to get the best of both worlds is to create two functions and implement the rvalue reference overload in terms of the lvalue one.</p>
+<p>Now since a rvalue reference argument is a lvalue, if we want to pass it to another function taking a rvalue reference we'd have to use <code>std::move</code>.</p>
+<pre><code class="language-C++">auto func1(Car &amp;&amp; car) {
+    //...
+}
+
+auto func2(float mpg, Car &amp;&amp; car) {
+    // ..
+    return func1(std::move(car));
+    // cannot use car after this line
+    // totally fine since that's the last line
+    // in the function
+}
+
+func2(30.3, {&quot;Tesla&quot;, &quot;Model S&quot;});
+// A Car is constructed once, a reference to that is passed to func2
+// then that same car is moved to func1
+</code></pre>
+<h2 id="more-values"><a class="header" href="#more-values">More Values!</a></h2>
+<p>Now lvalues and rvalues aren't the full story. The taxonomy of expressions into these different types of values is known as an expression's value category. 
+The rvalues I've been talking about so far (and pre C++11 rvalues) are really <em>prvalues</em> and the new rvalue category contains both <em>prvalues</em> and <em>xvalues</em>. 
+The lvalues I've been talking about (pre C++11 lvalues) are still called lvalues but are now a subset of expressions categorized as <em>glvalues</em>. (I did name this chapter &quot;alphabet soup&quot; for a reason).</p>
+<pre><code>             expression
+            /          \
+        glvalue       rvalue
+       /      \      /      \
+ lvalue        xvalue        prvalue
+</code></pre>
+<h3 id="prvalues"><a class="header" href="#prvalues">prvalues</a></h3>
+<p>A <em>prvalue</em> is the result of the construction of an object including functions returning non-references, literals (except string literals), enumerators, lambda expressions, pending member function calls, and the <code>this</code> pointer. 
+Roughly speaking it is a direct value. A prvalue cannot be polymorphic so its static type must be the same as its dynamic type.</p>
+<pre><code class="language-C++">Person(&quot;Jimmy&quot;, &quot;Longbottom&quot;); // prvalue
+{20, 30, 40}; // consruct an std::initializer_list&lt;int&gt;
+std::string(&quot;Hello World&quot;); // prvalue
+
+&quot;Hiya&quot;; //not prvalue
+
+str1 + str2; // operator+ constructs a new string, that result is a prvalue
+
+42 // literals are prvalues
+
+struct Person {
+    enum {
+        brown,
+        black,
+        blonde,
+        red,
+        ginger
+    } hairColor;
+
+    auto guessEyeColorFromHairColor() {
+        switch (hairColor) {
+            // ...
+        }
+    }
+}
+
+Person::ginger; // prvalue, since enumerators are prvalues
+
+Person p;
+
+p.guessEyeColorFromHairColor; // pending member function call
+// prvalue
+// cannot do anything with this except call it
+// cannot take reference of this
+
+// as a reminder, here is the member function pointer syntax
+HairColor(Person::* memberPtr)(void) = &amp;Person::guessEyeColorFromHairColor;
+(p.*memberPtr)(); // call it with p as the context object
+
+// But
+p.*memberPtr; // is also a prvalue (same reason as above)
+</code></pre>
+<h3 id="xvalues"><a class="header" href="#xvalues">xvalues</a></h3>
+<p>Named as such because it is an &quot;expiring&quot; value. 
+It denotes an object or bit-field that is nearing the end of its lifetime and can be moved. 
+These were originally classified as lvalues pre C++11, so one way to think of them are lvalues that can be moved. 
+They are created in 3 cases: accessing a non-static member of a rvalue, the result of a function call that returns a rvalue reference, or casting an object to a rvalue.</p>
+<p>The rvalue category comprises prvalues and xvalues.</p>
+<pre><code class="language-C++">auto getPerson() {
+    return Person {Person::red};
+}
+
+Person&amp;&amp; bar() {
+    // ...
+}
+
+getPerson().hairColor; //xvalue
+
+Person p {Person::brown};
+
+std::move(p); // we'll discuss this later but std::move actually just casts to an rvalue
+// so this is an xvalue
+static_cast&lt;Person&amp;&amp;&gt;(p); // also xvalue
+
+bar(); // xvalue (result of calling a function returning an rvalue reference)
+
+
+</code></pre>
+<h3 id="glvalues"><a class="header" href="#glvalues">glvalues</a></h3>
+<p>Glvalues are &quot;generalized lvalues&quot; and are composed of lvalues and xvalues. 
+They can be polymorphic (actual type is not the static type) and have an incomplete type. 
+When a glvalue appears where an prvalue is expected, the glvalue is converted to a prvalue.</p>
+<p>Let's look at an example to recap:</p>
+<pre><code class="language-C++">class Game {
+    std::string name;
+public:
+
+    Game(std::string some_name) : name(std::move(some_name) /*xvalue*/) {}
+
+    std::string&amp; getName()
+    {
+        return name;
+    }
+
+    std::string cpyName() const
+    {
+        return name;
+    }
+};
+
+Game g(&quot;Skyrim&quot;); 
+g; // lvalue
+
+g.getName(); // lvalue
+g.cpyName(); //prvalue
+</code></pre>
+<h3 id="returning-by-rvalue-reference"><a class="header" href="#returning-by-rvalue-reference">Returning by rvalue reference</a></h3>
+<p>Now I said it's <em>generally</em> not a good idea to return by rvalue references, yet I also said that the result of a function that returns by rvalue reference is an xvalue. 
+So clearly, returning by rvalue references has its uses. And yes, yes it does but its usage is somewhat esoteric. </p>
+<p>Take the following code snippet:</p>
+<pre><code class="language-C++">class MaybeResult {
+    ResultType result;
+    bool success;
+public:
+    MaybeResult() : success(false) {}
+    MaybeResult(const ResultType &amp; res) : result(res), success(true) {}
+
+    ? valueOrThrow() {
+        // just for fun: this concept is called a Monad and this particular function is often named unwrap()
+        if (success) return result;
+        throw std::runtime_error(&quot;No value stored in result&quot;);
+    }
+};
+
+MaybeResult doComputation() {
+    // ...
+    return MaybeResult(computation);
+}
+
+auto res = doComputation().valueOrThrow();
+</code></pre>
+<p>Now, how can we avoid copying <code>result</code>. 
+Perhaps <code>ResultType</code> is a large matrix, it would be great not to copy it. 
+But if we return by reference, then the reference will dangle since <code>result</code> is a member of a temporary. 
+What if we could move <code>result</code>? Well, that would be lovely but then <code>valueOrThrow</code> would be unsafe to call on a lvalue!</p>
+<p>Thankfully, we can use <em>ref-qualifiers</em> to constrain the type of value the member function is applied on. 
+Ref-qualifiers work exactly like declaring a function <code>const</code>. In truth, both qualifiers aren't properties of the function but rather constraints on the type of the implicit first argument <code>this</code> pointer. 
+For example, a free function version of <code>valueOrThrow</code> could be:</p>
+<pre><code class="language-C++">ResultType&amp;&amp; valueOrThrow(MaybeResult &amp;&amp; maybe) {
+    if (maybe.success) return std::move(maybe.result);
+    else //...
+}
+
+ResultType&amp; valueOrThrow(MaybeResult &amp; maybe) {
+    if (maybe.success) return maybe.result;
+    else //...
+}
+
+const ResultType&amp; valueOrThrow(const MaybeResult &amp; maybe) {
+    if (maybe.success) return maybe.result;
+    else //...
+}
+</code></pre>
+<p>The analogous member functions using ref-qualifiers would therefore be:</p>
+<pre><code class="language-C++">    //...
+
+
+    // called on rvalues
+    ResultType&amp;&amp; valueOrThrow() &amp;&amp; {
+        if (success) return std::move(result);
+        else //...
+    }
+
+    // when valueOrThrow() is called on lvalues
+    ResultType&amp; valueOrThrow() &amp; {
+        if (success) result;
+        else //...
+    }
+
+    // when called on const lvalues
+    const ResultType&amp; valueOrThrow() const &amp; {
+        if (success) return result;
+        else //...
+    }
+};
+auto res = doComputation().valueOrThrow(); // #1
+MaybeResult res2;
+
+res2.valueOrThrow(); // #2
+
+const auto res3 = doComputation();
+
+res3.valueOrThrow(); // #3
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../move/intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../move/optimizations.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../move/intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../move/optimizations.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

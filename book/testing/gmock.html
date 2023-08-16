@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>GMock - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html" class="active"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="gmock"><a class="header" href="#gmock">Gmock</a></h1>
+<p>GMock provides the ability to mock implementations. For example let's say that you are testing some logic which performs some operation on data received fromm a database. 
+To keep tests fast, and the logic verifiable, it's probably useful to have a mock database which you can control. 
+What we can do is create a database <em>gateway</em>: an interface that abstracts away the concrete database implementation. 
+Then we can have a concrete production class, and a second concrete mock class acts like a real database. 
+Gmock makes developing such a class much easier by providing macros to generate method implementations and assert passed parameters and calling conditions 
+(ex. how many times the function is called, when it's called, etc.).</p>
+<p>The googletest github repo contains both gtest and gmock. So the only thing we need to do to use gmock is add gmock to the <code>target_link_libraries</code> call for our test in CMake.</p>
+<pre><code>target_link_libraries(Test PRIVATE GTest::gtest_main PRIVATE GTest::gmock)
+</code></pre>
+<p>Then in our test file we can include <code>&lt;gmock/gmock.h&gt;</code>.</p>
+<p>We can mock methods of a class (we cannot mock free functions) with the <code>MOCK_METHOD</code> macro which takes the method return type, name, arguments surrounded by parentheses, 
+and optionally and qualifiers surrounded by parentheses such as <code>const</code>, <code>noexcept</code>, and <code>override</code>. 
+Ref qualifiers and calling convention can also be specified in this parameter by surrounding the qualifier in <code>ref()</code> and <code>Calltype()</code>, respectively. Mock methods must always be public.</p>
+<pre><code class="language-C++">class MyMock {
+public:
+    MOCK_METHOD(std::string, getName, (), (const));
+    // std::string getName() const;
+
+    MOCK_METHOD(int, mult, (int, int), (const, noexcept));
+    // int mult(int, int) const;
+
+    MOCK_METHOD(void, setAge, (int));
+    // void setAge(int);
+};
+</code></pre>
+<p>In a test, we can use the <code>EXPECT_CALL</code> macro to assert that a method gets called, use <em>matchers</em> to assert conditions about the passed arguments, and use <em>actions</em> and <em>cardinalities</em> to 
+control the behavior of the mocked method. The first argument to <code>EXPECT_CALL</code> is an instance of a mock class, the second argument is the name of the method that should be called and matchers surrounded by parentheses. 
+The nth matcher in the parentheses applies to the nth argument of the method call.</p>
+<p>We discussed matchers in the last chapter, but one matcher we haven't discussed is <code>testing::_</code> which is a matcher that matches anything.</p>
+<pre><code class="language-C++">using namespace testing;
+TEST(MockTest, sqrtCalled) {
+    MyMock mock;
+    EXPECT_CALL(mock, mult(_, AnyOf(Eq(10), Gt(100))));
+    // _ indicates the first argument can be anything
+    
+
+    mock.mult(2, 300); // passes because the second argument is &gt; 100
+}
+</code></pre>
+<h2 id="actions"><a class="header" href="#actions">Actions</a></h2>
+<p>This is great to check that a function is called, but let's make the mock method do something. 
+We can specify an action to <code>WillOnce</code> or <code>WillRepeatedly</code> by chaining these function calls after the <code>EXPECT_CALL</code> macro.</p>
+<pre><code class="language-C++">EXPECT_CALL(mock, mult(_, AnyOf(Eq(10), Gt(100))))
+    .WillOnce(/* action 1*/)
+    .WillOnce(/* action 2*/)
+    .WillOnce(/* action 3*/)
+    .WillRepeatedly(/* action 4 */);
+// let n be the number of times mock.mult is called
+// if n &lt;= 3, do action_n
+// else do action_4
+</code></pre>
+<ul>
+<li><code>Return([optional value])</code> - returns from a void function or returns the passed value</li>
+<li><code>ReturnArg&lt;N&gt;()</code> - returns the nth argument to the function (0 based)</li>
+<li><code>ReturnRoundRobin(vectorOrInitializerList)</code> - circles through elements in the container, returning each one and moving to the next</li>
+<li><code>ReturnRef(variable)</code> - returns reference to <code>variable</code></li>
+<li><code>Throw(exn)</code> - throws <code>exn</code></li>
+<li><code>Assign(&amp;variable, value)</code> - assigns <code>value</code> to <code>variable</code>. Expects a pointer as the first argument</li>
+<li><code>SaveArg&lt;N&gt;(pointer)</code> - saves the nth argument to the value pointed to by <code>pointer</code>.</li>
+<li><code>DeleteArg&lt;N&gt;()</code> - deletes the nth argument, which should be a pointer</li>
+<li><code>SetArgReferee&lt;N&gt;(value)</code> - assigns the nth argument to <code>value</code>. The arg should be a reference</li>
+<li><code>Invoke(f)</code> - calls the callable object <code>f</code> with the parameters passed to the function
+<ul>
+<li><code>Invoke(objectPointer, member function pointer)</code></li>
+</ul>
+</li>
+<li><code>InvokeWithoutArgs(f)</code> - invokes a function taking no arguments</li>
+<li><code>InvokeArgument&lt;N&gt;(args...)</code> - invokes the nth argument as a callable object passing in <code>args...</code></li>
+</ul>
+<p>We can also compose actions as well:</p>
+<ul>
+<li><code>DoAll(actions...)</code> - self-explanatory</li>
+<li><code>IgnoreResult(action)</code> - ignore the result of an action</li>
+<li><code>WithArg&lt;N&gt;(action)</code> - executions <code>action</code> with the nth argument passed
+<ul>
+<li><code>WithArgs&lt;N0, N1, N...&gt;(action)</code></li>
+</ul>
+</li>
+</ul>
+<p>More information is available <a href="https://google.github.io/googletest/reference/actions.html">here</a>.</p>
+<p>So let's mock our class:</p>
+<pre><code class="language-C++">TEST(MockTest, testActions) {
+    MyMock mock;
+    EXPECT_CALL(mock, mult(_, AnyOf(Eq(10), Gt(100))))
+        .WillRepeatedly(Invoke([](auto a, auto b) { return a * b; }));
+        // we don't actually need to wrap the callable object in Invoke()
+
+    const std::initializer_list&lt;std::string&gt; names = { &quot;Molly&quot;, &quot;Andrew&quot;, &quot;Jimmy&quot;, &quot;Julia&quot;, &quot;Kathy&quot;, &quot;Roger&quot; };
+    EXPECT_CALL(mock, getName())
+        .WillRepeatedly(ReturnRoundRobin&lt;std::string&gt;(names));
+
+    int prevAge = 0;
+    EXPECT_CALL(mock, setAge(Gt&lt;int&amp;&gt;(prevAge))) // specify that prevAge is passed by reference, could also pass std::ref(prevAge)
+        .WillRepeatedly(SaveArg&lt;0&gt;(&amp;prevAge));
+
+
+    ASSERT_EQ(mock.mult(2, 300), 2 * 300); 
+    mock.setAge(1);
+    mock.setAge(2);
+    mock.setAge(4);
+    mock.setAge(10);
+    //  mock.setAge(8); // error, 8 is &lt; prevAge
+    ASSERT_THAT(std::vector&lt;std::string&gt; { mock.getName() }, IsSubsetOf(names));
+}
+</code></pre>
+<h2 id="cardinalities-and-sequences"><a class="header" href="#cardinalities-and-sequences">Cardinalities and Sequences</a></h2>
+<p>Without <code>WillOnce</code> or <code>WillRepeatedly</code>, the test will fail if the called function is called more than once. 
+This is because, by default, the expectation has a cardinality (amount of times the function can be executed) of <code>1</code>. 
+We can change this behavior by the <code>Times()</code> member function and passing it a cardinality such as:</p>
+<ul>
+<li><code>AnyNumber()</code></li>
+<li><code>AtLeast(n)</code></li>
+<li><code>AtMost(n)</code></li>
+<li><code>Between(n, m)</code></li>
+<li><code>Exactly(n)</code> or just a number <code>n</code> directly</li>
+</ul>
+<p>By default, each usage of <code>WillOnce</code> increments the expected call count by <code>1</code> (starting from <code>0</code>), and the presence of <code>WillRepeatedly</code> allows the function to be called any number of times.</p>
+<pre><code class="language-C++">TEST(MockTest, testCardinalities) {
+    MyMock mock;
+    EXPECT_CALL(mock, mult(_, _))
+        .Times(2);
+
+    EXPECT_CALL(mock, getName())
+        .Times(Between(1, 10));
+
+     mock.getName();
+
+    mock.mult(1, 1);
+    mock.mult(0, 0);
+
+   
+}
+</code></pre>
+<p>If you want to enforce that calls occur in a certain order (say that <code>mult</code> must be called before <code>getName</code>), 
+we can use an <code>InSequence</code> RAII object to enforce that functions are called in the order the <code>EXPECT_CALLS</code> are called. 
+All invocations of the gmock macros that occur while an <code>InSequence</code> object is alive synchronizes the order of these expectations.</p>
+<pre><code class="language-C++">TEST(MockTest, testCardinalities) {
+    MyMock mock;
+    {
+        InSequence seq;
+
+        EXPECT_CALL(mock, mult(_, _))
+            .Times(2);
+
+        EXPECT_CALL(mock, getName())
+            .Times(Between(1, 10));
+    }
+
+    EXPECT_CALL(mock, setAge(_))
+        .Times(AnyNumber());
+
+    mock.setAge(10); 
+    // set age not synchronized in block with InSequence object
+    // can occur in any order
+  
+    mock.mult(1, 1);
+    mock.mult(0, 0);
+    // enforces that calls to mult must occur before calls
+    // to getName
+
+    mock.setAge(20);
+
+    mock.getName();
+ 
+}
+</code></pre>
+<p>For more flexible sequences, gmock provides the <code>InSequence()</code> and <code>After()</code> functions. 
+This works by constructing a DAG and enforcing the functions are called in topological order. 
+We can use the <code>InSequence()</code> function and pass in <code>InSequence</code> objects to make that mock part of the specified sequences. Mocks in the same sequence must be called in the order they are defined. </p>
+<pre><code class="language-C++">using ::testing::Sequence;
+...
+    Sequence s1, s2;
+
+    EXPECT_CALL(foo, A()) 
+        .InSequence(s1, s2);
+    // foo(A()) is in sequence s1 and s2
+    EXPECT_CALL(bar, B()) 
+        .InSequence(s1);
+    // bar(B()) in sequence s1, must occur after foo(A())
+    EXPECT_CALL(bar, C())
+        .InSequence(s2);
+    // bar(C()) in sequence s2, must occur after foo(A())
+    EXPECT_CALL(foo, D())
+        .InSequence(s2);
+    // foo(D()) in sequence s2, must occur after foo(D())
+</code></pre>
+<p>This creates the following DAG:</p>
+<pre><code>       +---&gt; B
+       |
+  A ---|
+       |
+        +---&gt; C ---&gt; D
+</code></pre>
+<p>Above example taken from <a href="https://github.com/google/googletest/blob/master/docs/gmock_cook_book.md">gmock reference</a></p>
+<p>If you don't want to set any expectations about a function being called, you can use the <code>ON_CALL</code> macro instead of <code>EXPECT_CALL</code>. 
+It works exactly the same expect <code>ON_CALL</code> simply defines the action a function takes without adding test expectations. 
+<code>ON_CALL</code> should be preferred whenever you don't want to enforce call expectations (such as the number of times a function is called).</p>
+<h2 id="misc"><a class="header" href="#misc">Misc</a></h2>
+<p>We can use <code>ON_CALL</code> and <code>WillByDefault</code> to specify different actions for when different parameters to a function are used.</p>
+<pre><code class="language-C++">using ::testing::_;
+using ::testing::AnyNumber;
+using ::testing::Gt;
+using ::testing::Return;
+...
+  ON_CALL(foo, Sign(_))
+      .WillByDefault(Return(-1));
+  ON_CALL(foo, Sign(0))
+      .WillByDefault(Return(0));
+  ON_CALL(foo, Sign(Gt(0)))
+      .WillByDefault(Return(1));
+
+  EXPECT_CALL(foo, Sign(_))
+      .Times(AnyNumber());
+
+  foo.Sign(5);   // This should return 1.
+  foo.Sign(-9);  // This should return -1.
+  foo.Sign(0);   // This should return 0.
+</code></pre>
+<p>Google test provides a <a href="https://github.com/google/googletest/blob/master/docs/gmock_cheat_sheet.md">gmock cheat sheet</a>, <a href="https://github.com/google/googletest/blob/master/docs/gmock_cook_book.md">gmock cookbook</a>, and <a href="https://google.github.io/googletest/reference/mocking.html">gmock reference</a> along with other documentation. There's also the <a href="https://github.com/google/googletest/blob/master/docs/primer.md">gtest primer</a>, <a href="https://google.github.io/googletest/reference/testing.html">testing reference</a> and <a href="https://github.com/google/googletest/blob/master/docs/advanced.md">gtest advanced reference</a>.</p>
+<h2 id="easy-on-the-mocking"><a class="header" href="#easy-on-the-mocking">Easy on the Mocking</a></h2>
+<p>The key goal of mocking is to keep tests independent and fast. 
+When unit testing, you don't need to mock every single other class or module that the UUT (unit under test) depends on. 
+In fact, most dependencies probably don't require mocks. An example of a good mock is mocking a filesystem. 
+Changes to the filesystem made by one test might affect the behavior of another test. 
+The order that tests are run in must not matter (the order is indeterminate in gtest, but this is a good engineering practice). 
+Likewise, the filesystem is much slower than memory, so using a mock could sufficiently improve run time for tests. 
+Another good example is that during development of module A, you might find (or already know) that some behavior module A depends on could be factored out into a separate, public, module B. 
+Mocking can allow you to test module A without an implementation of module B's interface.</p>
+<p>As I mention before, <code>ON_CALL</code> should be preferred to <code>EXPECT_CALL</code>. 
+This is because <code>EXPECT_CALL</code> adds constraints to how the function is called, which may be an implementation detail. 
+Does the spec on the interface for <code>addProductToCart()</code> say that <code>doFoo()</code> is called 3 times after <code>makeFoo()</code> is called? If not, <code>ON_CALL</code> is probably a better choice than <code>EXPECT_CALL</code>. 
+The death of testing is when the test suite makes it difficult to refactor or alter the production code in any way. Overly mocking can cause this.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../testing/gtest.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../testing/gdb.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../testing/gtest.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../testing/gdb.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

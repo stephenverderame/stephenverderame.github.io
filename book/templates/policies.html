@@ -1,0 +1,629 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Customizing STL Containers - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html" class="active"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="policies"><a class="header" href="#policies">Policies</a></h1>
+<p>Taking the term from Andrei Alexandrescu, a policy is a small little class which handles a single behavior or structural element for larger, more complex classes. 
+<em>Policy Based Design</em> is the methodology to design classes by using such policies. 
+Policy based design is sort of like the generic programming equivalent of object composition with class hierarchies. 
+Let's look at an OOP and generic way of abstracting the thread safety and comparator behavior of a Linked List:</p>
+<pre><code class="language-C++">// OOP object composition (untested)
+class ThreadingPolicy {
+public:
+    virtual ~ThreadingPolicy() = default;
+    virtual std::unique_ptr&lt;LockProxy&gt; lock() = 0;
+
+    struct LockProxy {
+        virtual ~LockProxy() = default;
+    };
+};
+
+class MultithreadedPolicy : public ThreadingPolicy {
+    std::mutex mu;
+public:
+    class MTLock : public ThreadingPolicy::LockProxy {
+        std::mutex &amp;mu;
+    public:
+        MTLock(std::mutex&amp; mu) : mu(mu) {
+            mu.lock();
+        }
+
+        ~MTLock() {
+            mu.unlock();
+        }
+    };
+
+    std::unique_ptr&lt;LockProxy&gt; lock() override {
+        return std::make_unique&lt;MTLock&gt;(mu);
+    }
+};
+
+class SingleThreadedPolicy : public ThreadingPolicy {
+public:
+    struct SSLock : public ThreadingPolicy::LockProxy {};
+
+    std::unique_ptr&lt;LockProxy&gt; lock() override {
+        return std::make_unique&lt;SSLock&gt;();
+    }
+};
+
+struct Comparator {
+    virtual ~Comparator() = default;
+    virtual int compare(int, int) = 0;
+};
+
+struct LessThanComparison : Comparator {
+    int compare(int a, int b) override {
+        return a - b;
+    }
+};
+
+class LinkedList {
+    std::unique_ptr&lt;ThreadingPolicy&gt; tp;
+    std::unique_ptr&lt;Comparator&gt; cmp;
+
+    struct node {
+        int data;
+        std::unique_ptr&lt;node&gt; next;
+
+        node(int data) : data(data), next(nullptr) {}
+    };
+
+    std::unique_ptr&lt;node&gt; root;
+public:
+    LinkedList(std::unique_ptr&lt;ThreadingPolicy&gt; &amp;&amp; tp, std::unique_ptr&lt;Comparator&gt; &amp;&amp; cmp) :
+        tp(std::move(tp)), cmp(std::move(cmp)), root(nullptr) {}
+
+    void push_back(int data) {
+        const auto lk = tp-&gt;lock(); // user passed instance controls locking
+        auto* n = &amp;root;
+        while(*n) {
+            n = &amp;n-&gt;next;
+        }
+        *n = std::make_unique&lt;node&gt;(data);
+    }
+
+    bool find(int e) const {
+        const auto lk = tp-&gt;lock();
+        auto* n = &amp;root;
+        while(*n) {
+            if (cmp-&gt;compare(n-&gt;data, e) == 0) // user tells us how to compare
+                return true;
+            n = &amp;n-&gt;next;
+        }
+        return false;
+    }
+};
+</code></pre>
+<p>There's a few problems with this approach. 
+Firstly, we cannot have template virtual functions. This means we'd need to manually create comparators for every type of arguments we'd want to support. 
+Instead of an interface, we could accept a generic <code>std::function</code> to ameliorate that.
+What if we wanted to have a per node locking system to improve the concurrency of the list? A solution could be to make the threading policy follow the <em>prototype</em> OOP pattern. 
+Notice how this OOP approach however requires 2 parallel hierarchies, and because of the nature of polymorphism, indirection due to dynamic dispatch. 
+This might be manageable, but what if we decide to make allocation something the user can control? Once again we'd be off creating another set of parallel class hierarchies.</p>
+<p>We can make OOP work, but a better solution, especially when we're already dealing with generic code is to use policies. 
+Customizable behaviors such as object allocation, comparators, threading, different algorithm implementations, etc. can be <em>policies</em> passed as template arguments. 
+Each policy would adhere to a certain concept allowing the usage of many different, unrelated types. 
+For example, a threading policy would no longer have to have a <code>lock()</code> function returning an implementation of a specific interface, but rather any object adhering to a certain concept. 
+In our previous example, the concept would simply be <code>Destructible</code>.</p>
+<pre><code class="language-C++">#include &lt;mutex&gt;
+#include &lt;memory&gt;
+// Policy Implementations:
+// these adhere to the concepts required of them
+// kind of like OOP concrete classes
+struct SingleThreadPolicy {
+    char lock() const { return 0; }
+    // the thread policy concept (see below) requires we return something swappable and
+    // destructible
+    // char satisfies this requirement and is essentially
+    // a placebo for a lock
+};
+
+class MultiThreadPolicy {
+    mutable std::mutex lk;
+    // mutable allows lk to be mutated from const members
+public:
+    auto lock() const { return std::unique_lock&lt;std::mutex&gt;(lk); }
+    // unique lock is RAII for a lock
+    // locks on construction, unlocks on destruction
+    // move-only like unique_ptr
+    // we'll talk more about this later
+};
+
+enum class Ordering {
+    less,
+    equal,
+    greater
+};
+
+template&lt;typename T&gt;
+struct BasicComparator {
+    static Ordering compare(const T&amp; a, const T&amp; b) {
+        if (a &lt; b) return Ordering::less;
+        else if (a == b) return Ordering::equal;
+        else return Ordering::greater;
+
+    }
+};
+///
+
+// C++17 policy definitions
+// define what concepts we need our policies to have
+// analogous to an OOP abstract class/interface
+
+template&lt;typename T&gt;
+using strip_t = std::remove_cv_t&lt;std::remove_reference_t&lt;T&gt;&gt;;
+
+template&lt;class Comparator, typename T, typename = void&gt;
+struct IsComparator : std::false_type {};
+
+template&lt;class Comparator, typename T&gt;
+struct IsComparator&lt;Comparator, T, std::enable_if_t&lt;
+    std::is_same_v&lt;Ordering,
+    strip_t&lt;decltype(Comparator::compare(std::declval&lt;T&gt;(), std::declval&lt;T&gt;()))&gt;&gt;
+    // checks for a static member function compare() that operates on two Ts and returns an Ordering
+    // does not have to be same const, reference, pointer, or volatility-ness
+    &gt;&gt; : std::true_type{};
+
+template&lt;typename T, typename = void&gt;
+struct IsThreadingPolicy : std::false_type {};
+
+template&lt;typename T&gt;
+struct IsThreadingPolicy&lt;T,
+    std::enable_if_t&lt;
+    std::is_swappable_v&lt;decltype(std::declval&lt;const T&gt;().lock())&gt;
+    // checks for a const member function lock() that returns a type that is swappable
+    &gt;&gt; : std::true_type{};
+
+template&lt;typename T&gt;
+constexpr auto inline is_threading_v = IsThreadingPolicy&lt;T&gt;::value;
+
+template&lt;template&lt;typename&gt; class Cmp, typename T&gt;
+constexpr auto inline is_comparator_v = IsComparator&lt;Cmp&lt;T&gt;, T&gt;::value;
+
+///
+
+
+// primary definition of class, if it gets to this (specialization failure), class is incomplete and cannot be used
+template&lt;typename T, 
+    class ThreadingPolicy = SingleThreadPolicy, 
+    template&lt;typename&gt; class Cmp = BasicComparator, 
+    typename = void&gt;
+class LinkedList;
+
+// this template&lt;typename&gt; syntax indicates that Comparator is a &quot;template-template&quot; parameter
+// a template paramater that is itself a template
+// more on this later
+
+// sfinae specialization
+template&lt;typename T,
+    class ThreadingPolicy,
+    template&lt;typename&gt; class Cmp&gt;
+
+class LinkedList&lt;T,
+    ThreadingPolicy, Cmp,
+    std::enable_if_t&lt;is_threading_v&lt;ThreadingPolicy&gt;&amp;&amp; is_comparator_v&lt;Cmp, T&gt;&gt;&gt;
+{
+    class node {
+        ThreadingPolicy localLock;
+        T data; ///&lt; Invalid iff empty is true
+        bool empty;
+    public:
+        std::unique_ptr&lt;node&gt; next;
+        ///Invariant: next is null iff empty is true
+    public:
+
+        node() : data(), empty(true), next(nullptr) {}
+        node(T&amp;&amp; data) : data(std::forward&lt;T&gt;(data)), empty(false),
+            next(std::make_unique&lt;node&gt;()) {};
+
+        void set(T&amp;&amp; data) {
+            this-&gt;data = std::forward&lt;T&gt;(data);
+            empty = false;
+            if (!next) {
+                next = std::make_unique&lt;node&gt;();
+            }
+        }
+
+        inline auto lock() { return localLock.lock(); }
+        inline auto isEmpty() { return empty;  }
+        inline const auto&amp; getData() { return data;  }
+    };
+
+    std::unique_ptr&lt;node&gt; root;
+public:
+    LinkedList() : root(std::make_unique&lt;node&gt;()) {};
+
+    template&lt;typename U&gt;
+    auto push_back(U&amp;&amp; data) -&gt; std::enable_if_t&lt;std::is_same_v&lt;strip_t&lt;U&gt;, T&gt;&gt; 
+    {
+        // if we used T, data would not be a universal reference since
+        // the function itself is not a template and T is the class template argument
+        using std::swap;
+        auto n = &amp;root;
+        auto lk1 = n-&gt;get()-&gt;lock();
+        while (!n-&gt;get()-&gt;isEmpty()) {
+            n = &amp;n-&gt;get()-&gt;next;
+            auto lk2 = n-&gt;get()-&gt;lock();
+            swap(lk1, lk2);
+            // hand over hand locking (we'll talk about this later)
+            // lk1 and lk2 are swapped, lk1 then goes out of scope
+            // releasing the lock
+        }
+        n-&gt;get()-&gt;set(std::forward&lt;T&gt;(data));
+    }
+
+    bool find(const T&amp; e) const {
+        using std::swap;
+        auto n = &amp;root;
+        auto lk1 = n-&gt;get()-&gt;lock();
+        while (!n-&gt;get()-&gt;isEmpty()) {
+            if (Cmp&lt;T&gt;::compare(n-&gt;get()-&gt;getData(), e) == Ordering::equal)
+                return true;
+            // we don't need an instance of the comparator
+            // its member function is static
+            n = &amp;n-&gt;get()-&gt;next;
+            auto lk2 = n-&gt;get()-&gt;lock();
+            swap(lk1, lk2);
+            // policy doesn't dictate what type is returned from lock
+            // might be an STL lock, might be something user defined
+            // thus we don't want to hardcode std::swap bc the user
+            // might provide their own
+        }
+
+        return false;
+    }
+};
+</code></pre>
+<p>We've gained finer grain locking with policies because when we pass a type via template parameter, we have more control. 
+We can easily construct instances of the locking policy wherever we see fit without forcing the locking policy to implement the prototype pattern. 
+We also don't need to have an instance of the comparator. 
+And probably most importantly, we cut down on the amount of classes we have to create. Supporting a different type is as easy as changing a single template parameter. 
+We use SFINAE to enforce that the template parameters adhere to the policy interface. In C++20, concepts makes this much easier and cleaner.</p>
+<p>Notice that these policies are general enough to apply to many classes. </p>
+<p>Template-template parameters and more policy design examples will come later, but for now, I want to focus on using these ideas to customize the STL.</p>
+<p>STL uses this design a lot. We've already seen it in action with deleters on smart pointers and comparison predicates in STL containers. 
+One thing to note is that the STL wasn't so kind as to use SFINAE to prevent incorrect concept implementations. </p>
+<p>A common STL policy is an allocator. These are typically the last template argument (because they are typically the least frequently customized) and are pretty similar to custom deleters with smart pointers. 
+I won't discuss them here, but it's good to know they exist.</p>
+<p>Let's start with an <code>std::map</code>. <code>std::set</code> is an ordered container typically implemented as a RB Tree. If we want to have a map of students, we'd need to be able to order them.</p>
+<pre><code class="language-C++">struct Student {
+    std::string name, school, college, major;
+    float gpa;
+};
+
+</code></pre>
+<p>The concept for a comparator (<code>Compare</code> named requirement) requires a type that takes in a template parameter and defines an <code>operator(const T&amp;, constT&amp;)</code> which returns a bool 
+(or something implicitly convertible to bool). It also requires that <code>!cmp(a, b) &amp;&amp; !cmp(b, a)</code> establishes that <code>a == b</code>. 
+The default ones provided are <code>std::less</code> and <code>std::greater</code> which use <code>operator&lt;</code> and <code>operator&gt;</code> respectively. 
+Containers will order their elements so that <code>a</code> is before <code>b</code> if <code>cmp(a, b)</code> returns true. Thus, an out-of-the-box <code>std::set</code> will order elements least to greatest using the type's defined <code>operator&lt;</code>.</p>
+<p>Say we wanted to dehumanize our students and order them from highest to lowest gpa. Since equal gpa's should be allowed, we'll need an <code>std::multiset</code>. 
+We could do this relatively simply by defining an <code>operator&gt;</code> and changing the template parameter.</p>
+<pre><code class="language-C++">struct Student {
+    std::string name, school, college, major;
+    float gpa;
+
+    bool operator&gt;(const Student&amp; other) const {
+        return gpa &gt; other.gpa;
+    }
+};
+
+std::multiset&lt;Student, std::greater&lt;Student&gt;&gt; students;
+</code></pre>
+<p>Now let's say we wanted a multiset of students in an order that's different from the typical method to compare students: all CS students first, then alphabetically by major. 
+We probably don't want to change <code>operator&gt;</code> since users of our Student type wouldn't expect such an ordering when using the comparison operators. So instead, we'll just change the comparator on the set.</p>
+<pre><code class="language-C++">
+struct StudentMajorOrdering {
+    // const Student&amp; because that will bind to all references
+    bool operator()(const Student&amp; a, const Student&amp; b) const {
+        if (a.major == &quot;Computer Science&quot; &amp;&amp; b.major != a.major)
+            // two students that are equal must not compare to true
+            return true;
+        else
+            return a.major &lt; b.major;
+    }
+};
+
+std::multiset&lt;Student, StudentMajorOrdering&gt; students;
+</code></pre>
+<p>The STL comparator is not a template template parameter which allows us to easily implement specific orderings like this one. 
+However, it also means that when we do use template comparators like <code>std::less</code>, we'll have to pass the element type as a parameter to both the container and comparator as well.</p>
+<p>A difference between OOP and generic interfaces is that these two sets are not the same type. Unless our class defines generic member functions (which the STL does not), 
+we cannot easily convert the two types and any code wishing to abstract away the specific implementation would need to use templates.</p>
+<pre><code class="language-C++">
+template&lt;typename T, class Cmp, class Alloc&gt;
+void useMS(const std::multiset&lt;T, Cmp, Alloc&gt; &amp;) {}
+
+// OR
+
+template&lt;typename T&gt;
+void useSet(T&amp;&amp;) {}
+// this one should probably use concepts to enforce 
+// the interface T must adhere to.
+</code></pre>
+<p>We already saw how we can specialize <code>std::hash</code> to make custom types work with hash containers, but what if we just wanted one <code>std::unordered_map</code> with a custom hash function? 
+We can change the hashing and the comparison templates similarly to changing a comparator in a set. 
+Let's saw we wanted a map keyed on a student where we'll have only 1 student per school. That is to say two students are equal if they go to the same school. 
+We'll need to change the hash function and the predicate used to compare for equality.</p>
+<pre><code class="language-C++">struct StudentSchoolEquality {
+    bool operator()(const Student&amp; a, const Student&amp; b) const {
+        return a.school == b.school;
+    }
+    // return true iff the passed arguments are equal
+};
+
+struct StudentSchoolHash {
+    size_t operator()(const Student&amp; s) const {
+        return std::hash&lt;std::string&gt;{}(s.school);
+        // just hash the student's school member
+    }
+    // a hash function should return std::size_t
+}
+
+std::unordered_map&lt;Student, std::string, StudentSchoolHash, StudentSchoolEquality&gt; map;
+</code></pre>
+<p>Notice how the <code>operator()</code> member functions are <code>const</code> and are passed <code>const</code> references. 
+Because they do not modify any outside state or have side effects, these functions are known as <em>pure</em> and should be preferred to non-pure. 
+For those familiar with functional programming, a pure function is like a step below a functional function. 
+They don't have side effects or modify outside state, but they can modify internal local state and have things like loops.</p>
+<p>For the last example, let's implement a case-insensitive string. We can customize <code>std::string</code> which is a type alias for <code>std::basic_string&lt;char&gt;</code>. The full template definition of <code>std::basic_string</code> is as follows:</p>
+<pre><code class="language-C++"> template&lt;class charT,
+           class traits = char_traits&lt;charT&gt;,
+           class Allocator = allocator&lt;charT&gt; &gt;
+      class basic_string;
+</code></pre>
+<p>So writing a case-insensitive string really just boils down to implementing a <code>char_traits</code> policy. <code>std::char_traits&lt;T&gt;</code> is a struct that defines quite a few <u>static</u> member functions such as 
+<code>eq(), lt(), compare(), copy(), length(), move(), eof()</code>, and more. Unlike before where we created an entire implementation of the concept, this time we'll use inheritance to borrow the 
+implementation of the default <code>std::char_traits&lt;T&gt;</code> and just shadow what we want to rewrite. Although <code>char_traits</code> is not meant to be inherited from (no virtual destructor), 
+this is safe because we never instantiate either of them. We only use their static methods.</p>
+<pre><code class="language-C++">// Herb Sutter's GOTW #29
+struct ci_char_traits : public char_traits&lt;char&gt; {
+    static bool eq(char c1, char c2) { 
+        return toupper(c1) == toupper(c2); 
+    }
+
+    static bool ne(char c1, char c2) { 
+        return toupper(c1) != toupper(c2); 
+    }
+
+    static bool lt(char c1, char c2 ){ 
+        return toupper(c1) &lt; toupper(c2); 
+    }
+
+    static int compare(const char* s1, const char* s2, size_t n) {
+        return memicmp(s1, s2, n);
+        // case insensitive str compare
+    }
+
+    static const char* find(const char* s, int n, char a) {
+        while( n-- &gt; 0 &amp;&amp; toupper(*s) != toupper(a) ) {
+            ++s;
+        }
+        return s;
+    }
+};
+
+using ci_string = std::basic_string&lt;char, ci_char_traits&gt;;
+ci_string s1 = &quot;HeLlO&quot;;
+ci_string s2 = &quot;helLO&quot;;
+s1 == s2; // true
+</code></pre>
+<p>One thing to remember is that <code>std::vector&lt;int&gt;</code> is not the same type as <code>std::vector&lt;char&gt;</code> and thus <code>std::basic_string&lt;char&gt;</code> is a different type from <code>std::basic_string&lt;char, ci_char_traits&gt;</code>. 
+Therefore, using things like <code>operator+()</code> or <code>operator&lt;&lt;()</code> will require you to convert to a c string with <code>c_str()</code> or write functions that work for the new type.</p>
+<p>This implementation only supports <code>char</code>, but does a good job getting the point across.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../templates/iterators.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../functional/intro.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../templates/iterators.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../functional/intro.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

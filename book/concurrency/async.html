@@ -1,0 +1,446 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Async, Promises, and Futures - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html" class="active"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="async-promises-and-futures"><a class="header" href="#async-promises-and-futures">Async, Promises, and Futures</a></h1>
+<p>Earlier I mentioned that threads take void return functions.
+Well, they don't have to, but returning something from a thread isn't going to do anything useful.
+That isn't the case for futures. Futures are essentially a handle to a concurrent task that allows you to wait for and fetch the result of the task. The basic operations of futures are:</p>
+<ul>
+<li><code>get()</code> - Blocks until the result is ready, then returns the result</li>
+<li><code>valid()</code> - Returns true if the future is associated with shared state</li>
+<li><code>wait()</code>, <code>wait_for()</code>, and <code>wait_until()</code> 
+These functions return a <code>std::future_status</code> which indicates if the future is ready (can call <code>get()</code> without blocking) or not</li>
+</ul>
+<p>Futures are returned from <code>std::async</code> which may run a task in parallel.
+When using <code>std::async</code>, the library controls if the code is run on a new thread or sequentially. The library implementation chooses the best option to avoid over-subscription and excessive task switching.
+If you must force it to run in parallel, pass <code>std::launch::async</code> as the first parameter.
+The next parameter to <code>std::asycnc</code> would be the callable object to run, and any remaining parameters would be arguments passed to that callable object.
+This works similarly to <code>std::bind</code>. <code>std::async</code> will then return a <code>std::future</code>, which is like a handle for a value that isn't available yet, but is expected
+in the future.</p>
+<pre><code class="language-C++">int foo();
+class A {
+public:
+    int computeNumber(int seed) {
+    int num = //...
+    return num;
+    }
+};
+A a;
+int seed = 20;
+std::future&lt;int&gt; fu = std::async(&amp;A::computeNumber, &amp;A, seed);
+// if you pass a member function, the first argument needs to be a pointer
+// to the owning object (remember, this is an implicit first argument)
+
+// do some stuff
+
+int res = fu.get();
+// if async did not launch a parallel task
+// then at this point it will execute the code 
+// in sequence either way, get() will wait 
+// until the result is available
+
+std::vector&lt;std::future&lt;int&gt;&gt; futures;
+futures.emplace_back(std::async(std::launch::async, [](){
+    return /* some result*/
+}));
+// emplace a task that is always run on a new thread
+
+futures.emplace_back(std::async(std::launch::deferred, &amp;foo));
+// std::launch::deferedd forces the task to be run on the current thread
+
+for(auto&amp; fu : futures) {
+    auto status = fu.wait_for(500ms);
+    if(status == std::future_status::ready) {
+        int res = fu.get();
+    }
+}
+</code></pre>
+<p>Like threads, futures are move-only.
+So notice when we iterate through the vector, we use <code>auto&amp;</code> instead of <code>auto</code>.
+This is because, if you remember our type deduction rules, a plain <code>auto</code> is exactly like a plain <code>T</code>.
+Therefore, it will copy by-value. Futures cannot be copied (nor did we want to copy it), so we use <code>auto&amp;</code> to get a reference to the deduced type.</p>
+<p>We also have <code>std::launch::deferred</code> which is diametrically opposed to <code>std::launch::async</code>.
+Instead of requiring a parallel mode of execution, it requires execution be deferred until <code>get()</code> is called.</p>
+<p><code>get()</code> can <strong>only be called once</strong> per future object. Once <code>get()</code> is called, when the result is ready, the future moves out whatever shared state it had.
+At this point it becomes invalid.
+You can check if a future is valid by calling <code>valid()</code>. If you do call <code>get()</code> twice on the same future, you will get a <code>std::future_error</code>.
+If a future is destroyed without calling <code>get()</code>, the destructor will wait for the task to finish.</p>
+<p><code>std::async</code> is great for recursive algorithms, times when you don't know how best to split up work among different threads ahead of time,
+or using functional programming idioms with concurrent programming.</p>
+<p>Here's and example of a parallel merge sort.</p>
+<pre><code class="language-C++">#include &lt;future&gt;
+#include &lt;algorithm&gt;
+template&lt;typename T&gt;
+void mergeSort(std::vector&lt;T&gt;&amp; vec, size_t begin, size_t end) {
+    if (end &gt; begin + 1) {
+        const auto middle = (begin + end) / 2;
+        auto fu = std::async([&amp;]() { mergeSort(vec, begin, middle); });
+        mergeSort(vec, middle, end);
+        fu.get();
+        std::inplace_merge(&amp;vec[begin], &amp;vec[middle], vec.data() + end);
+    }
+}
+</code></pre>
+<p>What's going on is that we start with the entire vector, and at each step we subdivide the vector into two halves.
+One half is (possibly) performed in parallel while the main thread is doing the other half.
+If we used pure threads here, then we could quickly get up to too large of an amount of threads.
+We start big, and go into smaller and smaller chunks so that the new threads are likely created for the big chunks,
+and the smaller chunks are likely executed sequentially.</p>
+<p>Notice also that the merge sort function doesn't return anything and performs the operation in-place. We can still use futures however.
+In this case we use a future to notify when the task is completed instead of using condition variables and mutexes.
+Consider using void futures to notify one-off events.</p>
+<p>Since <code>mergeSort</code> is a template, we wrap it in a lambda and pass it to <code>std::async</code> instead of passing its address and function arguments directly.
+This is because it's difficult to get the address of a template function.</p>
+<p>Since <code>end</code> is going to be off the back of the vector for some calls to <code>std::inplace_merge</code>, we don't get the end pointer by doing <code>&amp;vec[end]</code>, because
+that would be undefined behavior if <code>end &gt;= size()</code>. Finally, I'd also like to remind you that doing <code>&amp;vec[index]</code> will not work for boolean vectors.
+For an explanation, refer to <a href="../basic_containers/vector.html">the vectors section in the basic containers chapters</a>.</p>
+<p>Now what if you wanted to be able to call <code>get()</code> multiple times?
+Let's say you have multiple threads that all need some result.
+Well the C++ standard has given us the shared future <code>std::shared_future</code>. The differences are quite similar to a <code>unique_ptr</code> vs a <code>shared_ptr</code>.
+The <code>shared_future</code> is both moveable and copyable.
+We can convert a future to a <code>shared_future</code> by calling the <code>share()</code> member function.
+Once shared, multiple threads can then wait on the result and multiple threads can call <code>get()</code>.</p>
+<pre><code class="language-C++">std::shared_future&lt;X&gt; fu;
+void doWork(){
+    auto val = fu.get();
+    // do something
+}
+fu = std::async(std::launch::async, &amp;getResult).share();
+std::thread t1(&amp;doWork), t2(&amp;doWork);
+</code></pre>
+<p>Other than that the interface is exactly the same.</p>
+<h3 id="continuations"><a class="header" href="#continuations">Continuations</a></h3>
+<p>The <code>std::experimental::future</code> provides another member function <code>then()</code>.
+This allows you to schedule some code to run when the future becomes ready instead of having to check it yourself by calling <code>get()</code> or <code>wait()</code>.
+This is known as a <em>continuation</em>. It takes any kind of callable object, similar to bind. <code>std::experimental::when_all()</code>
+allows you to pass a variable amount of futures, and it will return a future that becomes ready when all the futures are ready.
+Furthermore, <code>std::experimental::when_any()</code> does a similar thing, except its future will become ready once any of the passed futures are ready.</p>
+<h3 id="packaged-task"><a class="header" href="#packaged-task">Packaged Task</a></h3>
+<p>std::async isn't the only way to create futures.
+We also have <code>std::packed_task</code>. 
+Packaged task associates a callable object with a future.
+The <code>packaged_task</code> is manually executable via <code>operator()</code>.
+Essentially, it allows you to package together a callable object and its associated future, then move it somewhere to be called.
+So the main difference compared to <code>std::async</code> is that you control when, where, and how it's executed.
+Consider this basic thread pool, which is something that maintains multiple worker threads that the user can use to complete tasks.</p>
+<pre><code class="language-C++">class ThreadPool {
+private:
+    std::queue&lt;std::packaged_task&lt;int(void)&gt;&gt; q;
+    std::vector&lt;std::jthread&gt; thread;
+    std::condition_variable cv;
+    std::mutex mu;
+
+    // function that is run on each worker thread
+    // of the thread pool
+    void process(std::stop_token stop) {
+        /* while thread isn't interrupted:
+            wait for new task if queue is empty
+            acquire lock
+            pop task of work queue
+            release lock
+            run task that was popped of the queue
+        */
+        while(!stop.stop_requested()){
+            std::unique_lock&lt;std::mutex&gt; lk(mu);
+            if(q.empty()){
+                cv.wait(lk, [&amp;q](){
+                    return !q.empty();
+                });
+            }
+            auto pt = std::move(q.front());
+            q.pop();
+            lk.unlock();
+            pt(); //execute packaged_task
+        }
+    }
+public:
+    // Creates a pool with tCount amount of worker threads
+    ThreadPool(int tCount) {
+        for(auto i = 0; i &lt; tCount; ++i){
+            threads.emplace_back(
+                std::jthread(&amp;ThreadPool::process, this));
+        }
+    }
+
+    std::future&lt;int&gt; addWork(std::function&lt;int(void)&gt; f) {
+        std::packaged_task&lt;int(void)&gt; pt(f);
+        // construct packaged_task from functor
+
+        auto fu = pt.get_future();
+        // get associated future
+        {
+            std::lock_guard&lt;std::mutex&gt; lk(mu);
+            q.push(std::move(pt));
+            // push new task to complete on queue
+        }
+        cv.notify_one();
+        // notify worker threads that there's a new task
+        return fu;
+        }
+    }
+}'
+
+int fibo(int val) {
+    if(val &lt;= 1) return val;
+    return fibo(val - 1) + fibo(val - 2);
+}
+
+ThreadPool pool(std::thread::hardware_concurrency());
+// create a thread pool with the amount of threads the system can support truly concurrently
+auto future = pool.addWork(std::bind(&amp;fibo, 345));
+</code></pre>
+<p>First, we use the new C++20 jthread. This will ensure that threads are cleaned up properly, and if a thread throws while being created the threads that started already are cleaned up correctly.
+It also allows us to interrupt the thread. Our thread pool doesn't provide that feature to the clients, but jthread will interrupt on destruction before joining.
+We call <code>get_future()</code> on the packaged task to get the associated future and return it to the client so that they can receive the result.
+Since packaged tasks are move only, we have to use <code>std::move</code> to explicitly move it.
+We use a condition variable to notify the thread pool of new work to do, and a <code>unique_lock</code> to control access to the shared queue.</p>
+<h3 id="promise"><a class="header" href="#promise">Promise</a></h3>
+<p>There's one final way to create a future, and that's from a promise. A promise is like the writing end of a future.
+You can call <code>set_value()</code> or <code>set_exception()</code> on a promise and that information will be relayed to the future.
+These functions will make the future ready. <code>set_value()</code> will set the data returned from calling <code>get()</code> on the future.
+<code>set_exception()</code> will set the exception thrown when <code>get()</code> is called on the future.
+If an error occurs during the call to <code>set_value()</code>, then an exception is set on the promise.
+The promise <strong>must outlive the future</strong> because the promise is what owns the state, not the future.
+If the promise gets destroyed before the future gets the data, then the exception <code>std::future_error::broken_promise</code> is set instead.
+When you call <code>get()</code> on a future, the data owned by the promise is moved to the future and returned to the client.
+You can get a future from a promise by calling <code>get_future()</code> just like packaged tasks.</p>
+<pre><code class="language-C++">std::promise&lt;std::string&gt; p;
+void compute() {
+    try{
+        std::string s = //some calculation
+        p.set_value(s);
+        // if the copy fails here
+        // the promise automatically sets an exception
+    } catch(...){
+        p.set_exception(std::current_exception());
+        // captures whatever exception was thrown and
+        // stores it in the future
+    }
+}
+
+std::thread t(&amp;compute);
+auto fu = p.get_future();
+
+std::cout &lt;&lt; fu.get() &lt;&lt; std::endl;
+</code></pre>
+<p>Just like how you can't call <code>get()</code> multiple times on a future,
+you can't set a value multiple times on the same promise.
+Think of it as a one-direction pipe from promise to future which will close after you send a message on it. </p>
+<p>I'd also like to point out <code>std::current_exception()</code>, which I think needs no further explanation than my comments</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../concurrency/cond_var.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../concurrency/atomic.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../concurrency/cond_var.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../concurrency/atomic.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

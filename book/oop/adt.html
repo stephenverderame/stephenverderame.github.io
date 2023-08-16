@@ -1,0 +1,408 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Abstract Types and Virtual - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html" class="active"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="interfaces"><a class="header" href="#interfaces">Interfaces</a></h1>
+<p>What we saw last chapter was a <em>concrete</em> class. Concrete types have their representation part of their definition. 
+Unlike concrete types, abstract types cannot be instantiated, but instead provide an interface for other concrete classes to implement. </p>
+<p>An interface is the contract between clients (users of the interface), and implementors. A client doesn't know or 
+care how an interface is implemented. The client just assumes that the implementation does what the interface says it does.
+An analogy for an interface might be a menu. A menu gives you a general gist of the dishes available and lists the costs and 
+maybe some key ingredients. But each chef is free to make the dish however they want. If the head chef calls in sick,
+someone else might be able to take over. Multiple people might work on different parts of the dish and things like 
+spice combinations, oven temperatures, how long the pan is preheated, and the ordering of some steps might differ. 
+All of these details are abstracted from the client, which allows the implementors (the kitchen in this analogy)
+to be free to change things up.</p>
+<p>Abstract types must be used via pointers or references, while concrete types can be used directly. Concrete types can be placed on the stack, and be members of other classes much more simply than abstract types.</p>
+<p>A function that you want a derived class to be able to override must be declared <code>virtual</code>. 
+The reason is that the presence of a <code>virtual</code> function requires something known as a virtual table or vtable. This is an area in memory that each instance has access to that allows the 
+compiler to perform dynamic dispatch by looking up the specific function to call at runtime. More accurately, each instance has a pointer to its respective virtual table. 
+Since C++ is &quot;pay for what you use&quot;, this vtable isn't created unless a class declares a function <code>virtual</code> which enables dynamic dispatch for that function and allows subclasses to override it.</p>
+<p>An abstract type contains at least one <em>pure virtual</em> functions, which is a function that subclasses <strong>must</strong> override because the superclass does not implement it. </p>
+<pre><code class="language-C++">class Person {
+public:
+    virtual std::string speak() const = 0; // pure virtual function
+
+    virtual int walk() { return 10; }
+    // overrideable with default implementation
+};
+
+class Child : public Person { // child implements Person
+public:
+    std::string speak() const override {
+        return &quot;Hiya&quot;;
+    }
+};
+
+Child c;
+c.speak(); //Hiya
+c.walk(); // 10
+Person p; //error
+</code></pre>
+<p>When overriding a function, it's good practice to explicitly denote it as such with <code>override</code>. 
+This prevents you from accidentally creating a new function and <em>shadowing</em> the super class's functions. 
+Since you cannot overload superclass functions, creating a function with the same name as a superclass's function in a subclass shadows that function and prevents it from being called.</p>
+<pre><code class="language-C++">class Machine {
+public:
+    long serialNumber() { /* ... */ }
+};
+
+class Computer : public Machine {
+public:
+    long serialNumber(long default) { /* ... */ }
+};
+
+Computer pc;
+pc.serialNumber(10); // good
+pc.serialNumber(); // error, superclass method shadowed
+</code></pre>
+<p>Inheritance enables us to use polymorphism and let subclasses behave like their superclasses. 
+A user would not need to care about the concrete class or its implementation, they can just use the interface defined in the supertype without regard to the specific implementation. 
+However, in order to fully support this, we need to ensure that the destructor is virtual. 
+Otherwise, there will be no dynamic dispatch on the destructor which will cause undefined behavior if we destroy a subclass through a reference or pointer to the superclass. 
+Another alternative is to make the base class destructor protected and non-virtual. This will prevent deletion of a derived type through a pointer or reference to the base class.</p>
+<p>Constructors on the other hand, cannot be virtual. This is because construction requires complete type information; the static type is the type being constructed. 
+Furthermore, the class doesn't exist as an object at runtime yet, so you can't call a virtual method on it.</p>
+<p>As an addendum, you should not call virtual functions in constructors or destructors. 
+This is because the actual type of the object changes during these two operations, and the actual type is always the type being created/destroyed. 
+During construction of a derived class, we first start by constructing the base class and running the base class constructor. 
+In this constructor, the actual type of the object is the base class type and not yet the derived class type. 
+Then we build off the base and construct the derived class by calling the derived class constructor. 
+During this second constructor call, the actual type changes to be that of the derived type. 
+For destruction, the process is similar but in reverse, destroying the derived object before destroying the base.
+Therefore, if you call a virtual function in the base class constructor, it will dispatch to the implementation in the base class and not the derived class. This is because, when the base class constructor is being run, the dynamic type is still the base type.
+So calling virtual functions in constructors/destructors is technically safe so long as the virtual function is not pure virtual and you don't expect it to dispatch to a derived type, but it's not a good idea.</p>
+<pre><code class="language-C++">class Vehicle {
+protected:
+    std::string name;
+public:
+    Vehicle(const std::string &amp; name) : name(name) {}
+
+    virtual ~Vehicle() = default;
+    // need a virtual destructor, but don't need any custom behavior
+    // so mark it = default
+
+    std::string description() { return name; }
+
+    virtual void move() = 0;
+};
+
+class Car : public Vehicle {
+private:
+    int horsePower;
+public:
+    Car(int hp) : Vehicle(&quot;Car&quot;) {
+        // cannot set variables in initializer list
+        // when using a delegating constructor
+        horsePower = hp;
+    }
+
+    Car(const std::string &amp; name, int hp) : Vehicle(name) {
+        horsePower = hp;
+    }
+
+    void move() override {
+        // name is protected so it can be accessed
+        std::cout &lt;&lt; name &lt;&lt; &quot; went &quot; 
+            &lt;&lt; horsePower / 10 /* some calculation, idk */ 
+            &lt;&lt; &quot; mph&quot;;
+    }
+
+    void honk() {/* ... */}
+};
+
+
+auto moveIt(Vehicle &amp; vehicle) {
+    vehicle.move();
+    return vehicle.description();
+}
+
+Car c(700);
+
+moveIt(c);
+
+</code></pre>
+<p><code>Vehicle</code> has a constructor, but it is an abstract type so it still can't be constructed directly. 
+Instead, subclass constructors must delegate one of the superclass constructors like shown. 
+When delegating a call from one constructor to another, we cannot use the initializer list to instantiate extra variables.</p>
+<p>Also, notice how <code>moveIt</code> takes a <code>Vehicle</code> by reference. 
+This is paramount to avoid <em>object slicing</em>. In memory, a concrete derived class is formed by taking its state and tacking it on to the data of the superclass. </p>
+<div class="table-wrapper"><table><thead><tr><th>&amp;Car</th></tr></thead><tbody>
+<tr><td>Vehicle Data</td></tr>
+<tr><td><code>std::string name</code></td></tr>
+<tr><td>Car Data</td></tr>
+<tr><td><code>int horsePower</code></td></tr>
+</tbody></table>
+</div>
+<p>Passing the derived class by value as a superclass instance will only copy the data that the subclass shares with the superclass. If the derived class adds additional data members, then these data members won't be copied because the compiler thinks its just dealing with an instance of the superclass. Hence the name object slicing, because the data specific to the subclass is sliced off. Another piece of information which is sliced off the the virtual table pointer of the base class. Consider the following:</p>
+<pre><code class="language-C++">class Base {
+public:
+	virtual ~Base() = default;
+
+	virtual void speak() {
+		printf(&quot;Hello\n&quot;);
+	}
+};
+
+class Derived : public Base {
+public:
+	void speak() override {
+		printf(&quot;Derived\n&quot;);
+	}
+};
+
+void slice(Base b) {
+	b.speak();
+}
+
+Derived d;
+slice(d);
+</code></pre>
+<p>What we'll end up with is <code>Hello</code> being printed to the console. When we copy an object like this, behind the scenes the compiler invokes the copy constructor, which is not virtual. Moreover, copies don't copy the virtual table pointer. Why? Well, suppose that it did. Then invoking virtual methods like <code>speak()</code> would dispatch to the derived type. But the derived type implementation might use data members that are not shared between the base and derived class. Since we already discussed that these members could not be copied over, then such a function invocation would give us undefined behavior by accessing invalid memory.
+Therefore, object slicing prevents dynamic dispatch from operating as expected. </p>
+<p>In the <code>Vehicle</code> example, if <code>Vehicle</code> was passed by value, the compiler would complain since that would require it to construct a new instance of <code>Vehicle</code>, and <code>Vehicle</code> is abstract and cannot be constructed.</p>
+<p>Now even with references we can run into a bit of a conundrum:</p>
+<pre><code class="language-C++">Car c1(300), c2(&quot;car 2&quot;, 500);
+Vehicle&amp; v = c1; //reference v being bound to c1, good
+v = c2; //operator=, uh oh
+v.move(); // ?
+</code></pre>
+<p>As we saw in the last chapter, <code>operator=</code> is not normally virtual. We can make it virtual and overload it ourselves, but by default it's not. 
+Therefore, the above example causes object slicing as well! This is because <code>operator=</code> gets called on the static (declared) type which is <code>Vehicle</code> and not the dynamic (actual) type which is <code>Car</code>. 
+So here, <code>operator=</code> will copy only the members it knows about (the ones that are part of the static type) and leave the rest unchanged. So the output of <code>v.move()</code> is &quot;car 2 went 30 mph&quot;. And since <code>v</code> is basically an alias for <code>c1</code>, that's the same output for <code>c1.move()</code>. So we see here that we &quot;half-copied&quot; <code>c2</code> to <code>c1</code>!</p>
+<h2 id="covariance-and-contravariance"><a class="header" href="#covariance-and-contravariance">Covariance and Contravariance</a></h2>
+<p>Suppose we had a function <code>clone</code> in our previous hierarchy. In the interface, we might define it as follows:</p>
+<pre><code class="language-C++">    virtual Vehicle* clone() = 0;
+</code></pre>
+<p>But in <code>Car</code>, we know that if we clone a <code>Car</code> we'll get another <code>Car</code> back, so it would sure be nice to override it like such:</p>
+<pre><code class="language-C++">    Car* clone() override {/* ... */ }
+</code></pre>
+<p>Well we actually can! This is known as <em>covariant</em> return types and it permits derived classes to return an object that is derived from the return type of the virtual function. 
+This is not an overload, and in fact, two functions that differ in <strong>only</strong> their return types are not overloads.</p>
+<p>Similarly, derived objects can take arguments that are supertypes of the defined arguments of the virtual function. This is known as contravariance. </p>
+<pre><code class="language-C++">    // in Vehicle:
+    virtual void fix(const Car &amp; c) {/*...*/}
+
+    //in Car:
+    void fix(const Vehicle &amp; v) override {/* .. */}
+</code></pre>
+<h3 id="possible-exercises"><a class="header" href="#possible-exercises">Possible Exercises</a></h3>
+<ol>
+<li>Create a <code>Logger</code> interface and at least two concrete subtypes. One for logging to the console and one for logging to a file. (<code>std::fstream</code> may help out). Also create a <code>LogLevel</code> enum that allows differentiating the severity of the message between at least 3 severity levels. The <code>LogLevel</code> should change the display of the log in their respective medium. Perhaps for the console logger you can change the color with ANSI escape codes and for the file logger use textual features such as capitals or markdown symbols like underscores and asterisks. The interface should have at least 1 function, which could take a string message and log level. Try using the <code>Logger</code> polymorphically.</li>
+</ol>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../oop/overloads.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../oop/inheritance.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../oop/overloads.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../oop/inheritance.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

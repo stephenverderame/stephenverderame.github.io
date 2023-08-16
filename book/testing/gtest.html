@@ -1,0 +1,645 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>GTest - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html" class="active"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="google-test"><a class="header" href="#google-test">Google Test</a></h1>
+<p>GTest is Google's C++ unit testing framework. It's not the only one out there, but it is a good one.</p>
+<p>We'll use CMake to automatically download, generate, and build GTest from github. In the next unit. We'll discuss CMake in more detail so these may not make the most sense right now.
+In the top directory, we'll want to have a <code>CMakeLists.txt</code> and a <code>GTestCMakeLists.txt.in</code> that looks like this:</p>
+<p>CMakeLists.txt</p>
+<pre><code class="language-Python">cmake_minimum_required (VERSION 3.8)
+
+project (&quot;Tests&quot;)
+
+macro(external_add filename pkname)
+	configure_file(${filename} &quot;${CMAKE_SOURCE_DIR}/external/${pkname}-download/CMakeLists.txt&quot;) 
+    # Copy file specified as first argument of macro into external/gtest-download/CMakeLists.txt
+    # and execute it (will download lib)
+
+	execute_process(COMMAND &quot;${CMAKE_COMMAND}&quot; -G &quot;${CMAKE_GENERATOR}&quot; .
+		WORKING_DIRECTORY &quot;${CMAKE_SOURCE_DIR}/external/${pkname}-download&quot;)
+    # Run CMake generator in download directory
+
+	execute_process(COMMAND &quot;${CMAKE_COMMAND}&quot; --build .
+		WORKING_DIRECTORY &quot;${CMAKE_SOURCE_DIR}/external/${pkname}-download&quot;)
+    # Run build command in generated src directory from the previous command
+
+	set(${pkname}_SUBDIRS &quot;${CMAKE_SOURCE_DIR}/external/${pkname}-src&quot;
+	&quot;${CMAKE_SOURCE_DIR}/external/${pkname}-build&quot;)
+    # Set a variable called gtest_SUBDIRS
+endmacro() 
+
+#Install googletest
+external_add(GTestCMakeLists.txt.in gtest)
+# calls the macro with the first argument as GTestCMakeLists.txt.in
+# and the second argument as gtest
+
+set(gtest_force_shared_crt ON CACHE BOOL &quot;&quot; FORCE)
+
+add_subdirectory(${gtest_SUBDIRS})
+# Run CMake in subdirectories (GTest has its own CMakeLists.txt)
+
+
+enable_testing()
+include (CTest)
+
+# Enable CMake testing
+# Allows CMake commands to find and run tests
+
+# Include sub-projects.
+add_subdirectory (&quot;Tests&quot;)
+</code></pre>
+<p>GTestCMakeLists.txt.in</p>
+<pre><code class="language-CMake">cmake_minimum_required(VERSION 3.8)
+project(gtest-download NONE)
+
+include(ExternalProject)
+ExternalProject_Add(googletest
+	GIT_REPOSITORY https://github.com/google/googletest.git
+	GIT_TAG master
+	SOURCE_DIR &quot;${CMAKE_SOURCE_DIR}/external/gtest-src&quot;
+	BINARY_DIR &quot;${CMAKE_SOURCE_DIR}/external/gtest-build&quot;
+	CONFIGURE_COMMAND &quot;&quot;
+	BUILD_COMMAND &quot;&quot;
+	INSTALL_COMMAND &quot;&quot;
+	TEST_COMMAND &quot;&quot;
+	)
+# Download GTest from github
+</code></pre>
+<p>You project directory should look something like this:</p>
+<pre><code>Tests
+|   CMakeLists.txt
+|   GTestCMakeLists.txt
+|
+|---external
+|   |   gtest-download
+|   |   gtest-build
+|   |   gtest-src
+|   |
+|---Tests
+|   |   CMakeLists.txt
+|   |   main.cpp
+|   |
+|---out
+</code></pre>
+<p>Next, in the CMakeLists.txt file of the project subdirectory. Let's add an executable and link it with gtest</p>
+<pre><code class="language-Python">cmake_minimum_required (VERSION 3.8)
+
+# Add source to this project's executable.
+add_executable (Test1 &quot;main.cpp&quot;)
+target_link_libraries (Test1 PRIVATE GTest::gtest PRIVATE GTest::gtest_main)
+# Linking with gtest_main allows us to use GTests' main function for us
+add_test (NAME Test1 COMMAND Test1)
+# create a test called Test1 which runs the target Test1
+</code></pre>
+<p>Finally, in main.cpp Let's write a basic test:</p>
+<pre><code class="language-C++">#include &lt;gtest/gtest.h&gt;
+
+TEST(SuiteName, testName) {
+    ASSERT_TRUE(true);
+}
+</code></pre>
+<p>Linking with <code>gtest_main</code> allows us to not write a main method. Which, sometimes we may need but would look like this:</p>
+<pre><code class="language-C++">int main(int argc, char ** argv) {
+    testing::InitGoogleTest(&amp;argc, argv);
+    return RUN_ALL_TESTS();
+}
+</code></pre>
+<p>On Linux, you can execute tests with the command <code>make test</code>, or execute <code>ctest</code> in the build directory of the project.</p>
+<p>In GTest, we can create a new test with the <code>TEST()</code> macro which takes as its first parameter the name of the suite and as a second parameter the name of the test. Both names must be valid C++ identifiers however they also must not contain underscores. Although we declare no variables <code>SuiteName</code> and <code>testName</code>, this still works because the macro stringifies whatever you type. Thus, the literal text entered for the suite name and test name becomes the actual name. So these arguments are not strings. Internally, this macro creates a class that uses <code>SuiteName</code> and <code>testName</code> for its name. Prepending either the suite or test name with &quot;DISABLED_&quot; will disable the test. Within a test, we can use gtest assertions or expectations to ensure behavior is as we expect. If an assertion fails, the test fails and exits immediately. If an expectation fails, the test fails but continues to run. Both assertions and expectations are named the same except expectations use <code>EXPECT_</code> while assertions are named <code>ASSERT_</code>.</p>
+<p>It's generally good practice to minimize the amount of assertions per test (some developes advocate for one assertion per test). This makes it very easy to find what failed when you see that a test failed.</p>
+<p>Let's look at some more useful assertions.</p>
+<pre><code class="language-C++">TEST(SuiteName, testName2) {
+    ASSERT_EQ(100 * 3, 300); // ==
+    ASSERT_NE(100, 0); // !=
+    ASSERT_LE(100, 100); // &lt;=
+    ASSERT_LT(-20, 1); // &lt;
+    ASSERT_GE(20, 19); // &gt;=
+    ASSERT_GT(20, 0); // &gt;
+    
+    ASSERT_FLOAT_EQ(2.5f, 5.f / 2.f); // == but takes into account float precision loss
+    ASSERT_DOUBLE_EQ(2.5, 5. / 2.); // same as above but for doubles
+    ASSERT_NEAR(5, 6, 2); 
+    // similar idea but you can specify the absolute difference 
+    // such that two values are considered equal as the third arg
+
+    ASSERT_ANY_THROW(throw std::string(&quot;hello&quot;));
+
+    ASSERT_THROW(throw std::runtime_error(&quot;Test&quot;), std::runtime_error);
+
+    ASSERT_NO_THROW([](){
+        std::cout &lt;&lt; &quot;Hello&quot;;
+    }());
+}
+</code></pre>
+<p>Now what happens if a test fails? Well, we get a pretty helpful error message.</p>
+<pre><code class="language-C++">TEST(SuiteName, testName3) {
+    ASSERT_EQ(300 - 24, 7859 * 5634);
+}
+
+</code></pre>
+<pre><code>../../Tests/Tests/main.cpp (&lt;line number here&gt;) expected equality of these values:
+    300 - 24
+        Which is: 276
+    7859 * 5634
+        Which is: 44277606
+</code></pre>
+<h2 id="printing"><a class="header" href="#printing">Printing</a></h2>
+<p>Suppose we wanted to assert the equality of a user defined type. What would the error message be if the instances
+aren't equal? Well, by default GTest will simply print a hex dump of each object. For some things, this might actually be
+useful, but for most objects this is basically just gibberish. One way that we can tell GTest how to display custom objects by overloading <code>operator&lt;&lt;</code>. This is all well and good, but for some classes you might already have defined an <code>operator&lt;&lt;</code>, or you might not want to add something to a class's interface that only exists for testing purposes. Well in those cases, we can define a <code>PrintTo</code> function which returns <code>void</code> and takes two arguments: a <code>const</code> reference to our class and a pointer to an <code>std::ostream</code>.</p>
+<pre><code class="language-C++">/// Overrides Gtest's print behavior
+void PrintTo(const TestConfig&amp; test, std::ostream* os) {
+  *os &lt;&lt; test.testName &lt;&lt; &quot;\n&quot;;
+  *os &lt;&lt; &quot;\tStart: (lat=y= &quot; &lt;&lt; test.gpsRoverStart.y &lt;&lt; &quot;, lon=x= &quot; &lt;&lt; test.gpsRoverStart.x &lt;&lt; &quot;)\n&quot;;
+  *os &lt;&lt; &quot;\tTarget: ('&quot; &lt;&lt; test.targetLocation.header.frame_id &lt;&lt; &quot;', x= &quot;
+    &lt;&lt; test.targetLocation.point.x &lt;&lt; &quot;, y= &quot; &lt;&lt; test.targetLocation.point.y &lt;&lt; &quot;)\n&quot;;
+  for (auto&amp; tag : test.arTagsUtm) {
+    *os &lt;&lt; &quot;\tTag: (x= &quot; &lt;&lt; tag.x &lt;&lt; &quot;, y= &quot; &lt;&lt; tag.y &lt;&lt; &quot;)\n&quot;;
+  }
+  *os &lt;&lt; &quot;\tSuccess: &quot; &lt;&lt; test.expectSuccess &lt;&lt; &quot;\n&quot;;
+}
+</code></pre>
+<p>Now when printing our custom type, we'll be able to get data formatted however we'd like instead of just a hex dump. </p>
+<p>Moreover, the gtest test macros actually return a stream. So we can use them to print extra information if the assertion fails.</p>
+<pre><code class="language-C++">ASSERT_EQ(5, 4) &lt;&lt; &quot;Dummy test, this should fail!&quot;;
+</code></pre>
+<h2 id="test-fixtures"><a class="header" href="#test-fixtures">Test Fixtures</a></h2>
+<p>A lot of times tests will need to share data or logic. In that case we can use a test fixture. 
+A test fixture is a class derived from <code>testing::Test</code>. Any protected members will be available in all tests that use the fixture. 
+It can provide a default constructor/destructor or override the members <code>SetUp()</code> and <code>TearDown()</code> to provide initialization and cleanup logic for any shared data. 
+The constructor and <code>SetUp()</code> are called before each test and the destructor and <code>TearDown()</code> is called after each one. 
+When I say &quot;shared data&quot;, I don't mean that the actual instances of each member are shared, but rather each test has its own instance of the same members.</p>
+<p>Internally, the <code>TEST</code> macro creates a class that is a subtype of <code>Test</code>. 
+We can create a test fixture and use the macro <code>TEST_F</code> to create a test that subtypes this custom fixture. 
+The first argument to <code>TEST_F</code> is the test fixture name, and the second argument is the name of the test.</p>
+<pre><code class="language-C++">class RingbufferFixture : public testing::Test {
+protected:
+    std::unique_ptr&lt;Ringbuffer&lt;int&gt;&gt; r1, r2;
+
+    void SetUp() override {
+        r1 = std::make_unique&lt;Ringbuffer&lt;int&gt;&gt;(10);
+        r2 = std::make_unique&lt;Ringbuffer&lt;int&gt;&gt;(10);
+
+        r2.push_back(10);
+        r2.push_back(20);
+        r2.push_back(30);
+    }
+
+    void r2Add(std::initializer_list&lt;int&gt; elems) {
+        for (e : elems) {
+            r2.push_back(e);
+        }
+    }
+};
+
+TEST_F(RingbufferFixture, startEmpty) {
+    ASSERT_TRUE(r1.empty());
+}
+
+TEST_F(RingbufferFixture, pushChangesSize) {
+    ASSERT_EQ(r2.size(), 3);
+}
+
+TEST_F(RingbufferFixture, maxSizeUpheld) {
+    r2Add({1, 2, 3, 4, 4, 5, 5, 7, 8, 9});
+    ASSERT_EQ(r2.size(), 10);
+}
+
+TEST_F(RingbufferFixture, basicIndex) {
+    ASSERT_EQ(r2[0], 10);
+    ASSERT_EQ(r2[1], 20);
+    ASSERT_EQ(r2[2], 30);
+    r2Add({40, 50, 60});
+    ASSERT_EQ(r2[3], 40);
+    ASSERT_EQ(r2[4], 50);
+    ASSERT_EQ(r2[5], 60);
+}
+
+TEST_F(RingbufferFixture, loopingTest) {
+    ASSERT_EQ(r2[0], 10);
+    ASSERT_EQ(r2[1], 20);
+    ASSERT_EQ(r2[2], 30);
+    r2Add({40, 50, 60, 70, 80, 90, 100, 200, 300});
+    ASSERT_EQ(r2[0], 100);
+    ASSERT_EQ(r2[1], 200);
+    ASSERT_EQ(r2[2], 300);
+}
+</code></pre>
+<h2 id="parameterized-tests"><a class="header" href="#parameterized-tests">Parameterized Tests</a></h2>
+<p>Right now, if we wanted to do randomized or repeated testing on different inputs, we'd need to use loops in a single test. 
+That's not too bad, but it can get hard to debug what input caused the test to fail. 
+More annoyingly, it would require us to write a loop in all test cases we'd want to repeat on different inputs. 
+Luckily, we can use parameterized tests. First, we create a test fixture which inherits from <code>::testing::TestWithParam&lt;T&gt;</code> where <code>T</code> is the type of the input. 
+If we need multiple inputs we can make <code>T</code> a tuple. Then we define our tests similar to the test fixture but with the <code>TEST_P</code> macro.</p>
+<pre><code class="language-C++">class ParameterizedRBFixture : public ::testing::TestWithParam&lt;int&gt; {
+protected:
+    const int startingSize = 10;
+    Ringbuffer&lt;int&gt; rb{startingSize};
+
+};
+
+TEST_P(ParameterizedRBFixture, pushTest) {
+    const int param = GetParam(); // get param to test
+    rb.push_back(param);
+    ASSERT_EQ(rb[0], param);
+}
+
+TEST_P(ParameterizedRBFixture, pushSizeTest) {
+    const int param = GetParam(); 
+    for(auto i = 0; i &lt; param; ++i) {
+        rb.push_back(i);
+    }
+    ASSERT_EQ(rb.size(), std::min(param, startingSize));
+}
+
+
+INSTANTIATE_TEST_CASE_P(RingBufferTests, ParameterizedRBFixture,
+    testing::Values(1, 711, 1989, 2013));
+// Calls ALL tests of the fixture with the specified values
+
+// instead of specifying values by a parameter pack, we can also use
+// testing::ValuesIn() which generates values from an array, container, or begin and end iterator
+
+int vals[] = {4, 56, 70, 0, 100, 230};
+
+INSTANTIATE_TEST_CASE_P(RingBufferTests, ParameterizedRBFixture,
+    testing::ValuesIn(vals));
+
+
+// Using an iterator for randomized testing:
+
+class UniformIntGenerator {
+    std::mt19937 generator {std::random_device{}()};
+    std::uniform_int_distribution&lt;int&gt; random{0, 2};
+    uint64_t maxCount, curCount;
+    constexpr static uint64_t finished = ~0;
+    int val;
+public:
+    using value_type = int;
+    using difference_type = size_t;
+    using pointer = int*;
+    using reference = int&amp;;
+    using iterator_category = std::forward_iterator_tag;
+
+    UniformIntGenerator(uint64_t maxGenerations, int minVal, int maxVal) : random({minVal, maxVal}),
+        maxCount(maxGenerations), curCount(0), val(random(generator)) {}
+
+    /// Construct sentinel iterator
+    UniformIntGenerator() : maxCount(0), curCount(finished), val(0) {}
+
+    int operator*() const {
+        if (curCount == finished) {
+            throw std::out_of_range(&quot;Random generator exceeded generation limit&quot;);
+        }
+        return val;
+    }
+
+    UniformIntGenerator&amp; operator++() {
+        if (curCount + 1 &lt; maxCount) {
+            val = random(generator);
+            ++curCount;
+        } else {
+            curCount = finished;
+        }
+        return *this;
+    }
+
+    UniformIntGenerator operator++(int) {
+        const auto cpy = *this;
+        ++(*this);
+        return cpy;
+    }
+
+    bool operator==(const UniformIntGenerator&amp; other) const {
+        return curCount == other.curCount;
+    }
+
+    bool operator!=(const UniformIntGenerator &amp;other) const {
+        return !(*this == other);
+    }
+};
+
+INSTANTIATE_TEST_CASE_P(RingBufferTests, ParameterizedRBFixture,
+    testing::ValuesIn(UniformIntGenerator(100, -30, 30), UniformIntGenerator()));
+// Use a begin and end iterator
+
+
+</code></pre>
+<p>Now instead of each single test looping over a list of values, we can make the entire test fixture take an argument and pass a series of parameters to the test fixture. 
+I'd also like to mention that instead of specifying values, <code>testing::Range(start, end, [optional increment])</code> can be used instead of <code>testing::Values()</code> or <code>testing::ValuesIn()</code> to get a sequence of values 
+starting at <code>start</code>, ending at <code>end</code>, and incrementing by 1 or <code>increment</code> each step.</p>
+<p>If all you want to do is simply repeat tests, you can use the <code>--gtest_repeat</code> command-line parameter to simply call the tests over again.</p>
+<h2 id="typed-tests"><a class="header" href="#typed-tests">Typed Tests</a></h2>
+<p>Typed tests are quite similar, except they allow you to make a test fixture a template and specify the template arguments to repeat all tests with. 
+A difference with typed tests however, is that we must define the test suite as typed using the macro <code>TYPED_TEST_SUITE</code> along with indicating that a test should be typed with the <code>TYPED_TEST</code> macro.</p>
+<pre><code class="language-C++">template&lt;typename T&gt;
+class RBFix : public testing::Test {
+protected:
+    const int size = 10;
+    Ringbuffer&lt;T&gt; rb{size};
+};
+
+using RBTestTypes = testing::Types&lt;char, int, void*, long long&gt;; // type alias is needed here
+TYPED_TEST_SUITE(RBFix, RBTestTypes); // takes test fixture and types to instantiate it on
+
+TYPED_TEST(RBFix, emptyTest) {
+    ASSERT_TRUE(rb.empty());
+}
+
+// all tests will repeat for each type
+
+</code></pre>
+<p>Accessing protected members of a test fixture in a typed test case requires the usage of the <code>this</code> pointer. This is because each test case becomes a unique class that inherits the test fixture. 
+Since this test fixture is a template, and C++ requires an explicit <code>this</code> pointer to refer to members of a base template class, we must use an explicit <code>this</code> pointer in the test cases.</p>
+<p>We also can have typed parameterized tests by making the fixture a template and inheriting from <code>testing::TestWithParams&lt;&gt;</code>. 
+Each test case would then use the <code>TYPED_TEST_P</code> macro. These types of tests would need to be registered and instantiated with macros.</p>
+<h2 id="matchers"><a class="header" href="#matchers">Matchers</a></h2>
+<p>GTest provides the generalized assertion <code>ASSERT_THAT</code> and <code>EXPECT_THAT</code>. The first argument is an object, and the second object is a matcher. 
+Matchers are objects which ensure that a certain condition is met. There are matchers for containers, strings, numbers, etc. 
+Matchers are part of GMock, and must be included with <code>&lt;gmock/gmock.h&gt;</code>. To link gmock, add <code>PRIVATE GTest::gmock</code> to the <code>target_link_libraries</code> call in CMake.</p>
+<p>Matchers can also be composed into larger ones using <code>testing::AllOf()</code>, <code>testing::AnyOf()</code>, <code>testing::Not()</code> and <code>testing::Conditional(cond, m1, m2)</code>. 
+The conditional uses <code>m1</code> if the condition is true, otherwise <code>m2</code>. Here are some examples, although I suggest taking a look at the documentation <a href="https://google.github.io/googletest/reference/matchers.html">here</a>.</p>
+<pre><code class="language-C++">using namespace testing;
+ASSERT_THAT(num, AllOf(Gt(10), Lt(40))); // 10 &lt; num &lt; 40
+
+ASSERT_THAT(str, StartsWith(&quot;Hello&quot;)); 
+ASSERT_THAT(str, MatchesRegex(&quot;Id: [0-9]+&quot;));
+ASSERT_THAT(str, StrCaseEq(&quot;hElLo&quot;)); // equals ignore case
+ASSERT_THAT(str, ContainsRegex(&quot;^Name&quot;)); // whole string does not have to match
+ASSERT_THAT(str, AnyOf(EndsWith(&quot;goodbye&quot;), HasSubstr(&quot;hello&quot;))); 
+// str.find(&quot;hello&quot;) != std::string::npos || str.find(&quot;goodbye&quot;) == str.size() - strlen(&quot;goodbye&quot;)
+
+ASSERT_THAT(vec, Contains(100));
+ASSERT_THAT(vec, ContainerEq(vec2)); // same as ASSERT_EQ but provides more informative error message
+
+ASSERT_THAT(vec, ElementsAre(e0, e1, e2));
+ASSERT_THAT(vec, WhenSorted(ElementsAre(e0, e1, e2))); 
+// sorts the container first using operator&lt;, then applies the matcher (in this case ElementsAre)
+// in this case we sort the vector, then check elements
+
+ASSERT_THAT(vec, WhenSortedBy([](auto a, auto b) { return a &gt; b}, ElementsAreArray(vec2)));
+// sorts by a comparator, then applies matcher
+// in this case when check that the elements are the same as another container
+// (can be an array, container, or begin and end iterators)
+
+ASSERT_THAT(vec, UnorderedElementsAre(e0, e1, e2));
+ASSERT_THAT(vec, UnorderedElementsAreArray(list.begin(), list.end()));
+ASSERT_THAT(vec, UnorderedElementsAreArray(list));
+
+ASSERT_THAT(vec, IsSubsetOf(vec3));
+ASSERT_THAT(vec, IsSuperSetOf(e0, e2, e5));
+// both IsSubset and IsSuperSet can take a container, comma separated elements, begin and end iterators, 
+// or a begin iterator and size
+// in both of these matchers, order doesn't matter
+
+ASSERT_THAT(tuple, FieldsAre(42, &quot;hi&quot;));
+
+struct S {
+    int age;
+
+    bool canRide() const {
+        return age &gt;= 13;
+    }
+}
+
+ASSERT_THAT(object, Field(&amp;S::age, Le(18))); // s.age &lt;= 18
+// ensures that an object has a given member
+// and that member satisfies a matcher
+
+ASSERT_THAT(object, Property(&amp;S::canRide, 
+    Conditional(object.age &gt;= 13, Eq(true), Eq(false))));
+// ensures that an object has the given no parameter const member function which, 
+// when called, returns a value that matches the given matcher
+
+ASSERT_THAT(ptrToVec, Pointee(SizeIs(Gt(10))));
+// matches what the pointer points to with the given matcher
+// ptrToVec-&gt;size() &gt; 10
+</code></pre>
+<p>You might also find matchers useful as predicates for STL functions. This can be done using the <code>Matches()</code> function:</p>
+<pre><code class="language-C++">std::vector v = {10, 20, 30, 450};
+auto it = std::find(v.begin(), v.end(), Matches(AllOf(Gt(10), Lt(100))));
+</code></pre>
+<p>Likewise, you might find that you want to use a predicate as a matcher. This can be done by wrapping the predicate inside the <code>Truly()</code> function.</p>
+<pre><code class="language-C++">const auto isOdd = [](int a) { return a % 2; };
+// predicate just needs to return something implicitly convertible to bool
+
+ASSERT_THAT(num, Not(Truly(isOdd)));
+// assert num is even
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../testing/intro.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../testing/gmock.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../testing/intro.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../testing/gmock.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Coding the Guessing Game - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html" class="active"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="coding-the-guessing-game"><a class="header" href="#coding-the-guessing-game">Coding the Guessing Game</a></h1>
+<p>Don't worry about understanding everything right now, all these features will be explained in more detail later.
+I just want you to get a feel for C++ right now.</p>
+<h2 id="generating-a-random-number"><a class="header" href="#generating-a-random-number">Generating a Random Number</a></h2>
+<p>Let's write a function to generate a random number. First include the <code>&lt;random&gt;</code> header. </p>
+<pre><code class="language-c++">auto getRandNumBetween(int min, int max) {
+    std::random_device rd; //use a source of randonness in the hardware
+    // another common seed is to use the current time
+    std::mt19937 generator(rd()); //rd() computes a seed for the mt19937 generator
+    std::uniform_int_distribution distrib(min, max);
+    return distrib(generator); // computes a random number between min and max
+}
+</code></pre>
+<p><code>std::random_device</code> is in it of itself, a random number generator of sorts. 
+It overloads the function <code>operator()</code> to allow the parenthesis syntax <code>rd()</code>, which is the same for calling a function. 
+<code>random_device</code> is known as a callable object because it overloads <code>operator()</code>. 
+We use the number returned from <code>operator()</code> of the random device to seed a Mersenne Twister random number generator
+by passing the computed seed from <code>rd</code> to the constructor of <code>generator</code>. 
+A constructor is a function used to initialize an object. 
+<code>generator</code> is then used as an argument to <code>operator()</code> of the uniform integer distribution between <code>min</code> and <code>max</code>. 
+Once again the uniform distribution is a callable object, something we'll talk more about later, but unlike <code>rd</code>, its <code>operator()</code> takes an argument;
+namely the random number generator to use. 
+<code>min</code> and <code>max</code> are passed as arguments to the constructor of <code>uniform_int_distribution</code>. </p>
+<p>Unlike <code>main</code>, this function has a &quot;return type&quot; of <code>auto</code>. 
+<code>auto</code> is not an actual type, instead it's indicating that the compiler should figure out what the return type is. In this case it's <code>int</code>.</p>
+<p>I'll admit, that for something simple like this, I might use C's <code>rand()</code> function. 
+This function always returns an integer between <code>0</code> and <code>RAND_MAX</code> and is seeded by calling the function <code>srand(seed)</code>. 
+So an alternative implementation would be:</p>
+<pre><code class="language-c++">auto getRandNumBetween(int min, int max) {
+    srand(clock()); //seed the random number generator with the current time
+    return rand() % (max - min) + min;
+}
+</code></pre>
+<p>I'll stick to the previous implementation for the game.
+I should also note that you should not use <code>rand()</code> for something that relies on randomness. <sup class="footnote-reference"><a href="#1">1</a></sup></p>
+<blockquote>
+<p>&quot;The <random> library is what a random library wants to be when it grows up. As a result, beginners use rand()&quot;</p>
+<p>- Bjarne Stroustrup</p>
+</blockquote>
+<h2 id="getting-user-input"><a class="header" href="#getting-user-input">Getting User Input</a></h2>
+<p>Let's create another function to get input from the user.</p>
+<pre><code class="language-c++">auto getUserGuess() {
+    auto guess = 0;
+    std::cin &gt;&gt; guess;
+    return guess;
+}
+</code></pre>
+<p>We first initialize a new variable called <code>guess</code>. Once again, let's use type deduction and declare this variable with <code>auto</code>. 
+We'll cover this more later, but you should generally always use <code>auto</code>. 
+It might seem like an extra letter to type now (as opposed to <code>int</code> which is the type the compiler will infer <code>guess</code> to be),
+but it will save a bunch of headaches later. 
+Next, we parse whatever the user types in standard input as an integer, and store the result into <code>guess</code>. Finally, we return <code>guess</code>.</p>
+<p>Now what if a user doesn't type a number? Well, the way we are parsing the input right now, any non numeric input will just be converted to <code>0</code>. 
+This is not ideal. So instead, let's implement the function another way. We'll now need the <code>&lt;string&gt;</code> header for this:</p>
+<pre><code class="language-c++">auto getUserGuess() {
+    std::string guessStr;
+    std::getline(std::cin, guessStr);
+    return std::stoi(guessStr);
+}
+</code></pre>
+<p>Here, we use <code>std::getline</code> to get a line from <code>std::cin</code> and store the result in <code>guessStr</code>.
+<code>guessStr</code> is an output parameter, something you really should strive to avoid when creating your own functions.
+Now what do we get when we type something that's not a number? Well we get:</p>
+<blockquote>
+<p>terminate called after throwing an instance of 'std::invalid_argument'</p>
+<p>what(): stoi</p>
+</blockquote>
+<p>What's going on is that <code>stoi</code> has thrown an exception, <code>std::invalid_argument</code>. Any exception thrown out of <code>main</code> terminates the program. 
+This might seem worse, but we can improve upon this by catching the exception. Let's factor out the exception handling code and make a helper function.</p>
+<pre><code class="language-c++">auto getUserInput() {
+    std::string guessStr;
+    std::getline(std::cin, guessStr);
+    return std::stoi(guessStr);
+}
+
+auto printNonNumMsg() {
+    std::cout &lt;&lt; &quot;You may only guess integers.&quot; &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;Please guess again:&quot; &lt;&lt; std::endl;
+}
+
+auto getUserGuess() {
+    try {
+        return getUserInput();
+    } catch (const std::invalid_argument &amp; exn) {
+        printNonNumMsg();
+        return getUserGuess();
+    }
+}
+
+</code></pre>
+<p><code>getUserInput()</code> is what previously was called <code>getUserGuess()</code>. 
+Now <code>getUserGuess()</code> tries to get a number from the user, and if that fails with <code>std::invalid_argument</code> it will print an error message and recurse, trying again. 
+The catch block catches <code>invalid_argument</code> by <em>reference</em> which is denoted by <code>&amp;</code>. So instead of copying the exception, we essentially copy the address. 
+We declare this reference <code>const</code> so we can't mutate it, which is good practice; you should make everything that can be <code>const</code>, <code>const</code>. 
+Besides being more efficient in many cases, passing by reference also allows this catch block to behave <em>polymorphically</em> and accept any 
+subtypes of <code>std::invalid_exception</code>(which there are none in the standard library, but it's always good to catch exceptions by reference for this reason)</p>
+<h2 id="wiring-it-up"><a class="header" href="#wiring-it-up">Wiring it Up</a></h2>
+<p>Let's return to our <code>main()</code> function to finish the game. 
+First we'll get a random number and store it in a constant. Then we'll loop until the user's guess equals that number. 
+Since we won't be updating the range of possible random numbers during runtime, it's a good idea to make the min and max values <code>constexpr</code>. 
+This means that not only are the values constant, but they're also available at compile time. 
+Therefore, in the compiled code they don't take up space, instead the compiler just inserts the literal values into the code whenever they are used.</p>
+<pre><code class="language-c++">
+constexpr auto min_value = 0;
+constexpr auto max_value = 100;
+
+int main() {
+    const auto secretNum = getRandNumBetween(min_value, max_value);
+    auto guess = 0;
+    do {
+        std::cout &lt;&lt; &quot;Guess a number between &quot; 
+            &lt;&lt; min_value &lt;&lt; &quot; and &quot; &lt;&lt; max_value &lt;&lt; std::endl;
+        guess = getUserGuess();
+
+        if (guess &lt; secretNum) {
+            std::cout &lt;&lt; &quot;Too low!&quot; &lt;&lt; std::endl;
+        } else if (guess &gt; secretNum) {
+            std::cout &lt;&lt; &quot;Too high!&quot; &lt;&lt; std::endl; 
+        }
+    } while (guess != secretNum);
+}
+
+</code></pre>
+<p>Here, we use a do-while loop, which is like a while loop except it always performs at least one iteration. 
+They can be harder to reason about and are somewhat controversial. 
+Notice we also declare <code>secretNum</code> constant since it cannot change. </p>
+<p>We can use Uncle Bob's <em>step-down rule</em> and clean this up a bit by factoring out the prints into other function. 
+Basically, his idea is that a function should have only one level of abstraction. This one has a few: the high level <code>getUserGuess()</code> and <code>getRandNumBetween()</code> and the low level <code>cout</code>s. So here's the final code:</p>
+<h2 id="final-code"><a class="header" href="#final-code">Final Code</a></h2>
+<pre><code class="language-c++">#include &lt;iostream&gt;
+#include &lt;random&gt;
+#include &lt;string&gt;
+
+constexpr auto min_value = 0;
+constexpr auto max_value = 100;
+
+auto getRandNumBetween(int min, int max) {
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution distrib(min, max);
+    return distrib(generator);
+}
+
+/**
+ * @return the number input by the user
+ * @throw std::invalid_argument if the user doesn't type a number
+ */
+auto getUserInput() {
+    std::string guessStr;
+    std::getline(std::cin, guessStr);
+    return std::stoi(guessStr);
+}
+
+auto printNonNumMsg() {
+    std::cout &lt;&lt; &quot;You may only guess integers.&quot; &lt;&lt; std::endl;
+    std::cout &lt;&lt; &quot;Please guess again:&quot; &lt;&lt; std::endl;
+}
+/**
+ * Prompts the user for an integer
+ */
+auto promptGuess() {
+    std::cout &lt;&lt; &quot;Guess a number between &quot; 
+        &lt;&lt; min_value &lt;&lt; &quot; and &quot; &lt;&lt; max_value &lt;&lt; std::endl;
+}
+/**
+ * Gets a user's guess. Continues to prompt for a number if the
+ * user does not type a number
+ */
+auto getUserGuess() {
+    try {
+        promptGuess();
+        return getUserInput();
+    } catch (const std::invalid_argument &amp; exn) {
+        printNonNumMsg();
+        return getUserGuess();
+    }
+}
+/**
+ * Displays a hint based on the user guess
+ * @param actual the real number
+ */
+auto displayGuessHint(int guess, int actual) {
+    if (guess &lt; actual) {
+        std::cout &lt;&lt; &quot;Too low!&quot; &lt;&lt; std::endl;
+    } else if (guess &gt; actual) {
+        std::cout &lt;&lt; &quot;Too high!&quot; &lt;&lt; std::endl; 
+    }
+}
+
+/**
+ * Tells the user they guessed num correctly
+ * @param num the correct number
+ * @param tries the amount of tries to guess correctly
+ */
+auto displayWin(int num, int tries) {
+    std::cout &lt;&lt; &quot;Congrats! You guessed &quot; &lt;&lt; num 
+        &lt;&lt; &quot; correctly in &quot; &lt;&lt; tries &lt;&lt; &quot; tries!\n&quot;;
+}
+
+int main() {
+    const auto secretNum = getRandNumBetween(min_value, max_value);
+    auto guess = 0;
+    auto tries = 0;
+    do {
+        ++tries;
+        guess = getUserGuess();
+        displayGuessHint(guess, secretNum);
+    } while (guess != secretNum);
+    displayWin(secretNum, tries);
+}
+</code></pre>
+<p>One thing to note is that we define all of our functions before they are used. This is necessary in C++ because the compiler
+essentially compiles the code line by line, and it needs to know the definition of things before it sees it in use.
+It's a good idea to put the function definitions close to where they are going to be called. It's also good to keep functions within about 80 characters wide and 20 lines long. 
+Is this a hard and fast rule? No, far from it but I think it's a nice guideline that can help keep functions short, which is generally accepted as easier to reason about and thus
+less error prone. Most of a developer's time is spent reading code, so it's worthwhile to put in the effort to make that part of the job easier.</p>
+<p>Is this over-engineered? Probably. But I really think it's beneficial to start good habits now instead of having to unlearn bad ones later.</p>
+<hr />
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p>Something like a Monte Carlo simulation or an algorithm that relies on randomization to be efficient.</p>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../guessing_game/gg1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../basics/basics.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../guessing_game/gg1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../basics/basics.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

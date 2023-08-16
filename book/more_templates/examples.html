@@ -1,0 +1,833 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Examples - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html" class="active"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h2 id="iterator-chain"><a class="header" href="#iterator-chain">Iterator Chain</a></h2>
+<p>Let's design a class to have similar syntax and semantics to Python and Rust's <code>chain</code>. What we'll do is make a more abstract version of our Rope class.
+A chain will be able to chain together objects with a <code>begin()</code> and <code>end()</code> function so that they can be iterated over by one iterator.
+We'll want this iterator to be <code>const</code> if any of the containers' iterators are <code>const</code>.
+For simplicity, we'll make the <code>chain</code> iterator random access, however it won't truly be random access unless all the iterators it is composed of
+are random access as well. This is because technically, random access iterators require <code>O(1)</code> random access; however, for iterators that don't support
+that, the random access iterator methods of <code>chain</code> (such as <code>operator[]</code>) will have <code>O(n)</code> lookup time.</p>
+<p>We actually already designed a <code>min_iter_tag</code> template which can be used to prevent the user from having to keep track of what iterators are part of the chain
+before using certain iterator features.</p>
+<p>Let's see some example usage:</p>
+<pre><code class="language-C++">std::vector v = {10, 20, 30, 50};
+auto init_lst = {50, 60, 70, 20};
+std::list ls = {100, 200, 300};
+
+for (auto e : chain(v, lst, ls)) {
+    std::cout &lt;&lt; e &lt;&lt; &quot;, &quot;;
+}
+std::cout &lt;&lt; std::endl;
+
+auto c = chain(ls, v);
+std::sort(c); // mutates ls and v
+
+</code></pre>
+<p>Let's start with a dynamic way to access tuple elements:</p>
+<pre><code class="language-C++">/**
+* Returns the result of calling the specified function on the tuple element
+*
+* @param tup the tuple
+* @param idx the index of the element to get from the tuple
+* @param f the function that accepts the element at index `idx`
+*   and returns a result that is returned from this function
+*/
+template &lt;class Func, class Tuple, size_t N = 0&gt;
+decltype(auto) tupleGet(Tuple&amp; tup, size_t idx, Func f) {
+    if (N == idx) {
+       return f(std::get&lt;N&gt;(tup));
+    }
+
+    if constexpr (N + 1 &lt; std::tuple_size_v&lt;Tuple&gt;) {
+        return tupleGet&lt;Func, Tuple, N + 1&gt;(tup, idx, f);
+    }
+    else {
+        throw std::invalid_argument(
+            std::format(&quot;{} is &gt;= than tuple length {}&quot;, N + 1, std::tuple_size_v&lt;Tuple&gt;));
+        // std::format is C++20, I'm being lazy here
+    }
+}
+</code></pre>
+<p>We've seen this before; this method just allows us to index a tuple at runtime.</p>
+<p>Type alias helpers:</p>
+<pre><code class="language-C++">/// reference type of Containers iterator
+template&lt;class Container&gt;
+using iter_reference_t = std::remove_const_t&lt;
+    typename std::iterator_traits&lt;decltype(std::declval&lt;Container&gt;().begin())&gt;::reference&gt;;
+
+/// pointer type of Containers iterator
+template&lt;class Container&gt;
+using iter_pointer_t = std::remove_const_t&lt;
+    typename std::iterator_traits&lt;decltype(std::declval&lt;Container&gt;().begin())&gt;::pointer&gt;;
+
+/// const and reference removed T
+template&lt;typename T&gt;
+using base_type = std::remove_const_t&lt;std::remove_reference_t&lt;T&gt;&gt;;
+</code></pre>
+<p>SFINAE helpers:</p>
+<pre><code class="language-C++">/// value is true if Container has the same base iter type as IterType
+template&lt;typename IterType, class Container, typename = void&gt;
+struct IsSameIterType : std::false_type {};
+
+/// value is true if Container has the same base iter type as IterType
+template&lt;typename IterType, class Container&gt;
+struct IsSameIterType&lt;IterType, Container, std::enable_if_t&lt;
+        std::is_same_v&lt;base_type&lt;IterType&gt;, base_type&lt;iter_reference_t&lt;Container&gt;&gt;&gt;
+    &gt;&gt; : std::true_type {};
+
+/// true if all containers have the same iter type as FirstContainer
+/// @see IsSameIterType
+template&lt;class FirstContainer, class ... Containers&gt;
+constexpr inline auto are_all_same_iter_v =
+    (... &amp;&amp; IsSameIterType&lt;iter_reference_t&lt;FirstContainer&gt;, Containers&gt;::value);
+
+template&lt;bool Condition, typename TrueType, typename FalseType&gt;
+struct conditional {
+    using type = FalseType;
+};
+
+template&lt;typename TrueType, typename FalseType&gt;
+struct conditional&lt;true, TrueType, FalseType&gt; {
+    using type = TrueType;
+};
+
+/// type is HeadType
+template&lt;typename HeadType, typename ... Tail&gt;
+struct Head {
+    using type = HeadType;
+};
+
+/// type is HeadType
+template&lt;typename HeadType&gt;
+struct Head&lt;HeadType&gt; {
+    using type = HeadType;
+};
+
+/// first type in List
+template&lt;typename ... List&gt;
+using first = typename Head&lt;List...&gt;::type;
+
+template&lt;typename ... Containers&gt;
+constexpr inline auto is_any_iter_const = (... || std::is_const_v&lt;iter_reference_t&lt;Containers&gt;&gt;);
+</code></pre>
+<p>Class definition:</p>
+<pre><code class="language-C++">template&lt;typename ... Containers&gt;
+class chain {
+    std::tuple&lt;Containers&amp; ...&gt; containers;
+public:
+    chain(Containers&amp; ... containers) : containers(std::tie(containers...)) {
+        static_assert(are_all_same_iter_v&lt;Containers...&gt;, 
+            &quot;Iterators passed to chain must have the same value type and volatility&quot;);
+    }
+
+    chain(chain&lt;Containers...&gt;&amp;&amp;) = default;
+    chain&lt;Containers...&gt;&amp; operator=(chain&lt;Containers...&gt;&amp;&amp;) = default;
+
+    auto begin() const {
+        return iter(this, 0, 0);
+    }
+
+    auto end() const {
+        return iter(this, sizeof...(Containers), 0);
+    }
+
+    class iter {
+        const std::tuple&lt;Containers&amp; ...&gt;* containers;
+        unsigned curContainer, curIndex;
+
+
+        template&lt;typename ... List&gt;
+        using first_iter = decltype(std::declval&lt;first&lt;List...&gt;&gt;().begin());
+
+        using self_t = chain&lt;Containers...&gt;::iter;
+    public:
+        using value_type = typename std::iterator_traits&lt;first_iter&lt;Containers...&gt;&gt;::value_type;
+        using reference = typename conditional&lt;is_any_iter_const&lt;Containers...&gt;,
+            std::add_const_t&lt;iter_reference_t&lt;first&lt;Containers...&gt;&gt;&gt;,
+            iter_reference_t&lt;first&lt;Containers...&gt;&gt;&gt;::type;
+        using pointer = typename conditional&lt;is_any_iter_const&lt;Containers...&gt;,
+            std::add_const_t&lt;iter_pointer_t&lt;first&lt;Containers...&gt;&gt;&gt;,
+            iter_pointer_t&lt;first&lt;Containers...&gt;&gt;&gt;::type;
+        using difference_type = typename std::iterator_traits&lt;first_iter&lt;Containers...&gt;&gt;::difference_type;
+        using iterator_category = std::random_access_iterator_tag;
+
+        template&lt;typename DiffType&gt;
+        friend auto operator+(self_t t, DiffType diff) 
+            -&gt; std::enable_if_t&lt;std::is_integral_v&lt;DiffType&gt;, self_t&gt; 
+        {
+            auto res = t;
+            bool keepLooping = true;
+            while (keepLooping) {
+                if (res.curContainer &gt;= 
+                    std::tuple_size_v&lt;std::remove_reference_t&lt;decltype(*res.containers)&gt;&gt;)
+                    break;
+                tupleGet(*t.containers, res.curContainer, [&amp;](auto&amp; tup) {
+                    const auto dist = std::distance(tup.begin(), tup.end());
+                    if (res.curIndex + diff &gt;= dist) {
+                        ++res.curContainer;                       
+                        diff -= (dist - res.curIndex);
+                        res.curIndex = 0;
+                    }
+                    else {
+                        res.curIndex += diff;
+                        keepLooping = false;
+                    }
+                });
+            }
+            return res;
+        }
+        template&lt;typename DiffType&gt;
+        friend auto operator+(DiffType diff, const self_t&amp; t) 
+            -&gt; std::enable_if_t&lt;std::is_integral_v&lt;DiffType&gt;, self_t&gt; 
+        {
+            return t + diff;
+        }
+
+        template&lt;typename DiffType&gt;
+        friend auto operator-(self_t t, DiffType diff) 
+            -&gt; std::enable_if_t&lt;std::is_integral_v&lt;DiffType&gt;, self_t&gt; 
+        {
+            auto res = t;
+            bool keepLooping = true;
+            while (keepLooping) {
+                if (diff &gt; res.curIndex &amp;&amp; res.curContainer &gt; 0) {
+                    diff -= (res.curIndex + 1);
+                    res.curIndex = 
+                    tupleGet(*t.containers, --res.curContainer, [&amp;](auto&amp; tup) {
+                        const auto dist = std::distance(tup.begin(), tup.end());
+                        return dist == 0 ? 0 : dist - 1;
+                    });
+                }
+                else if (diff &lt;= res.curIndex) {
+                    res.curIndex -= diff;
+                    keepLooping = false;
+                }
+                else {
+                    throw std::invalid_argument(std::format(&quot;&quot;));
+                }
+            }
+            return res;
+        }
+        template&lt;typename DiffType&gt;
+        friend auto operator-(DiffType diff, self_t t) 
+            -&gt; std::enable_if_t&lt;std::is_integral_v&lt;DiffType&gt;, self_t&gt; 
+        {
+            return t - diff;
+        }
+
+
+
+
+        iter(const chain&lt;Containers...&gt;* parent, unsigned curContainer, unsigned curIndex) :
+            containers(&amp;parent-&gt;containers), curContainer(curContainer), curIndex(curIndex) {}
+
+        //iter() : parent(nullptr), curContainer(sizeof...(Containers)), curIndex(0) {}
+
+        iter(const self_t&amp; other) = default;
+        self_t&amp; operator=(const self_t&amp; other) = default;
+        iter(chain&lt;Containers...&gt;::iter&amp;&amp; other) = default;
+        self_t&amp; operator=(self_t &amp;&amp; other) = default;
+
+        reference operator*() {
+            return const_cast&lt;reference&gt;(*const_cast&lt;const self_t&amp;&gt;(*this));
+        }
+
+        std::add_const_t&lt;reference&gt; operator*() const {
+            if (curContainer &gt;= sizeof...(Containers))
+                throw std::out_of_range(&quot;Chain container index out of range&quot;);
+            return
+                *tupleGet(*containers, curContainer, [this](auto&amp; tup) {
+                    auto it = tup.begin();
+                    std::advance(it, curIndex);
+                    return static_cast&lt;pointer&gt;(&amp;*it);
+                });
+
+        }
+
+        self_t&amp; operator++() {
+            tupleGet(*containers, curContainer, [this](auto&amp; tup) {
+                auto it = tup.begin();
+                std::advance(it, curIndex + 1);
+                if (it == tup.end()) {
+                    curIndex = 0;
+                    ++curContainer;
+                }
+                else {
+                    ++curIndex;
+                }
+             });
+            return *this;
+        }
+
+        self_t operator++(int) {
+            auto cpy = *this;
+            ++(*this);
+            return cpy;
+        }
+
+        auto operator==(const chain&lt;Containers...&gt;::iter&amp; other) const {
+            return (other.containers == containers || other.containers == nullptr || containers == nullptr)
+                &amp;&amp; other.curIndex == curIndex &amp;&amp; other.curContainer == curContainer;
+        }
+
+        auto operator!=(const chain&lt;Containers...&gt;::iter&amp; other) const {
+            return !(*this == other);
+        }
+
+        auto operator-(self_t other) const {
+            auto cntIdx = curContainer;
+            auto index = curIndex;
+            difference_type diff = 0;
+            while (cntIdx &gt; other.curContainer) {
+                diff += index;
+                index = 
+                tupleGet(*containers, --cntIdx, [&amp;](auto&amp; tup) {
+                    return std::distance(tup.begin(), tup.end());
+                });
+            }
+            return diff + index - other.curIndex;
+        }
+
+        bool operator&lt;(self_t other) const {
+            return curContainer &lt; other.curContainer || curIndex &lt; other.curIndex;
+        }
+        bool operator&gt;(self_t other) const {
+            return curContainer &gt; other.curContainer || curIndex &gt; other.curIndex;
+        }
+        bool operator&lt;=(self_t other) const {
+            return *this &lt; other || *this == other;
+        }
+        bool operator&gt;=(self_t other) const {
+            return *this &gt; other || *this == other;
+        }
+
+        self_t&amp; operator+=(difference_type d) {
+            *this = *this + d;
+            return *this;
+        }
+
+        self_t&amp; operator-=(difference_type d) {
+            *this = *this - d;
+            return *this;
+        }
+
+        self_t&amp; operator--() {
+            *this -= 1;
+            return *this;
+        }
+
+        self_t operator--(int) {
+            auto cpy = *this;
+            --(*this);
+            return cpy;
+        }
+
+        reference operator[](difference_type diff) const {
+            if (diff &gt; 0) {
+                return *(*this + diff);
+            }
+            else {
+                return *(this - std::abs(diff));
+            }
+        }
+    };
+};
+</code></pre>
+<p>Notice the two <code>operator-</code>. One takes another iterator, and returns the difference between the two iterators. 
+The other <code>operator-</code> takes an iterator and difference type and moves the iterator similarly to <code>operator+</code>.</p>
+<h2 id="iterator-zip"><a class="header" href="#iterator-zip">Iterator Zip</a></h2>
+<p>Let's create a class <code>zip</code>, that can be constructed from an arbitrary amount of different containers. The definition for our
+container concept is just a type that contains a semantically correct <code>begin()</code> and <code>end()</code> method.
+Because I'm being a tad lazy, I'm going to forego the SFINAE enforcement of this concept.</p>
+<p><code>zip</code> will simply have <code>begin()</code> and <code>end()</code> methods that return a forward iterator that iterates over all the containers at once.
+&quot;De-referencing&quot; this iterator will return a tuple of the values of de-referencing iterators to all the containers.
+The iterator will just be a forward iterator, and iteration will continue until the smallest container has been completely iterated through.</p>
+<p>Let's start with the <code>zip</code> class which will be pretty simple. We'll store a tuple of references to containers.
+We must use a tuple so that we can have an unknown amount of members of different types.</p>
+<pre><code class="language-C++">template&lt;typename ... Containers&gt;
+class zip {
+    std::tuple&lt;Containers&amp;...&gt; containers;
+public:
+    zip(Containers&amp; ... containers) : containers(std::tie(containers...)) {}
+
+    class iterator;
+
+    iterator begin() {
+        return iterator(containers);
+    }
+
+    iterator end() {
+        return iterator();
+    }
+
+    const iterator begin() const {
+        return iterator(containers);
+    }
+
+    const iterator end() const {
+        return iterator();
+    }
+};
+</code></pre>
+<p><code>std::tie</code> creates a tuple of lvalue references; no constructor is called for any of the tuple elements.
+<code>std::make_tuple</code> will copy or move construct each element of the tuple.
+We declare the <code>zip</code> iterator class, which we'll define outside the <code>zip</code> class for neatness.</p>
+<p>Notice that since <code>zip</code> holds references to containers, it must not outlive any container passed to it.</p>
+<p>We'll make the iterator's default constructor construct an invalid iterator.
+The iterator will need access to the <code>zip</code> class containers tuple.</p>
+<pre><code class="language-C++">template&lt;typename ... Cs&gt;
+class zip&lt;Cs...&gt;::iterator {
+    bool invalid;
+    std::tuple&lt;decltype(std::declval&lt;Cs&gt;().begin())...&gt; iterators;
+    std::tuple&lt;decltype(std::declval&lt;Cs&gt;().end())...&gt; ends;
+    
+    using this_t = zip&lt;Cs...&gt;::iterator;
+
+    template&lt;size_t N = 0&gt;
+    bool is_end_iter() const {
+        if constexpr (N &lt; sizeof...(Cs)) {
+            return std::get&lt;N&gt;(iterators) == std::get&lt;N&gt;(ends) ||
+                is_end_iter&lt;N + 1&gt;();
+        }
+        else {
+            return false;
+        }
+    }
+public:
+    iterator(const std::tuple&lt;Cs&amp;...&gt; &amp; context) : invalid(false) {
+        std::apply([this](auto&amp; ... containers) {
+            iterators = std::make_tuple(containers.begin()...);
+            ends = std::make_tuple(containers.end()...);
+        }, context);
+    }
+    iterator() : invalid(true) {}
+
+//...
+</code></pre>
+<p>We'll use an <code>invalid</code> flag to denote an iterator that reached the end of the smallest container.
+Default constructing the zip iterator will set this flag to true.</p>
+<p>We'll also store an iterator for each container, and the end iterator for each container.
+Therefore, we can determine when the zip iterator is done iterating by testing if any of
+the iterators equals its corresponding end iterator. This is what the <code>is_end_iter</code> method does.
+If <code>N</code>, the integral template argument is less than the amount of containers we're iterating over,
+then we check if the Nth iterator equals the Nth sentinel iterator. If it does, we return <code>true</code>.
+Otherwise, we recurse and test the <code>N + 1</code> iterator.
+If <code>N</code> is greater or equal to the amount of containers, then we simply return <code>false</code>, which is
+the null element for boolean or. That is to say that <code>x == x || false</code>.</p>
+<p>Let's look at the constructor. We use <code>std::apply</code> to unpack the elements of a tuple into
+arguments of a variadic lambda. We can then use <code>std::make_tuple</code> and fold expressions to construct a tuple from
+begin and end iterators. <code>containers</code> are passed by reference to avoid copies. Notice how we capture the <code>this</code>
+pointer. If you remember, this is because we cannot capture member variables directly, but instead we must capture
+the <code>this</code> pointer to the object they belong to.
+<code>std::apply</code> is used because we cannot use a fold expression over template arguments. So the following won't compile:</p>
+<pre><code class="language-C++">template&lt;typename ... Indicies&gt;
+auto getTuple(Indicies ... indicies) {
+    // where indicies is a pack of integers
+    return std::make_tuple(std::get&lt;indicies&gt;(iterators)...);
+
+    // expanding a pack inside the &lt;&gt; is fine,
+    // but expanding a pack over the &lt;&gt; is not
+}
+</code></pre>
+<p>Next, our iterator needs to support equality testing. Two <code>zip</code> iterators will be equal if they are both invalid
+or their <code>iterators</code> tuple is the same.</p>
+<pre><code class="language-C++">    bool operator==(const this_t&amp; other) const {
+        return invalid &amp;&amp; other.invalid ||
+            iterators == other.iterators;
+    }
+
+    bool operator!=(const this_t&amp; other) const {
+        return !(*this == other);
+    }
+</code></pre>
+<p>For de-referencing the iterator, we'll use a similar tactic as the constructor: use <code>std::apply</code> to unpack
+the <code>iterators</code> tuple as arguments to a lambda. This lambda will then dereference each iterator, and use <code>std::tie</code>
+to return a tuple of references.</p>
+<pre><code class="language-C++">    auto operator*() {
+        if (invalid)
+            throw std::out_of_range(&quot;Attempt to derefence end iterator&quot;);
+        return
+            std::apply([this](auto&amp; ... iters) {
+                return std::tie(*iters...);
+            }, iterators);
+    }
+
+    auto operator*() const {
+        if (invalid)
+            throw std::out_of_range(&quot;Attempt to derefence end iterator&quot;);
+        return
+            std::apply([this](auto&amp; ... iters) {
+            return std::tie(std::add_const_t&lt;decltype(*iters)&gt;(*iters)...);
+                }, iterators);
+    }
+</code></pre>
+<p>Lastly, we'll need to define <code>operator++</code>. Once again, we'll use <code>std::apply</code> to unpack the tuple elements as
+arguments to a variadic lambda. Then we'll fold over <code>operator,</code> to increment each iterator. The comma operator in C++
+is a binary operator that evaluates its left argument, then evaluates and returns the right argument.</p>
+<pre><code class="language-C++">auto i = 0;
+
+auto j = i += 10, i++;
+// j is 10
+// i is 11
+
+auto k = &quot;Hello World&quot;, 0;
+// k is 0
+</code></pre>
+<p>Since we only care about the side effects of the <code>++</code> operation, it doesn't matter that we discard the result of
+incrementing them. After incrementing the iterators, we'll check if any of them equal their ending iterator.
+If so, we'll set the <code>invalid</code> flag to <code>true</code>.</p>
+<pre><code class="language-C++">    //this_t is a type alias for zip&lt;Cs...&gt;::iterator
+
+    this_t&amp; operator++() {
+        std::apply([](auto&amp; ... iters) {
+            (++iters, ...);
+        }, iterators);
+        if (is_end_iter())
+            invalid = true;
+        return *this;
+    }
+
+    this_t operator++(int) {
+        auto cpy = *this;
+        ++(*this);
+        return cpy;
+    }
+</code></pre>
+<p>Finally, don't forget the type aliases we need for iterators! Here's the complete code:</p>
+<pre><code class="language-C++">#pragma once
+#include &lt;tuple&gt;
+#include &lt;stdexcept&gt;
+
+
+template&lt;typename ... Containers&gt;
+class zip {
+    std::tuple&lt;Containers&amp;...&gt; containers;
+public:
+    zip(Containers&amp; ... containers) : containers(std::tie(containers...)) {}
+
+    class iterator;
+
+    iterator begin() {
+        return iterator(containers);
+    }
+
+    iterator end() {
+        return iterator();
+    }
+
+    const iterator begin() const {
+        return iterator(containers);
+    }
+
+    const iterator end() const {
+        return iterator();
+    }
+};
+
+template&lt;typename ... Cs&gt;
+class zip&lt;Cs...&gt;::iterator {
+    bool invalid;
+    std::tuple&lt;decltype(std::declval&lt;Cs&gt;().begin())...&gt; iterators;
+    std::tuple&lt;decltype(std::declval&lt;Cs&gt;().end())...&gt; ends;
+    
+    using this_t = zip&lt;Cs...&gt;::iterator;
+
+    template&lt;size_t N = 0&gt;
+    bool is_end_iter() const {
+        if constexpr (N &lt; sizeof...(Cs)) {
+            return std::get&lt;N&gt;(iterators) == std::get&lt;N&gt;(ends) ||
+                is_end_iter&lt;N + 1&gt;();
+        }
+        else {
+            return false;
+        }
+    }
+public:
+    iterator(const std::tuple&lt;Cs&amp;...&gt; &amp; context) : invalid(false) {
+        std::apply([this](auto&amp; ... containers) {
+            iterators = std::make_tuple(containers.begin()...);
+            ends = std::make_tuple(containers.end()...);
+        }, context);
+    }
+    iterator() : invalid(true) {}
+
+    bool operator==(const this_t&amp; other) const {
+        return invalid &amp;&amp; other.invalid ||
+            iterators == other.iterators;
+    }
+
+    bool operator!=(const this_t&amp; other) const {
+        return !(*this == other);
+    }
+
+    auto operator*() {
+        if (invalid)
+            throw std::out_of_range(&quot;Attempt to derefence end iterator&quot;);
+        return
+            std::apply([this](auto&amp; ... iters) {
+                return std::tie(*iters...);
+            }, iterators);
+    }
+
+    auto operator*() const {
+        if (invalid)
+            throw std::out_of_range(&quot;Attempt to derefence end iterator&quot;);
+        return
+            std::apply([this](auto&amp; ... iters) {
+            return std::tie(std::add_const_t&lt;decltype(*iters)&gt;(*iters)...);
+                }, iterators);
+    }
+
+    this_t&amp; operator++() {
+        std::apply([](auto&amp; ... iters) {
+            (++iters, ...);
+        }, iterators);
+        if (is_end_iter())
+            invalid = true;
+        return *this;
+    }
+
+    this_t operator++(int) {
+        auto cpy = *this;
+        ++(*this);
+        return cpy;
+    }
+
+public:
+    using difference_type = ptrdiff_t;
+    using reference = decltype(*std::declval&lt;this_t&gt;());
+    using value_type = std::remove_reference_t&lt;reference&gt;;
+    using pointer = value_type*;
+    using iterator_category = std::forward_iterator_tag;
+
+};
+</code></pre>
+<p>And here's some usage examples:</p>
+<pre><code class="language-C++">std::vector v5 = { -100, 40, 30, 700, 600, 300, 100, -50, 47, 573, 48 };
+auto lst = { 'a', 'b', 'c', 'd' };
+for (auto [letter, num] : zip(lst, v5)) {
+    std::cout &lt;&lt; &quot;(&quot; &lt;&lt; letter &lt;&lt; &quot;, &quot; &lt;&lt; num &lt;&lt; &quot;)\n&quot;;
+}
+// (a, -100)
+// (b, 40)
+// (c, 30)
+// (d, 700)
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../more_templates/erasure.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../concurrency/intro.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../more_templates/erasure.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../concurrency/intro.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

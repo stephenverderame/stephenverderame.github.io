@@ -1,0 +1,431 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>GDB and GProf - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html" class="active"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="gdb"><a class="header" href="#gdb">GDB</a></h1>
+<p>GDB is the GNU Debugger for Linux. It allows us to use a command line interface to investigate the stack trace, set breakpoints, step through execution, and more. 
+On Windows, Visual Studio comes with a debugger that is pretty self-explanatory to use.</p>
+<p>In order to start debugging a program, we'll need to compile our program so that it includes the debugging symbol tables. 
+To do this, we need to add the &quot;-g&quot; flag to the command line arguments of g++. In CMake, there are a few ways to do this. 
+The first is to set the build type to <code>Debug</code> or <code>RelWithDebugInfo</code>. The latter produces an optimized release build except it also contains debug symbols. 
+The former produces a debug build. Another option is to set C++ compiler flags. We'll discuss CMake more later.</p>
+<pre><code class="language-CMake">set(CMAKE_BUILD_TYPE Debug) # Sets the build type to debug
+
+set(CMAKE_CXX_FLAGS &quot;${CMAKE_CXX_FLAGS} -g&quot;) 
+# adds the -g flag to the c++ compiler options
+# applies to all build targets
+
+add_compile_options(-g)
+# adds the -g to all targets in the current directory
+# and all subdirectories
+
+target_compile_options(TargetName PRIVATE &quot;-g&quot;)
+# sets the -g flag to the specific target
+</code></pre>
+<p>We can also do this via the CMake command line by adding the flag <code>-DCMAKE_BUILD_TYPE=Debug</code>.</p>
+<p>Now our compiled binary can be run with the debugger. With <code>gdb</code> installed, run the command <code>gdb &lt;path to exe&gt;</code> to start debugging. You'll enter an interactive CLI that accepts commands.</p>
+<p>Without doing anything else but running the program, the debugger will break execution whenever the program crashes or an exception is thrown out of the program. To run the program use the <code>r</code> or <code>run</code> command specify any command line arguments the program may need.</p>
+<p>A backtrace can be displayed with <code>backtrace</code> or <code>bt</code>, and <code>q</code> quits gdb.</p>
+<p>It may be helpful to log output to a file. To enable logging use <code>set logging on</code>. 
+You can change the output file with <code>set logging file &lt;file&gt;</code>. 
+By default, output is displayed to terminal as well as being logged. 
+You can change this by turning on redirect, which, when enabled, only outputs to the log file. This can be turned on with <code>set logging redirect [on/off]</code>. 
+Disable logging with <code>set logging off</code>. Everything printed to the terminal, will be saved in the log file.</p>
+<p>Here are a list of some commands:</p>
+<ul>
+<li>
+<p><code>b</code>/<code>break</code> <code>(&lt;class&gt;::&lt;member function&gt; | &lt;line number&gt; | &lt;file&gt;:&lt;line number&gt; | &lt;function name&gt; | +&lt;relative line num&gt;) [if &lt;expr&gt;]</code></p>
+<ul>
+<li><code>b 45</code> - breakpoint at line 45 of main file</li>
+<li><code>b MyClass::doFoo</code> - breakpoint at start of <code>doFoo()</code> of class <code>MyClass</code></li>
+<li><code>break main</code> - breakpoint at start of <code>main()</code></li>
+<li><code>b +10</code> - breakpoint 10 lines down from current position</li>
+<li><code>b source.cpp:23 if x == 2</code> - breaks line 23 in source.cpp if a variable x is 2</li>
+</ul>
+</li>
+<li>
+<p><code>info breakpoints</code> - get a list of breakpoints. Each one has a numeric id</p>
+</li>
+<li>
+<p><code>delete &lt;breakpoint number&gt;</code></p>
+</li>
+<li>
+<p><code>ignore &lt;breakpoint number&gt;</code></p>
+</li>
+<li>
+<p><code>skip &lt;breakpoint number&gt;</code></p>
+</li>
+<li>
+<p><code>step</code>/<code>s</code> <code>[lines]</code> - continue to next line of source code. Optional param amount of lines </p>
+</li>
+<li>
+<p><code>next</code>/<code>n</code> <code>[lines]</code> - same as <code>step</code> but does not trace through (step into) functions</p>
+</li>
+<li>
+<p><code>stepi</code>/<code>si</code> <code>[instructions]</code> - goes to next <em>machine instruction</em>. Option param amount of instructions. Similar to <code>step</code></p>
+</li>
+<li>
+<p><code>nexti</code>/<code>ni</code> <code>[instructions]</code> - same as <code>next</code> but with machine instructions.</p>
+</li>
+<li>
+<p><code>continue</code>/<code>c</code> - continues to next breakpoint or error</p>
+</li>
+<li>
+<p><code>watch &lt;expr&gt;</code> - breaks when the value of <code>expr</code> changes</p>
+<ul>
+<li><code>watch str</code> - breaks every time the value of the variable <code>str</code> changes</li>
+<li><code>watch str.size() &gt; 10</code></li>
+</ul>
+</li>
+<li>
+<p><code>condition &lt;breakpoint number&gt; &lt;expr&gt;</code> - makes the specified breakpoint conditional. The breakpoint will now only break when <code>expr</code> is true</p>
+</li>
+<li>
+<p><code>info frame</code> - prints information about the current stack frame</p>
+</li>
+<li>
+<p><code>u</code> - goes up one frame</p>
+</li>
+<li>
+<p><code>d</code> - goes down one frame</p>
+</li>
+<li>
+<p><code>frame &lt;n&gt;</code> - navigates to the nth frame. n = 1 is the parent frame with larger n going higher and higher up.</p>
+</li>
+<li>
+<p><code>info locals</code> - prints values of local variables</p>
+</li>
+<li>
+<p><code>info args</code> - displays information of arguments to current function</p>
+</li>
+<li>
+<p><code>print</code>/<code>p</code> <code>[/&lt;format&gt;] &lt;variable&gt;</code> - displays the specified variable. <code>format</code> is an optional parameter to control the type the variable is displayed as. </p>
+<ul>
+<li><code>p /s name</code> - displays the variable <code>name</code> as a C string.</li>
+<li><code>print x</code> - displays <code>x</code></li>
+</ul>
+</li>
+<li>
+<p><code>set &lt;variable&gt; = &lt;value&gt;</code> - sets a variable</p>
+</li>
+<li>
+<p><code>call &lt;function&gt;</code> - executes the function</p>
+<ul>
+<li><code>call strlen(myStr)</code> - returns length of C string variable named <code>myStr</code></li>
+<li><code>call malloc_stats()</code>, <code>call mallinfo()</code>, <code>call malloc_info(0, stdout)</code> - displays allocation and memory usage info to console</li>
+</ul>
+</li>
+<li>
+<p><code>display [/&lt;format&gt;] &lt;variable&gt;</code> - displays the value of <code>variable</code> after every step or pause. Optional format code to control how <code>variable</code> is displayed.</p>
+<ul>
+<li><code>undisplay &lt;variable&gt;</code></li>
+</ul>
+</li>
+<li>
+<p><code>x /&lt;count&gt;&lt;format&gt;&lt;unit&gt; &lt;address&gt;</code> - displays <code>count</code> amount of <code>unit</code> starting from <code>address</code> in the given format</p>
+<ul>
+<li>Units include:
+<ul>
+<li><code>b</code> - byte</li>
+<li><code>h</code> - half word (2 bytes)</li>
+<li><code>w</code> - word (4 bytes)</li>
+<li><code>g</code> - &quot;giant&quot; or double word (8 bytes)</li>
+</ul>
+</li>
+<li><code>x/12xb &lt;addr&gt;</code> - display 12 bytes in hex at <code>addr</code></li>
+</ul>
+</li>
+</ul>
+<p>The formats for commands like <code>print</code> and <code>x</code> include the following:</p>
+<ul>
+<li><code>s</code> - treat as C string</li>
+<li><code>c</code> - print integer as char</li>
+<li><code>d</code> - signed decimal integer</li>
+<li><code>f</code> - floating point</li>
+<li><code>o</code> - integer, print in octal</li>
+<li><code>t</code> - integer, display in binary</li>
+<li><code>u</code> - unsigned integer</li>
+<li><code>x</code> - integer, display in hex</li>
+</ul>
+<p>More information can pretty easily be found online. Also check out the <a href="https://darkdust.net/files/GDB%20Cheat%20Sheet.pdf">GDB cheat sheet</a>.</p>
+<h1 id="gprof"><a class="header" href="#gprof">GProf</a></h1>
+<p>GProf is the GNU profiler. To use the profiler we must compile <strong>and link</strong> with the &quot;-pg&quot; compiler flag. See above for how to do that in CMake. 
+In CMake, setting link flags are very much like setting compile flags, for example:</p>
+<pre><code>target_link_options(TargetName PRIVATE &quot;-pg&quot;)
+</code></pre>
+<p>From there we can simply run the program like normal. When execution is finished, a file called <code>gmon.out</code> will be generated in the build directory. 
+Next, we can simply run the <code>gprof</code> tool on this executable which will display a lot of information. So you probably want to redirect the output to a log file.</p>
+<pre><code>gprof [&lt;options&gt;] &lt;path to exe&gt; gmon.out [&gt; &lt;log file name&gt;]
+</code></pre>
+<p>Two important things to look out in the output is the <em>flat profile</em> and <em>call graph</em>. The flat profile provides a list of functions organized by time spent in each and looks something like this:</p>
+<pre><code>Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 33.34      0.02     0.02     7208     0.00     0.00  open
+ 16.67      0.03     0.01      244     0.04     0.12  offtime
+ 16.67      0.04     0.01        8     1.25     1.25  memccpy
+ 16.67      0.05     0.01        7     1.43     1.43  write
+ 16.67      0.06     0.01                             mcount
+  0.00      0.06     0.00      236     0.00     0.00  tzset
+  0.00      0.06     0.00      192     0.00     0.00  tolower
+  0.00      0.06     0.00       47     0.00     0.00  strlen
+  0.00      0.06     0.00       45     0.00     0.00  strchr
+  0.00      0.06     0.00        1     0.00    50.00  main
+  0.00      0.06     0.00        1     0.00     0.00  memcpy
+  0.00      0.06     0.00        1     0.00    10.11  print
+  0.00      0.06     0.00        1     0.00     0.00  profil
+  0.00      0.06     0.00        1     0.00    50.00  report
+</code></pre>
+<p><a href="https://ftp.gnu.org/old-gnu/Manuals/gprof-2.9.1/html_chapter/gprof_5.html#SEC11">Source</a></p>
+<p>The cumulative seconds is the time spent in the current function and all functions above that once in the table. Self seconds is the time spent only in that function. 
+Gprof works by taking samples at fixed intervals. The sampling interval is displayed before the flat profile. In this case samples are every <code>0.01</code> seconds. 
+Functions that are not called, are not compiled, or take an insignificant amount of time may not appear in the profile. The function <code>mcount</code> is used internally to perform this timing analysis.</p>
+<p>Next is the call graph which shows how much time was spent in a function and its children. The graph is divided into entries separated by horizontal bars and looks something like this:</p>
+<pre><code>granularity: each sample hit covers 2 byte(s) for 20.00% of 0.05 seconds
+
+index % time    self  children    called     name
+                                                 &lt;spontaneous&gt;
+[1]    100.0    0.00    0.05                 start [1]
+                0.00    0.05       1/1           main [2]
+                0.00    0.00       1/2           on_exit [28]
+                0.00    0.00       1/1           exit [59]
+-----------------------------------------------
+                0.00    0.05       1/1           start [1]
+[2]    100.0    0.00    0.05       1         main [2]
+                0.00    0.05       1/1           report [3]
+-----------------------------------------------
+                0.00    0.05       1/1           main [2]
+[3]    100.0    0.00    0.05       1         report [3]
+                0.00    0.03       8/8           timelocal [6]
+                0.00    0.01       1/1           print [9]
+                0.00    0.01       9/9           fgets [12]
+                0.00    0.00      12/34          strncmp &lt;cycle 1&gt; [40]
+                0.00    0.00       8/8           lookup [20]
+                0.00    0.00       1/1           fopen [21]
+                0.00    0.00       8/8           chewtime [24]
+                0.00    0.00       8/16          skipspace [44]
+-----------------------------------------------
+[4]     59.8    0.01        0.02       8+472     &lt;cycle 2 as a whole&gt;	[4]
+                0.01        0.02     244+260         offtime &lt;cycle 2&gt; [7]
+                0.00        0.00     236+1           tzset &lt;cycle 2&gt; [26]
+-----------------------------------------------
+</code></pre>
+<p>The primary line is the line for the function that the entry is analyzing. 
+This line has the name of the function not on an indent. The direct caller of the function being analyzed is also included in the same entry.</p>
+<p>To display the call graph more nicely, we can use the python script <code>gprof2dot</code>. This can be installed via <code>pip</code>.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../testing/gmock.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../testing/valgrind.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../testing/gmock.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../testing/valgrind.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Coroutines - Excursion through C++</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var html = document.querySelector('html');
+            var sidebar = null;
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../about.html">About</a></li><li class="chapter-item expanded "><a href="../intro/getting_started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../intro/hello_world.html"><strong aria-hidden="true">1.1.</strong> Hello World</a></li><li class="chapter-item expanded "><a href="../intro/hello_cmake.html"><strong aria-hidden="true">1.2.</strong> Hello CMake</a></li></ol></li><li class="chapter-item expanded "><a href="../guessing_game/gg1.html"><strong aria-hidden="true">2.</strong> Guessing Game</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../guessing_game/gg2.html"><strong aria-hidden="true">2.1.</strong> Coding the Guessing Game</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Basics</li><li class="chapter-item expanded "><a href="../basics/basics.html"><strong aria-hidden="true">3.</strong> Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basics/control_flow.html"><strong aria-hidden="true">3.1.</strong> Control Flow</a></li><li class="chapter-item expanded "><a href="../basics/primitives.html"><strong aria-hidden="true">3.2.</strong> Primitive Types</a></li><li class="chapter-item expanded "><a href="../basics/variables.html"><strong aria-hidden="true">3.3.</strong> Variables</a></li><li class="chapter-item expanded "><a href="../basics/references.html"><strong aria-hidden="true">3.4.</strong> References</a></li><li class="chapter-item expanded "><a href="../basics/functions.html"><strong aria-hidden="true">3.5.</strong> Functions</a></li><li class="chapter-item expanded "><a href="../basics/operators.html"><strong aria-hidden="true">3.6.</strong> Operators</a></li><li class="chapter-item expanded "><a href="../basics/comments.html"><strong aria-hidden="true">3.7.</strong> Comments and Headers</a></li></ol></li><li class="chapter-item expanded "><a href="../organization/org.html"><strong aria-hidden="true">4.</strong> Getting Organized</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../organization/classes.html"><strong aria-hidden="true">4.1.</strong> Classes</a></li><li class="chapter-item expanded "><a href="../organization/struct.html"><strong aria-hidden="true">4.2.</strong> Structs</a></li><li class="chapter-item expanded "><a href="../organization/enums.html"><strong aria-hidden="true">4.3.</strong> Enums</a></li><li class="chapter-item expanded "><a href="../organization/namespaces.html"><strong aria-hidden="true">4.4.</strong> Namespaces</a></li></ol></li><li class="chapter-item expanded "><a href="../oop/intro.html"><strong aria-hidden="true">5.</strong> Classes and OOP</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../oop/overloads.html"><strong aria-hidden="true">5.1.</strong> Friends and Overloads</a></li><li class="chapter-item expanded "><a href="../oop/adt.html"><strong aria-hidden="true">5.2.</strong> Abstract Types and Virtual</a></li><li class="chapter-item expanded "><a href="../oop/inheritance.html"><strong aria-hidden="true">5.3.</strong> Inheritance</a></li><li class="chapter-item expanded "><a href="../oop/casts.html"><strong aria-hidden="true">5.4.</strong> Casts and Conversions</a></li><li class="chapter-item expanded "><a href="../oop/guidelines.html"><strong aria-hidden="true">5.5.</strong> OOP Guidelines</a></li><li class="chapter-item expanded "><a href="../oop/constructors.html"><strong aria-hidden="true">5.6.</strong> Constructors and Destructors</a></li><li class="chapter-item expanded "><a href="../oop/raii.html"><strong aria-hidden="true">5.7.</strong> RAII</a></li></ol></li><li class="chapter-item expanded "><a href="../exceptions/basics.html"><strong aria-hidden="true">6.</strong> Exceptions</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../exceptions/noexcept.html"><strong aria-hidden="true">6.1.</strong> Noexcept, Strong, and Basic</a></li><li class="chapter-item expanded "><a href="../exceptions/swap.html"><strong aria-hidden="true">6.2.</strong> Swap</a></li></ol></li><li class="chapter-item expanded "><a href="../pointers/intro.html"><strong aria-hidden="true">7.</strong> Pointers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../pointers/unique.html"><strong aria-hidden="true">7.1.</strong> Unique Ptr and Deleters</a></li><li class="chapter-item expanded "><a href="../pointers/shared.html"><strong aria-hidden="true">7.2.</strong> Shared and Weak Ptr</a></li><li class="chapter-item expanded "><a href="../pointers/raw.html"><strong aria-hidden="true">7.3.</strong> Raw and Function Pointers</a></li><li class="chapter-item expanded "><a href="../pointers/pimpl.html"><strong aria-hidden="true">7.4.</strong> PIMPL and Polymorphism</a></li><li class="chapter-item expanded "><a href="../pointers/reference_wrapper.html"><strong aria-hidden="true">7.5.</strong> Reference Wrappers</a></li></ol></li><li class="chapter-item expanded "><a href="../basic_containers/intro.html"><strong aria-hidden="true">8.</strong> Basic Containers</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../basic_containers/arrays.html"><strong aria-hidden="true">8.1.</strong> Arrays</a></li><li class="chapter-item expanded "><a href="../basic_containers/strings.html"><strong aria-hidden="true">8.2.</strong> Strings</a></li><li class="chapter-item expanded "><a href="../basic_containers/vector.html"><strong aria-hidden="true">8.3.</strong> List of Containers</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Details and More Advanced Topics</li><li class="chapter-item expanded "><a href="../move/intro.html"><strong aria-hidden="true">9.</strong> Move Semantics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../move/values.html"><strong aria-hidden="true">9.1.</strong> Lvalues, Rvalues, and more; Oh My!</a></li><li class="chapter-item expanded "><a href="../move/optimizations.html"><strong aria-hidden="true">9.2.</strong> RVO and NRVO</a></li><li class="chapter-item expanded "><a href="../move/like_move.html"><strong aria-hidden="true">9.3.</strong> std::move and RTTI</a></li></ol></li><li class="chapter-item expanded "><a href="../templates/intro.html"><strong aria-hidden="true">10.</strong> Template Basics</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../templates/special.html"><strong aria-hidden="true">10.1.</strong> Specialization</a></li><li class="chapter-item expanded "><a href="../templates/concepts.html"><strong aria-hidden="true">10.2.</strong> Concepts and Type Traits</a></li><li class="chapter-item expanded "><a href="../templates/forwarding.html"><strong aria-hidden="true">10.3.</strong> Forwarding</a></li><li class="chapter-item expanded "><a href="../templates/type_deductions.html"><strong aria-hidden="true">10.4.</strong> Type Deduction</a></li><li class="chapter-item expanded "><a href="../templates/variadic.html"><strong aria-hidden="true">10.5.</strong> Variadic Templates</a></li><li class="chapter-item expanded "><a href="../templates/iterators.html"><strong aria-hidden="true">10.6.</strong> Iterators</a></li><li class="chapter-item expanded "><a href="../templates/policies.html"><strong aria-hidden="true">10.7.</strong> Customizing STL Containers</a></li></ol></li><li class="chapter-item expanded "><a href="../functional/intro.html"><strong aria-hidden="true">11.</strong> Functional Programming in STL</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../functional/lambdas.html"><strong aria-hidden="true">11.1.</strong> Lambdas and Functional</a></li><li class="chapter-item expanded "><a href="../functional/functional_types.html"><strong aria-hidden="true">11.2.</strong> Tuple, Variant, Optional</a></li><li class="chapter-item expanded "><a href="../functional/algorithm.html"><strong aria-hidden="true">11.3.</strong> Algorithms</a></li></ol></li><li class="chapter-item expanded "><a href="../more_templates/intro.html"><strong aria-hidden="true">12.</strong> Advanced Templates</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../more_templates/constexpr.html"><strong aria-hidden="true">12.1.</strong> Constexpr</a></li><li class="chapter-item expanded "><a href="../more_templates/tmp.html"><strong aria-hidden="true">12.2.</strong> TMP</a></li><li class="chapter-item expanded "><a href="../more_templates/crtp.html"><strong aria-hidden="true">12.3.</strong> CRTP</a></li><li class="chapter-item expanded "><a href="../more_templates/pbd.html"><strong aria-hidden="true">12.4.</strong> PBD Techniques</a></li><li class="chapter-item expanded "><a href="../more_templates/erasure.html"><strong aria-hidden="true">12.5.</strong> Type Erasure</a></li><li class="chapter-item expanded "><a href="../more_templates/examples.html"><strong aria-hidden="true">12.6.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../concurrency/intro.html"><strong aria-hidden="true">13.</strong> Concurrency</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../concurrency/threads.html"><strong aria-hidden="true">13.1.</strong> Threads</a></li><li class="chapter-item expanded "><a href="../concurrency/locks.html"><strong aria-hidden="true">13.2.</strong> Locks and Mutexes</a></li><li class="chapter-item expanded "><a href="../concurrency/cond_var.html"><strong aria-hidden="true">13.3.</strong> Condition Variables, Latches, Barriers, and Semaphores</a></li><li class="chapter-item expanded "><a href="../concurrency/async.html"><strong aria-hidden="true">13.4.</strong> Async, Promises, and Futures</a></li><li class="chapter-item expanded "><a href="../concurrency/atomic.html"><strong aria-hidden="true">13.5.</strong> Atomics</a></li><li class="chapter-item expanded "><a href="../concurrency/consider.html"><strong aria-hidden="true">13.6.</strong> Considerations and Atomic Memory Orders</a></li><li class="chapter-item expanded "><a href="../concurrency/examples.html"><strong aria-hidden="true">13.7.</strong> Examples</a></li></ol></li><li class="chapter-item expanded "><a href="../cpp_20/intro.html"><strong aria-hidden="true">14.</strong> C++20</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../cpp_20/concepts.html"><strong aria-hidden="true">14.1.</strong> Concepts</a></li><li class="chapter-item expanded "><a href="../cpp_20/modules.html"><strong aria-hidden="true">14.2.</strong> Modules</a></li><li class="chapter-item expanded "><a href="../cpp_20/ranges.html"><strong aria-hidden="true">14.3.</strong> Ranges</a></li><li class="chapter-item expanded "><a href="../cpp_20/coroutines.html" class="active"><strong aria-hidden="true">14.4.</strong> Coroutines</a></li><li class="chapter-item expanded "><a href="../cpp_20/misc.html"><strong aria-hidden="true">14.5.</strong> Other Features</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">In Practice</li><li class="chapter-item expanded "><a href="../testing/tools.html"><strong aria-hidden="true">15.</strong> Tools</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/intro.html"><strong aria-hidden="true">15.1.</strong> Testing</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../testing/gtest.html"><strong aria-hidden="true">15.1.1.</strong> GTest</a></li><li class="chapter-item expanded "><a href="../testing/gmock.html"><strong aria-hidden="true">15.1.2.</strong> GMock</a></li><li class="chapter-item expanded "><a href="../testing/gdb.html"><strong aria-hidden="true">15.1.3.</strong> GDB and GProf</a></li><li class="chapter-item expanded "><a href="../testing/valgrind.html"><strong aria-hidden="true">15.1.4.</strong> More Profiling and Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../testing/doxygen.html"><strong aria-hidden="true">15.2.</strong> Doxygen</a></li><li class="chapter-item expanded "><a href="../testing/cmake.html"><strong aria-hidden="true">15.3.</strong> CMake</a></li><li class="chapter-item expanded "><a href="../testing/analysis.html"><strong aria-hidden="true">15.4.</strong> Static Analysis</a></li></ol></li><li class="chapter-item expanded "><a href="../project.html"><strong aria-hidden="true">16.</strong> Project</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../swe_tips.html"><strong aria-hidden="true">16.1.</strong> SWE Tips</a></li><li class="chapter-item expanded "><a href="../design_patterns.html"><strong aria-hidden="true">16.2.</strong> Design Patterns</a></li><li class="spacer"></li></ol></li><li class="chapter-item expanded "><li class="part-title">Appendix</li><li class="chapter-item expanded "><a href="../macros.html"><strong aria-hidden="true">17.</strong> Macros and the Compiler</a></li><li class="chapter-item expanded affix "><a href="../resources.html">Further Resources</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Excursion through C++</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="coroutines"><a class="header" href="#coroutines">Coroutines</a></h1>
+<p>At the time of writing this, I really don't know much about these. I'll explain the basics, but I will continue to look into this topic on my own time.
+In short, coroutines are functions that can be suspended and resumed mid-execution.
+They are stackless: they don't use a stack to store their activation records.
+I believe this is a quality of C++20 coroutines and not a requirement of coroutines in general.
+Instead of the traditional subroutine model: a caller executes a subroutine from the start,
+waits until completion and then resumes, a coroutine execution can be interleaved.
+The coroutines are more like partners, one makes progress, yields to the other, the second makes progress, yields to the first and so on.
+To this end, they provide concurrency, but not parallelism.
+When you use the operators <code>co_return</code>, <code>co_yield</code>, and/or <code>co_await</code> in a function,
+the compiler converts it to a coroutine with a finite state machine to control program flow and transfers.
+C++20 provides a pretty low-level API that's designed for library writers to build upon.
+For a good coroutine library, check out <a href="https://github.com/lewissbaker/cppcoro">cppcoro</a> and for more detailed information, check our <a href="https://lewissbaker.github.io/">Lewis Baker's github</a>.</p>
+<p>Coroutines (henceforth referred to as &quot;coro&quot;) can be resumed,
+suspended, and destroyed.
+Resuming a coro will transfer execution back to it at where it left off.
+Suspending one will save the current suspension point onto the activation frame and return control to the awaiter/caller.
+Destroying a coro cleans up the activation frame.
+The activation frame for coroutines are known as coroutine frames which contains space for parameters, local variables, temporaries, execution state (how to resume) and promises (for return values).</p>
+<p>C++20 provides two interfaces for coros, a <code>promise_type</code> and <code>awaiter</code>.
+Note that these interfaces are not interfaces in the OOP sense, but rather concepts with certain functions (static interfaces) that the compiler calls when turning a function into a coroutine.
+It should also be noted that the coro promise is not the same as the concurrency promise.</p>
+<p>An awaiter specifies three methods: <code>await_suspend()</code>, <code>await_resume()</code>, and <code>await_ready()</code>.
+When you call <code>co_await</code> on the object, the compiler first checks if the promise defines a function <code>await_transform()</code>, which will be called if it exists otherwise the compiler just gets the awaiter directly.</p>
+<p><code>await_ready()</code> returns a bool indicating if the next value to be produced by the coro is ready.
+Internally, when you <code>co_await</code> on an awaiter, it calls <code>await_ready()</code>, if it returns true, it will then call <code>await_resume()</code>, otherwise <code>await_suspend()</code> is called.</p>
+<p><code>await_suspend()</code> takes in a handle to a coro, and can either return <code>void</code> or the handle to the coro to resume.
+The latter is known as a <em>symmetric transfer</em> and prevents allocating excess stack frames.
+This works by following a premise similar to tail recursion vs non-tail recursion.
+When a coro is suspended, the compiler stores all relevant state and creates a <code>coroutine_handle</code> object.</p>
+<p><code>await_resume()</code> is what produces the return type for a <code>co_await</code> expression.</p>
+<p>A <code>promise_type</code> specifies methods for customizing the behavior of the coro itself.
+The <code>promose_type</code> interface has a few methods including <code>initial_suspend()</code>, <code>final_suspend()</code>, <code>yield_value()</code>, <code>return_value()</code>, <code>get_return_object()</code>, and <code>unhandled_exception()</code>.
+<code>initial_suspend()</code> is called on the first suspension of the coro, <code>final_suspend()</code> and <code>yield_value()</code> are called from <code>co_yield</code>, <code>return_value()</code> is called from <code>co_return</code>,
+and <code>get_return_object()</code> is for returning the result of the coro.
+<code>unhandled_exception()</code> is called in a catch block for any exception the propagates out.
+For initial and final suspend, the standard defined <code>std::suspend_always</code> and <code>std::suspend_never</code> can be returned to control suspension behavior.</p>
+<p><code>co_return</code> takes the place of a normal <code>return</code> call, while <code>co_yield</code> doesn't clean up the coro frame, but instead returns a value and resumes execution on the cooperating coro or caller.</p>
+<p>The <code>promise_type</code> is wrapped in an <code>std::coroutine_handle&lt;&gt;</code> which allows the holder to manage the coro and call operations such as <code>resume()</code>, <code>destroy()</code>, and <code>done()</code>.</p>
+<p>This probably made little sense, probably because I'm not even quite sure if it all made sense to me.
+So here's an example. A generator is something that evaluates lazily. If you are familiar with Python <code>range()</code> is an example of a generator.
+SSo for this example we'll implement a <code>range()</code> function with coroutines.
+We can do this without coros with just iterators, but where's the fun in that.
+The general structure will be that we have a <code>Generator</code> class with a promise type and an iterator.
+Each time the iterator is incremented, it resumes the coro which uses <code>co_yield</code> to produce a value.
+Let's first start by defining our promise type.</p>
+<pre><code class="language-C++">template&lt;typename T&gt;
+struct Generator {
+	// must be named promise_type
+	struct promise_type {
+		std::variant&lt;T const*, std::exception_ptr&gt; value;
+
+		void throwIfException() {
+			if (value.index() == 1) {
+				std::rethrow_exception(std::get&lt;1&gt;(value));
+			}
+		}
+
+		//Functions required for a coroutine promise
+
+		std::suspend_always initial_suspend() {
+			// suspend on creation to step through manually
+			return {};
+		}
+		std::suspend_always final_suspend() noexcept {
+			// suspend on return instead of destroying state
+			return {};
+		}
+		std::suspend_always yield_value(T const&amp; other) {
+			value = std::addressof(other);
+            // assign data to value
+
+            // std::addressof() gets the address of a variable even if someone
+            // (evily) overloaded `operator&amp;`
+			return {};
+		}
+
+		void return_void() {}
+
+        // gets the return object from the promise
+		Generator&lt;T&gt; get_return_object() {
+			return Generator&lt;T&gt;(handle_type::from_promise(*this));
+		}
+		// called by compiler if coro produces an exception
+		void unhandled_exception() {
+			value = std::current_exception();
+		}
+        
+        // this function called by co_await
+        //
+        // disable awaiting on the generator since
+        // it can be an infinite stream of values
+		void await_transform() = delete;
+	};
+</code></pre>
+<p>We store the value of our coro as a variant, since it can hold either a value or an exception.
+We define the necessary functions to satisfy the <code>promise_type</code> interface.
+Notice we define, but don't implement <code>await_transform</code> which prevents anybody from calling <code>co_await</code> on this promise.
+Next we'll define the iterator:</p>
+<pre><code class="language-C++">	using handle_type = std::coroutine_handle&lt;promise_type&gt;;
+	struct iterator {
+		handle_type handle;
+		
+		// iterator trait typedefs
+		using iterator_category = std::input_iterator_tag;
+		using value_type = T;
+		using difference_type = ptrdiff_t;
+		using pointer = T const*;
+		using reference = T const&amp;;
+
+		iterator&amp; operator++() {
+		    // resume the coro
+			handle.resume();
+
+			if (handle.done()) {
+				auto &amp; pro = handle.promise();
+				handle = nullptr;
+				pro.throwIfException();
+			}
+			return *this;
+		}
+
+		bool operator==(const iterator&amp; other) const {
+			return handle == other.handle;
+		}
+
+		bool operator!=(const iterator&amp; other) const {
+			return !(*this == other);
+		}
+
+		T const&amp; operator*() {
+			return *std::get&lt;0&gt;(handle.promise().value);
+		}
+
+		T const&amp; operator-&gt;() {
+			return operator*();
+		}
+	};
+</code></pre>
+<p>For an iterator in an enhanced for-loop, the compiler needs to be able to compare equality with <code>==</code> and <code>!=</code>,
+so we define those which delegate the comparisons to the handle.
+We also provide derefence capability, which will throw if an exception is stored in the variant instead of a value.
+In the iterator incrementation, we resume the coro. If the coro finishes abruptly, then we know an error has occurred and rethrow the exception.
+Here's the rest of the Generator:</p>
+<pre><code class="language-C++">    // local variable handle to coro
+	handle_type handle{ nullptr };
+
+	friend void swap(Generator&lt;T&gt;&amp; a, Generator&lt;T&gt;&amp; b) {
+		std::swap(a.handle, b.handle);
+	}
+
+	Generator() = default;
+
+	Generator(const handle_type&amp; handle) :
+		handle(handle) {};
+
+	Generator(handle_type&amp;&amp; handle) :
+		handle(std::move(handle)) {}
+
+	Generator(Generator&lt;T&gt;&amp;&amp; other) {
+		swap(*this, other);
+	}
+
+	Generator&amp; operator=(Generator&lt;T&gt;&amp;&amp; other) {
+		swap(*this, other);
+		return *this;
+	}
+
+	Generator(Generator&lt;T&gt;&amp;) = delete;
+	Generator&lt;T&gt;&amp; operator=(Generator&lt;T&gt;&amp;) = delete;
+
+	~Generator() {
+		if (handle)
+			handle.destroy();
+	}
+
+	iterator begin() {
+		handle.resume();
+
+		if (handle.done()) {
+			handle.promise().throwIfException();
+			return { nullptr };
+		}
+
+		return { handle };
+	}
+	iterator end() {
+		return { nullptr };
+	}
+};
+
+template&lt;typename T&gt;
+Generator&lt;T&gt; range(T begin, T end) {
+	while (begin != end) {
+		co_yield begin++;
+	}
+}
+template&lt;typename T&gt;
+Generator&lt;T&gt; range(T end) {
+	T begin{};
+	while (begin != end) {
+		co_yield begin++;
+	}
+}
+</code></pre>
+<p>We use RAII features to destroy the coro frame on destruction of the generator.
+We provide move capabilities and remove copy capabilities.
+Finally, we provide <code>begin()</code> and <code>end()</code> methods to our generator so it can be used in a for loop.
+Notice our coroutine doesn't explicitly create a Generator itself.
+Instead, the compiler handles all of that and constructs the coro handle to pass to the generator. Here's the usage:</p>
+<pre><code class="language-C++">int main() {
+    for (auto i : range(10)) {
+        printf(&quot;%d &quot;, i);
+    }
+    printf(&quot;\n&quot;);
+    return 0;
+}
+</code></pre>
+<p>Here's another example. This one is a Task class which allows tasks to be scheduled and lazily evaluated when you await them.</p>
+<pre><code class="language-C++">template&lt;typename T&gt;
+struct Task {
+	struct promise_type;
+	using handle_t = std::coroutine_handle&lt;promise_type&gt;;
+	
+	// promise type
+	// similar as last time
+	struct promise_type {
+		std::variant&lt;T, std::exception_ptr&gt; value;
+		std::coroutine_handle&lt;&gt; previous;
+
+		Task get_return_object() {
+			return { handle_t::from_promise(*this) };
+		}
+		std::suspend_always initial_suspend() { return {}; }
+		struct final_awaiter {
+			bool await_ready() noexcept { return false; }
+			void await_resume() noexcept {}
+			std::coroutine_handle&lt;&gt; await_suspend(handle_t handle) 
+			    noexcept 
+			{
+				if (auto prev 
+				    = handle.promise().previous; prev) {
+				    //symmetric transfer to &quot;caller&quot; if there was one
+				    //this is known as init-if syntax and
+				    //is in C++17
+					return prev;
+				}
+				else
+					return std::noop_coroutine();
+			}
+		};
+		final_awaiter final_suspend() noexcept {
+			return {};
+		}
+		void unhandled_exception() {
+			value = std::current_exception();
+		}
+		void return_value(T&amp;&amp; val) {
+		    // sets value on co_return
+			value = std::forward&lt;T&gt;(val);
+		}
+
+	};
+
+	handle_t handle;
+
+
+	Task(handle_t h) :
+		handle(h) {};
+	~Task() {
+		if (handle)
+			handle.destroy();
+	}
+	//move operations not defined
+	
+	
+	struct awaiter {
+		handle_t handle;
+		// always execute the coro
+		bool await_ready() noexcept { return false; }
+		
+		// this is the return value of an 
+		// co_await expression
+		// rethrow if we caught an error
+		T await_resume() {
+			auto var = handle.promise().value;
+			if (var.index() == 1)
+				std::rethrow_exception(std::get&lt;1&gt;(var));
+			else
+				return std::get&lt;0&gt;(var);
+		}
+		auto await_suspend(handle_t h) {
+			handle.promise().previous = h;
+			return handle;
+		}
+	};
+	// overload co_await
+	awaiter operator co_await() {
+		return awaiter{ handle };
+	}
+	
+	// get result from a non coroutine function
+	// main cannot be a coro
+	T operator()() {
+		handle.resume();
+		auto var = handle.promise().value;
+		if (var.index() == 0)
+			return std::get&lt;0&gt;(var);
+		else
+			std::rethrow_exception(std::get&lt;1&gt;(var));
+	}
+};
+</code></pre>
+<p>A few things to point out is that <code>main()</code> cannot be a coro.
+Thus, no calls to <code>co_await</code>, <code>co_yield</code> etc. can occur inside it.
+To circumvent this in our simply example, we define an <code>operator()</code> for getting the result of the task from a normal function.
+We also use C++17's init-if syntax that allows you to form an if statement like so:</p>
+<pre><code class="language-C++">if(auto = /*initializer*/; /*condition*/){
+
+}
+</code></pre>
+<p>The condition block and following if-else block has scope of the initialized variable.
+Usage of the task looks like the following:</p>
+<pre><code class="language-C++">Task&lt;int&gt; getNum() {
+    co_return 5;
+}
+Task&lt;int&gt; getCollector() {
+    auto v1 = getNum();
+    auto v2 = getNum();
+    co_return co_await v1 + co_await v2;
+}
+int main() {
+    auto result = getCollector();
+    printf(&quot;%d \n&quot;, result());
+    return 0;
+}
+</code></pre>
+<p>Once again, notice no <code>co_await</code> calls were performed in main.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../cpp_20/ranges.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next" href="../cpp_20/misc.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../cpp_20/ranges.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next" href="../cpp_20/misc.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
