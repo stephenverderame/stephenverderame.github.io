@@ -15,7 +15,7 @@
 <a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-shadows%2f&amp;description=The%20Case%20of%20the%20Disappearing%20Shadow%3a%20Gradual%20Shadow%20Fading" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
 <span class=hidden>Pinterest</span></a></div><p>Tags:
 <a href=/%20/tags/graphics>graphics</a>,
-<a href=/%20/tags/projects>projects</a></p></div><div class="container markdown top-pad"><p>When implementing the cloaking ability for Project Oort, I came upon a somewhat
+<a href=/%20/tags/projects>projects</a></p></div><div class="container markdown top-pad"></div><div class="container markdown top-pad"><p>When implementing the cloaking ability for Project Oort, I came upon a somewhat
 interesting problem: At what point during the gradual disappearing process should
 the object&rsquo;s shadow disappear?</p><p>At first, I just had the object abruptly stop writing to the depth buffer at a
 certain transparency threshold. This would cause the shadow to simply cut out
@@ -31,7 +31,7 @@ increase the blur on the shadow as the caster became more transparent until the
 shadow would be unnoticeable. This is more expensive, so I didn&rsquo;t go for it.</p><p>As for determining the transparency of a shadow&rsquo;s caster, this could be achieved
 pretty simply by using a <code>GL_RG32F</code> texture instead of a traditional single channel
 depth texture and writing both the depth and object transparency during the depth
-pass. The shader would therefore look something like:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>in</span> <span style=color:#719e07>float</span> depth;
+pass. The shader would therefore look something like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>in</span> <span style=color:#719e07>float</span> depth;
 </span></span><span style=display:flex><span><span style=color:#719e07>uniform</span> <span style=color:#719e07>float</span> inv_fac;
 </span></span><span style=display:flex><span><span style=color:#719e07>out</span> <span style=color:#719e07>vec2</span> depth_inv;
 </span></span><span style=display:flex><span>
@@ -39,12 +39,12 @@ pass. The shader would therefore look something like:</p><div class=highlight><p
 </span></span><span style=display:flex><span>    depth_inv <span style=color:#719e07>=</span> <span style=color:#719e07>vec2</span>(depth, inv_fac);
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><h3 id=the-problem class=anchor-link><a href=#the-problem>The Problem</a></h3><p>Now if it were that easy, I wouldn&rsquo;t be talking about it. And, you may have already
-noticed an issue.</p><p><img src=problem1.svg style=all:unset;margin-left:auto;margin-right:auto;display:block></img></p><p>In the diagram, suppose the blue box is a transparent object and the red circle
+noticed an issue.</p><p><img src=problem1.svg style=all:unset;margin-left:auto;margin-right:auto;display:block;max-width:100%></img></p><p>In the diagram, suppose the blue box is a transparent object and the red circle
 is an opaque object. With the above description, the depth information of the
 transparent object would overwrite the depth information of the opaque block and
 there would be a part of the opaque object&rsquo;s shadow that fades away.</p><p>My first thought was to use stencil testing to try and include the invisibility
 factor in the computation for determining whether to render to the depth map.
-One small issue, is this would require quantizing the 32-bit floating point
+One small issue is this would require quantizing the 32-bit floating point
 invisibility factor into 256 levels so that it could fit in an 8-bit integral
 stencil value and setting the stencil function for each object.</p><p>Recall that stencil testing involves comparing the masked current value in the stencil
 buffer with a masked value specified in the stencil function. If the comparison
@@ -58,7 +58,7 @@ the blue box wouldn&rsquo;t be rendered to the depth map.
 I thought of encoding depth information in the stencil buffer, but the limited precision
 would not be acceptable for depth data.</p><h3 id=the-solution class=anchor-link><a href=#the-solution>The Solution</a></h3><p>I&rsquo;m not sure what the best real-time solution for this problem is, but I can
 share my solution.</p><p>My first idea was to render all the transparent objects&rsquo; depth/invisibility info
-in a separate depth map, and use logic in the fragment shader to incorporate this data.
+in a separate depth map and use logic in the fragment shader to incorporate this data.
 However, this brings us right back to where we started!
 The earlier discussion still applies, just substitute &ldquo;opaque&rdquo; for &ldquo;nearly opaque&rdquo;
 and &ldquo;transparent&rdquo; for &ldquo;nearly transparent&rdquo;.</p><p>Therefore, we need a depth map for <strong>every</strong> transparent object to prevent losing depth

@@ -1,0 +1,1290 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Real Time, Accurate Collision Detection -</title><meta property="og:title" content="Real-Time, Accurate Collision Detection - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/oort-collisions/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-collisions/Algorithm_Speedup_All.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-collisions/Algorithm_Speedup_octree.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-collisions/Algorithm_Speedup_seq.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-collisions/all_data.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/oort-collisions/car1.png"><link rel="shortcut icon" href=/img/fav.ico><link rel=stylesheet href=/css/main.min.f8310307e7689f75fe430255441a49dac41c2321ae5a250ff11775d4080e4365.css integrity="sha256-+DEDB+don3X+QwJVRBpJ2sQcIyGuWiUP8Rd11AgOQ2U=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=/#about>About</a>
+<a class=navbar-item href=/#experience>Experience</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=/#contact>Contact</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/oort-collisions/>Real-Time, Accurate Collision Detection</a></h2><div class=post-data>Aug 17, 2023
+|
+44 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Real-Time%2c%20Accurate%20Collision%20Detection%20https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-collisions%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-collisions%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2foort-collisions%2f&amp;description=Real-Time%2c%20Accurate%20Collision%20Detection" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/graphics>graphics</a>,
+<a href=/%20/tags/tutorials>tutorials</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#obbs>OBBs</a></li><li><a href=#triangle-triangle-collision-test>Triangle-Triangle Collision Test</a></li><li><a href=#collision-resolution>Collision Resolution</a></li><li><a href=#optimizations>Optimizations</a><ol><li><a href=#octrees>Octrees</a></li><li><a href=#bounding-volume-hierarchies>Bounding Volume Hierarchies</a></li><li><a href=#parallelization>Parallelization</a></li><li><a href=#measurements>Measurements</a></li></ol></li><li><a href=#conclusion>Conclusion</a></li></ol></nav></div><div class="container markdown top-pad"><p>Accurate collision detection is a vital part of video games and simulation,
+and <em>fast</em> collision detection is paramount for real-time applications such as
+games. In high school, building such a <em>fast and accurate</em> collision engine
+eluded me. This post describes, conceptually, the algorithm I settled upon
+when developing <a href=/projects/oort>Project Oort</a>. I will assume a basic
+familiarity with the problem of collision detection, including <a href=https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection>bounding spheres
+and axis-aligned bounding boxes</a>,
+simple data structures like trees, and the
+<a href=https://learnopengl.com/Getting-started/Transformations>basics of concrete linear algebra</a> including vectors, matrices, and linear transformations. I will try and keep the required mathematical background to just what&rsquo;s covered in
+the linked article. My goal is that an advanced high school student will be able
+to follow along.</p><h2 id=obbs class=anchor-link><a href=#obbs>OBBs</a></h2><p>The first big upgrade we can make over a simple AABB collision detection system
+is to use Oriented Bounded Boxes (OBB). Unlike AABBs, where the sides of the
+bounding box must be parallel to the global coordinate axes, an OBB can have an
+arbitrary orientation.</p><div style=text-align:center><img src=obb1.svg style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>In this 2D example, you can see that for odd-sized shapes, an OBB can often
+give us a tighter bounding box and therefore more accurate collision detection.</p><p>Now, there are multiple ways of representing an OBB, but one convenient representation
+parametrizes the bounding box by its center and
+local x, y, and z coordinate axes. In other words, we have:</p><div style=text-align:center><img src=obb-extends.svg style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>where the star indicates the center and the arrows indicate each local coordinate
+axes. An equivalent representation, known as the axes-extents representation, is
+to represent the OBB with its center, 3 directional (unit length) vectors for each
+axis, and then the extents, or magnitudes, of those vectors stored separately.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// A fully defined OBB with arbitrary basis vectors
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>#[derive(Clone)]</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>pub</span> <span style=color:#719e07>struct</span> <span style=color:#268bd2>Obb</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>pub</span> center: <span style=color:#268bd2>Point3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// The length of the x, y, and z basis vectors
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> extents: <span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// The x basis vector
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> x: <span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// The y basis vector
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> y: <span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// The z basis vector
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> z: <span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>I should also mention that an OBB can be represented entirely as a 4x4 matrix.
+In row-major, block form, where $c$ is the center as a column vector:</p><p>$$
+O = \begin{bmatrix}
+x & y & z & c \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$</p><p>The advantage of this is that to transform the Obb by a model matrix $M$,
+we can simply multiply the above Obb representation, $O$, by $M$ such that
+$O&rsquo; = M \times O$. So when we transform the visual representation of an object
+by multiplying matrices, we can move the bounding volume with it by doing
+the same thing!</p><p>For the interested reader, $O$ is essentially a change-of-basis matrix that
+converts world space points into the coordinate space of the OBB. In this new
+OBB-relative coordinate space, $\langle 1, 0, 0 \rangle$ is the OBB x-axis,
+$\langle 0, 1, 0 \rangle$ is the y-axis, and $\langle 0, 0, 1 \rangle$ is the z-axis.</p><p>Now given an arbitrary set of points (ie. from a 3D model), computing an OBB of
+best fit is not exactly a trivial task. I won&rsquo;t go into the details too much here,
+but conceptually, we want our OBB&rsquo;s $x$, $y$, and $z$ axes to be aligned with
+the 3 directions that have the greatest variance (spread) of the points. To see
+why, imagine how an axis-aligned bounding box in 2D would have to be scaled to
+encompass a long, diagonal line. One approach to computing this would be to use
+<a href=https://builtin.com/data-science/step-step-explanation-principal-component-analysis>Principle Component Analysis (PCA)</a>.
+However, for greater robustness, the data points we most care about are those that
+lie on the &ldquo;outside&rdquo; of an object. In other words, we don&rsquo;t want to be thrown
+off by &ldquo;interior&rdquo; outliers. So, what we <em>want</em> to do, is perform PCA on the exterior
+points of the model which can be computed by finding the Convex Hull. This is
+an <a href=https://en.wikipedia.org/wiki/NP-hardness>NP-Hard</a> problem in general, however,
+polynomial-time algorithms exist for the 2D and 3D cases.</p><p>This is <strong>not</strong> the approach I took. We can observe that, most artists create models
+that are axis-aligned in the local space the model is defined in. So we can define
+an AABB for our model in local space, and then convert it to an OBB. Moreover,
+using this approach, we can save memory by storing the OBB as an AABB in local space,
+and converting to an OBB when we do collision detection. Here&rsquo;s one such implementation:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Creates an OBB by applying a world transformation matrix to an AABB
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>from_local_aligned</span>(aabb: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Aabb</span>, model: <span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>) -&gt; <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> center <span style=color:#719e07>=</span> model.transform_point(aabb.center);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> x <span style=color:#719e07>=</span> model.x.truncate();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// x.magnitude() is the scale of the model in the x direction
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> ex <span style=color:#719e07>=</span> model.x.magnitude() <span style=color:#719e07>*</span> aabb.extents.x;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> x <span style=color:#719e07>=</span> x.normalize();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> y <span style=color:#719e07>=</span> model.y.truncate();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> ey <span style=color:#719e07>=</span> model.y.magnitude() <span style=color:#719e07>*</span> aabb.extents.y;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> y <span style=color:#719e07>=</span> y.normalize();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> z <span style=color:#719e07>=</span> model.z.truncate();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> ez <span style=color:#719e07>=</span> model.z.magnitude() <span style=color:#719e07>*</span> aabb.extents.z;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> z <span style=color:#719e07>=</span> z.normalize();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>        center,
+</span></span><span style=display:flex><span>        extents: <span style=color:#268bd2>vec3</span>(ex, ey, ez),
+</span></span><span style=display:flex><span>        x,
+</span></span><span style=display:flex><span>        y,
+</span></span><span style=display:flex><span>        z,
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Note this code doesn&rsquo;t explicitly use the matrix construction we talked about
+earlier, but instead breaks up the matrix multiplication manually. In hindsight,
+I think I would prefer just storing an OBB as a matrix and creating accessor
+methods to get at each data component (center, axes, etc.) instead
+of a data structure with each component as a variable.</p><p>Now for the interesting part: how can we detect collisions between OBBs?
+We can apply the <a href="https://en.wikipedia.org/wiki/Hyperplane_separation_theorem#:~:text=Separating%20axis%20theorem%20%E2%80%94%20Two%20closed,axis%20is%20always%20a%20line.">Separating Axis Theorem</a>
+which states that two convex shapes are not intersecting if there is a separating
+hyperplane that can be drawn between them. So in 2D, two OBBs are not intersecting
+if we can draw a line between them. More concretely, a separating hyperplane
+will have an axis perpendicular to it such that the projection of all the points
+onto the axis doesn&rsquo;t overlap. In 2D:</p><div style=text-align:center><img src=obb-sat.svg style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>Since a point on a 1D line can be represented by a single number (intuitively
+this is the distance the point lies along said line), then we can determine
+whether the projected points overlap by considering the left-most and right-most
+points of each OBB. Recall that to project a point $p$ on a line, $v$ we can compute
+$r = p \cdot v / (v \cdot v)$ where $\cdot$ indicates the dot product and the
+result $r$ can be thought of as the distance the projected point lies along the line.
+In the case where $v$ is unit length, $v \cdot v = 1$ and this formula simplifies to $p \cdot v$.</p><p>So, projecting an OBB on a line amounts to the following code:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Requires `axis` is not 0 and is normalized
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// Gets the projected min and max projection coefficients of the OBB onto the axis
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>project_onto</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>, axis: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>) -&gt; (<span style=color:#dc322f>f64</span>, <span style=color:#dc322f>f64</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// 8 corner points of the OBB
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> pts <span style=color:#719e07>=</span> [
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.center
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.x <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.x
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.y <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.y
+</span></span><span style=display:flex><span>            <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.extents.z <span style=color:#719e07>*</span> <span style=color:#719e07>-</span><span style=color:#268bd2>self</span>.z,
+</span></span><span style=display:flex><span>    ];
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// let a_dot = axis.dot(*axis);
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// precondition that axis is normalized so we don&#39;t need to divide by a_dot
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> min <span style=color:#719e07>=</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MAX</span>;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> max <span style=color:#719e07>=</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MIN</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> pt <span style=color:#719e07>in</span> pts {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> r <span style=color:#719e07>=</span> axis.dot(pt.to_vec()); <span style=color:#586e75>// / a_dot;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        min <span style=color:#719e07>=</span> min.min(r);
+</span></span><span style=display:flex><span>        max <span style=color:#719e07>=</span> max.max(r);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    (min, max)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Then determining if an axis defines a separating hyperplane is straightforward:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>    <span style=color:#268bd2>let</span> (min1, max1) <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.project_onto(<span style=color:#719e07>&amp;</span>axis);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (min2, max2) <span style=color:#719e07>=</span> other.project_onto(<span style=color:#719e07>&amp;</span>axis);
+</span></span><span style=display:flex><span>    min1 <span style=color:#719e07>&gt;</span> max2 <span style=color:#719e07>||</span> min2 <span style=color:#719e07>&gt;</span> max1
+</span></span></code></pre></div><p>There&rsquo;s one final hiccup: How do we know how many, and what axes to test?
+It turns out, in 3D, we need to test at most 15 axes. We need to test
+an axis that is perpendicular to each face of both OBBs we are testing for
+collision (the $x$, $y$, and $z$ vectors of each OBB), and we need to test
+axes that are perpendicular to each pair of the aforementioned vectors. Recall
+we can use the cross product to compute a vector that&rsquo;s orthogonal to two vectors.</p><p>So all together we have:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Determines if an axis is perpendicular to a plane that separates the two OBBs
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// (is a separating axis)
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// requires axis normalized
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// returns true if tests passes (no collision)
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// `axis` - either a tuple of an axis to test and `None`, or a tuple of an axis 
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///     from this OBB, and an axis
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// from `other`&#39;s OBB whose cross product is the axis to test
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>is_separating_axis</span>(
+</span></span><span style=display:flex><span>    <span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>,
+</span></span><span style=display:flex><span>    other: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>,
+</span></span><span style=display:flex><span>    axis: (Vector3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>, <span style=color:#b58900>Option</span><span style=color:#719e07>&lt;</span>Vector3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;&gt;</span>),
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (axis_a, axis_b) <span style=color:#719e07>=</span> axis;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> axis <span style=color:#719e07>=</span> <span style=color:#719e07>match</span> axis_b {
+</span></span><span style=display:flex><span>        <span style=color:#b58900>None</span> <span style=color:#719e07>=&gt;</span> axis_a,
+</span></span><span style=display:flex><span>        <span style=color:#b58900>Some</span>(axis_b) <span style=color:#719e07>=&gt;</span> {
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>let</span> a <span style=color:#719e07>=</span> axis_a.cross(axis_b);
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> a.magnitude() <span style=color:#719e07>&lt;</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> {
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// // axes are parallel, and lie in some plane P
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// // choose a new axis perpendicular to that plane
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// let n = axis_a
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>//     .cross(self.center + axis_a - (other.center + axis_b));
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// if n.magnitude() &lt; f64::EPSILON {
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>//     return false;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// }
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// n.normalize()
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// for greater robustness, we should test again with the
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// above commented out code, but I found returning false here 
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// works well enough
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#719e07>return</span> <span style=color:#cb4b16>false</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            a.normalize()
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (min1, max1) <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.project_onto(<span style=color:#719e07>&amp;</span>axis);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (min2, max2) <span style=color:#719e07>=</span> other.project_onto(<span style=color:#719e07>&amp;</span>axis);
+</span></span><span style=display:flex><span>    min1 <span style=color:#719e07>&gt;</span> max2 <span style=color:#719e07>||</span> min2 <span style=color:#719e07>&gt;</span> max1
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Returns true if there is a collision between this obb and `other`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>collision</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>, other: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> axes <span style=color:#719e07>=</span> [
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// Test each face
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        (<span style=color:#268bd2>self</span>.x, <span style=color:#b58900>None</span>),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.y, <span style=color:#b58900>None</span>),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.z, <span style=color:#b58900>None</span>),
+</span></span><span style=display:flex><span>        (other.x, <span style=color:#b58900>None</span>),
+</span></span><span style=display:flex><span>        (other.y, <span style=color:#b58900>None</span>),
+</span></span><span style=display:flex><span>        (other.z, <span style=color:#b58900>None</span>),
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// Test combinations of axes
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        (<span style=color:#268bd2>self</span>.x, <span style=color:#b58900>Some</span>(other.x)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.x, <span style=color:#b58900>Some</span>(other.y)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.x, <span style=color:#b58900>Some</span>(other.z)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.y, <span style=color:#b58900>Some</span>(other.x)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.y, <span style=color:#b58900>Some</span>(other.y)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.y, <span style=color:#b58900>Some</span>(other.z)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.z, <span style=color:#b58900>Some</span>(other.x)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.z, <span style=color:#b58900>Some</span>(other.y)),
+</span></span><span style=display:flex><span>        (<span style=color:#268bd2>self</span>.z, <span style=color:#b58900>Some</span>(other.z)),
+</span></span><span style=display:flex><span>    ];
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> a <span style=color:#719e07>in</span> axes {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> <span style=color:#268bd2>self</span>.is_separating_axis(other, a) {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// exit early if we find a separating axis
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// if there exists a separating axis, then
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// the OBBs are not colliding
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#719e07>return</span> <span style=color:#cb4b16>false</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#cb4b16>true</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=triangle-triangle-collision-test class=anchor-link><a href=#triangle-triangle-collision-test>Triangle-Triangle Collision Test</a></h2><p>OBBs are relatively fast, and a huge improvement over bounding spheres or
+AABBs. However, unless you&rsquo;re making a game where every object is rectangular,
+there are still plenty of cases where two OBBs might intersect despite there being
+plenty of space between the models.</p><p>It would be great if when we determine that two OBBs intersect, we investigate further
+and test each pair of triangles that make up the meshes of the objects in question.
+This is a foolproof method with utmost accuracy! However, there&rsquo;s a reason things like
+OBBs and other bounding volumes exist: a mesh can have millions of primitives and testing
+each pair (which is $O(n^2)$) can be prohibitively expensive. We discuss more optimizations
+later in this post, but a common solution is to use a <em>collision mesh</em>.
+A collision mesh is a low-poly model that simplifies the visual model
+used for graphics such that it has significantly fewer primitives. This makes
+it more feasible to be used for collision detection. In Project Oort, all of
+the models I used were simple enough that I didn&rsquo;t need collision meshes
+(also because it is probably faster for me to optimize code than try and make
+a collision mesh).</p><p>Our triangle-triangle intersection test is going to be the one outlined by Moller <sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup>,
+so let&rsquo;s dive in!</p><p>Let $a$ and $b$ be two triangles with vertices $a_0, a_1, a_2$ and
+$b_0, b_1, b_2$, respectively. Let $A$ and $B$ be the respective planes that the triangles lie on. Let $N_A$ and $N_B$ be the normal vectors of the respective planes $A$ and $B$. Observe that if all vertices of $b$ are on the same side of $A$,
+and none of the vertices lie on $A$, then we know that there is no overlap between
+$a$ and $b$.</p><p>So how can we test this? Recall (or take my word), that the equation of a plane
+defined by its normal vector $N$ is $N \cdot X + d = 0$ where $d$ is the signed distance
+of the point $X$ off of the plane. I believe a more familiar form introduced in
+a high school math class would be $ax + by + cz + d = 0$. This
+is exactly the same thing, in this case: $N = \langle a, b, c\rangle$ and
+$X = \langle x, y, z \rangle$.</p><p>Thus, our test begins by indicating no intersection for all triangles where
+$$
+sign(N_B * a_0) = sign(N_B * a_1) = sign(N_B * a_2) \not = 0 \\
+\text{OR} \\
+sign(N_A * b_0) = sign(N_A * b_1) = sign(N_A * b_2) \not = 0
+$$</p><p>In code, we have:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Tests if `b_verts` are all on the same side of the plane
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// defined by `pt_on_a` and `norm_a`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// Returns a tuple of whether they are all on the same side
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// and the signed distance of each `b_vert` to the plane
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>plane_test</span>(
+</span></span><span style=display:flex><span>    pt_on_a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    b_verts: <span style=color:#719e07>&amp;</span>[Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>    norm_a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>) -&gt; (<span style=color:#dc322f>bool</span>, Vector3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// N * x + d = 0
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// d = -N * x
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> d <span style=color:#719e07>=</span> dot(<span style=color:#719e07>-</span><span style=color:#2aa198>1.</span> <span style=color:#719e07>*</span> norm_a, pt_on_a.to_vec());
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> signed_dists <span style=color:#719e07>=</span> vec3(d, d, d)
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// project each of `b_verts` onto the norm of `a`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>+</span> vec3(
+</span></span><span style=display:flex><span>            norm_a.dot(b_verts[<span style=color:#2aa198>0</span>].to_vec()),
+</span></span><span style=display:flex><span>            norm_a.dot(b_verts[<span style=color:#2aa198>1</span>].to_vec()),
+</span></span><span style=display:flex><span>            norm_a.dot(b_verts[<span style=color:#2aa198>2</span>].to_vec()),
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> all_same_side <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        signed_dists.x <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>0.</span> <span style=color:#719e07>&amp;&amp;</span> signed_dists.y <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>0.</span> <span style=color:#719e07>&amp;&amp;</span> signed_dists.z <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>0.</span>
+</span></span><span style=display:flex><span>            <span style=color:#719e07>||</span> signed_dists.x <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0.</span>
+</span></span><span style=display:flex><span>                <span style=color:#719e07>&amp;&amp;</span> signed_dists.y <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0.</span>
+</span></span><span style=display:flex><span>                <span style=color:#719e07>&amp;&amp;</span> signed_dists.z <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0.</span>;
+</span></span><span style=display:flex><span>    (all_same_side, signed_dists)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>moller_test</span>(a_verts: <span style=color:#719e07>&amp;</span>[Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>], b_verts: <span style=color:#719e07>&amp;</span>[Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>]) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// compute normal defining plane that a lies on
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// compute this by taking cross product of two of the edges of the triangle
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> a_norm <span style=color:#719e07>=</span> (a_verts[<span style=color:#2aa198>2</span>] <span style=color:#719e07>-</span> a_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .cross(a_verts[<span style=color:#2aa198>1</span>] <span style=color:#719e07>-</span> a_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .normalize();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// compute normal defining plane that b lies on
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> b_norm <span style=color:#719e07>=</span> (b_verts[<span style=color:#2aa198>2</span>] <span style=color:#719e07>-</span> b_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .cross(b_verts[<span style=color:#2aa198>1</span>] <span style=color:#719e07>-</span> b_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .normalize();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (b_same_side, b_dist_to_a) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::plane_test(<span style=color:#719e07>&amp;</span>a_verts[<span style=color:#2aa198>0</span>], b_verts, <span style=color:#719e07>&amp;</span>a_norm);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (a_same_side, a_dist_to_b) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::plane_test(<span style=color:#719e07>&amp;</span>b_verts[<span style=color:#2aa198>0</span>], a_verts, <span style=color:#719e07>&amp;</span>b_norm);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#719e07>!</span>b_same_side <span style=color:#719e07>&amp;&amp;</span> <span style=color:#719e07>!</span>a_same_side {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// perform more tests ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#cb4b16>false</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Now suppose that this first part of the test fails. Further suppose (for now),
+that the triangles are not coplanar. Similar to OBBs, we will be projecting points
+onto a line and testing the overlap of 1-dimensional intervals. It turns out, that for
+non-coplanar triangles, the only line, $L$, we need to test is aligned
+in the direction of the cross product of the normals of $A$ and $B$.
+So the direction of the line, $D$, is $N_A \times N_B$, and therefore,
+$L = P + tD$ for some point $P$ on the line and an arbitrary real $t$.
+The below figure from the paper <sup id=fnref1:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup> depicts the two possible situations:</p><p><img src=moller.png alt="Triangle Intersection Diagram"></p><p>Without loss of generality, suppose $a_0$ lies on one side of $B$ and
+$a_1$ and $a_2$ lie on the other side. Observe it will always be the case that
+one vertex lies on one side, and two vertices lie on the other side of the
+other triangle&rsquo;s plane. In order to compare intervals on $L$, we want to find the
+$t$ values for the intersection points of edges $\overline{a_0a_1}$ and
+$\overline{a_0a_2}$ with $L$. To do this we first project each point onto the line.
+Let $q_i$ be the projection of point $a_i$ for $i$ either 0, 1, or 2. Then the $t$
+value for the intersection of $\overline{a_0a_1}$ and $L$ can be computed as
+$$t_0 = q_1 + \frac{d_1}{d_1 - d_0}(q_0 - q_1)$$
+where $d_i$ is the signed distance of the original point $a_i$ from $B$. Note
+that we cannot just project the vertices of each triangle onto the line as we
+did with OBBs. This is because, we can have a situation like the right side
+in the above figure, but the projected corner vertices cause the intervals to
+overlap.</p><p>The situation is depicted below:</p><div style=text-align:center><img src=tri-intersect.svg style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>$q_0 - q_1$ is the vector from $q_1$ to $q_0$. Keep in mind, this is a one-dimensional quantity, nevertheless, we can view it as a vector
+where its absolute value is its magnitude and its sign is its direction.
+Since triangle $a_1r_1s$ and $a_0r_0s$ are similar, then to find $s$ we add to $q_1$ a distance of $\frac{d_1}{d_1 - d_0}$ along $\overline{q_0q_1}$.
+This yields the earlier formula.</p><p>Before we look at the code, one can show that
+the result of the overlap test does not change if we project $L$ onto the
+coordinate axes with which it is most closely aligned. To find which axis
+that is, just take the directional component of $D$ with the greatest magnitude.
+So if the x-component of $D$ has the greatest absolute value, then we just need to
+check for overlap in the x coordinates of the vertices of $a$ and $b$.</p><p>So we have, as part of <code>moller_test()</code>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>    <span style=color:#268bd2>let</span> line <span style=color:#719e07>=</span> a_norm.cross(b_norm).normalize();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// index of component with the greatest absolute value
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> idx <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::abs_max_dim(<span style=color:#719e07>&amp;</span>line);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// coordinates of a &#34;projected&#34; onto L
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> a_onto_line <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        vec3(a_verts[<span style=color:#2aa198>0</span>][idx], a_verts[<span style=color:#2aa198>1</span>][idx], a_verts[<span style=color:#2aa198>2</span>][idx]);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// coordinates of b &#34;projected&#34; onto L
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> b_onto_line <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        vec3(b_verts[<span style=color:#2aa198>0</span>][idx], b_verts[<span style=color:#2aa198>1</span>][idx], b_verts[<span style=color:#2aa198>2</span>][idx]);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// get t values for intersection of edges of a with L
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> a_int <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::get_interval(
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a_onto_line,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a_dist_to_b,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::opp_vert(<span style=color:#719e07>&amp;</span>a_dist_to_b),
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// get t values for intersection of edges of b with L
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> b_int <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::get_interval(
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b_onto_line,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b_dist_to_a,
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::opp_vert(<span style=color:#719e07>&amp;</span>b_dist_to_a),
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>Self</span>::interval_overlap(a_int, b_int)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Returns tuple of indices of the projected points such that
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// the first index is the index for the opposite vertex
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// and the remaining indices are the indices of the vertices
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// on the same side of the plane
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>opp_vert</span>(v: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>) -&gt; (<span style=color:#dc322f>usize</span>, <span style=color:#dc322f>usize</span>, <span style=color:#dc322f>usize</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> v[<span style=color:#2aa198>0</span>] <span style=color:#719e07>*</span> v[<span style=color:#2aa198>1</span>] <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0.</span> {
+</span></span><span style=display:flex><span>        (<span style=color:#2aa198>2</span>, <span style=color:#2aa198>0</span>, <span style=color:#2aa198>1</span>)
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> v[<span style=color:#2aa198>0</span>] <span style=color:#719e07>*</span> v[<span style=color:#2aa198>2</span>] <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0.</span> {
+</span></span><span style=display:flex><span>        (<span style=color:#2aa198>1</span>, <span style=color:#2aa198>0</span>, <span style=color:#2aa198>2</span>)
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        (<span style=color:#2aa198>0</span>, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>2</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>get_t</span>(
+</span></span><span style=display:flex><span>    verts_on_l: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    dist_to_plane: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    opposite_idx: <span style=color:#dc322f>usize</span>,
+</span></span><span style=display:flex><span>    vert_idx: <span style=color:#dc322f>usize</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#dc322f>f64</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// t = q_1 + d_1 / (d_1 - d_0) * (q_0 - q_1)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    verts_on_l[vert_idx]
+</span></span><span style=display:flex><span>        <span style=color:#719e07>+</span> (verts_on_l[opposite_idx] <span style=color:#719e07>-</span> verts_on_l[vert_idx])
+</span></span><span style=display:flex><span>            <span style=color:#719e07>*</span> dist_to_plane[vert_idx]
+</span></span><span style=display:flex><span>            <span style=color:#719e07>/</span> (dist_to_plane[vert_idx] <span style=color:#719e07>-</span> dist_to_plane[opposite_idx])
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>get_interval</span>(
+</span></span><span style=display:flex><span>    project_on_l: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    signed_dists: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    vert_indices: (<span style=color:#dc322f>usize</span>, <span style=color:#dc322f>usize</span>, <span style=color:#dc322f>usize</span>),
+</span></span><span style=display:flex><span>) -&gt; (<span style=color:#dc322f>f64</span>, <span style=color:#dc322f>f64</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// vert_indices.0 is the index of the opposite vertex
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    (
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::get_t(
+</span></span><span style=display:flex><span>            project_on_l,
+</span></span><span style=display:flex><span>            signed_dists,
+</span></span><span style=display:flex><span>            vert_indices.<span style=color:#2aa198>0</span>,
+</span></span><span style=display:flex><span>            vert_indices.<span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>        ),
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::get_t(
+</span></span><span style=display:flex><span>            project_on_l,
+</span></span><span style=display:flex><span>            signed_dists,
+</span></span><span style=display:flex><span>            vert_indices.<span style=color:#2aa198>0</span>,
+</span></span><span style=display:flex><span>            vert_indices.<span style=color:#2aa198>2</span>,
+</span></span><span style=display:flex><span>        ),
+</span></span><span style=display:flex><span>    )
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Returns `true` if intervals `a_t` and `b_t` overlap
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>interval_overlap</span>(a_t: (<span style=color:#dc322f>f64</span>, <span style=color:#dc322f>f64</span>), b_t: (<span style=color:#dc322f>f64</span>, <span style=color:#dc322f>f64</span>)) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a_t <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::order_interval(a_t);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b_t <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::order_interval(b_t);
+</span></span><span style=display:flex><span>    a_t.<span style=color:#2aa198>0</span> <span style=color:#719e07>-</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&lt;=</span> b_t.<span style=color:#2aa198>0</span> <span style=color:#719e07>&amp;&amp;</span> a_t.<span style=color:#2aa198>1</span> <span style=color:#719e07>+</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&gt;=</span> b_t.<span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>        <span style=color:#719e07>||</span> a_t.<span style=color:#2aa198>0</span> <span style=color:#719e07>-</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&lt;=</span> b_t.<span style=color:#2aa198>1</span> <span style=color:#719e07>&amp;&amp;</span> a_t.<span style=color:#2aa198>1</span> <span style=color:#719e07>+</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&gt;=</span> b_t.<span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>        <span style=color:#719e07>||</span> b_t.<span style=color:#2aa198>0</span> <span style=color:#719e07>-</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&lt;=</span> a_t.<span style=color:#2aa198>0</span> <span style=color:#719e07>&amp;&amp;</span> b_t.<span style=color:#2aa198>1</span> <span style=color:#719e07>+</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&gt;=</span> a_t.<span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>        <span style=color:#719e07>||</span> b_t.<span style=color:#2aa198>0</span> <span style=color:#719e07>-</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&lt;=</span> a_t.<span style=color:#2aa198>1</span> <span style=color:#719e07>&amp;&amp;</span> b_t.<span style=color:#2aa198>1</span> <span style=color:#719e07>+</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&gt;=</span> a_t.<span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Now we finally return to the case when the two triangles are coplanar (all signed
+distances are 0). In this case, we are left with a 2D triangle intersection problem.
+We can compute this by performing line intersection tests for each pair of edges.
+This boils down to a line-segment intersection test</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>line_intersection_2d</span>(
+</span></span><span style=display:flex><span>    start_a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point2</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    end_a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point2</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    start_b: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point2</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    end_b: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point2</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a <span style=color:#719e07>=</span> end_a <span style=color:#719e07>-</span> start_a;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b <span style=color:#719e07>=</span> end_b <span style=color:#719e07>-</span> start_b;
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// a 2D &#34;cross-product&#34;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> cross_2d <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        <span style=color:#719e07>|</span>a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector2</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>, b: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Vector2</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;|</span> a.x <span style=color:#719e07>*</span> b.y <span style=color:#719e07>-</span> a.y <span style=color:#719e07>*</span> b.x;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> rs <span style=color:#719e07>=</span> cross_2d(<span style=color:#719e07>&amp;</span>a, <span style=color:#719e07>&amp;</span>b);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> qpr <span style=color:#719e07>=</span> cross_2d(<span style=color:#719e07>&amp;</span>(start_b <span style=color:#719e07>-</span> start_a), <span style=color:#719e07>&amp;</span>a);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> rs.abs() <span style=color:#719e07>&lt;</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> <span style=color:#719e07>&amp;&amp;</span> qpr.abs() <span style=color:#719e07>&lt;</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// all of the points lie on the same line
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// project onto `a` and test overlap
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>let</span> l <span style=color:#719e07>=</span> a.normalize();
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> t_a <span style=color:#719e07>=</span> (dot(start_a.to_vec(), l), dot(end_a.to_vec(), l));
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> t_b <span style=color:#719e07>=</span> (dot(start_b.to_vec(), l), dot(end_b.to_vec(), l));
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>Self</span>::interval_overlap(t_a, t_b);
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> rs.abs() <span style=color:#719e07>&lt;</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span> {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// the two edges are parallel
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>return</span> <span style=color:#cb4b16>false</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> t <span style=color:#719e07>=</span> cross_2d(<span style=color:#719e07>&amp;</span>(start_b <span style=color:#719e07>-</span> start_a), <span style=color:#719e07>&amp;</span>b) <span style=color:#719e07>/</span> rs;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> u <span style=color:#719e07>=</span> qpr <span style=color:#719e07>/</span> rs;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// t and u between -e and 1 + e (roughly 0 and 1)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    (<span style=color:#719e07>-</span><span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span><span style=color:#719e07>..=</span><span style=color:#2aa198>1.</span> <span style=color:#719e07>+</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span>).contains(<span style=color:#719e07>&amp;</span>t)
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;&amp;</span> (<span style=color:#719e07>-</span><span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span><span style=color:#719e07>..=</span><span style=color:#2aa198>1.</span> <span style=color:#719e07>+</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span>).contains(<span style=color:#719e07>&amp;</span>u)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>triangle_intersection</span>(
+</span></span><span style=display:flex><span>        a_verts: <span style=color:#719e07>&amp;</span>[Point2<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>        b_verts: <span style=color:#719e07>&amp;</span>[Point2<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>    ) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>Self</span>::line_intersection_2d(
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a_verts[<span style=color:#2aa198>0</span>],
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a_verts[<span style=color:#2aa198>1</span>],
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b_verts[<span style=color:#2aa198>0</span>],
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b_verts[<span style=color:#2aa198>1</span>],
+</span></span><span style=display:flex><span>    ) <span style=color:#719e07>||</span> <span style=color:#268bd2>Self</span>::line_intersection_2d(
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a_verts[<span style=color:#2aa198>0</span>],
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a_verts[<span style=color:#2aa198>1</span>],
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b_verts[<span style=color:#2aa198>0</span>],
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b_verts[<span style=color:#2aa198>2</span>],
+</span></span><span style=display:flex><span>    ) <span style=color:#586e75>// ... continue for all pairs (9 tests total)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>So finally, we have:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>moller_test</span>(a_verts: <span style=color:#719e07>&amp;</span>[Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>], b_verts: <span style=color:#719e07>&amp;</span>[Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>]) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a_norm <span style=color:#719e07>=</span> (a_verts[<span style=color:#2aa198>2</span>] <span style=color:#719e07>-</span> a_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .cross(a_verts[<span style=color:#2aa198>1</span>] <span style=color:#719e07>-</span> a_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .normalize();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b_norm <span style=color:#719e07>=</span> (b_verts[<span style=color:#2aa198>2</span>] <span style=color:#719e07>-</span> b_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .cross(b_verts[<span style=color:#2aa198>1</span>] <span style=color:#719e07>-</span> b_verts[<span style=color:#2aa198>0</span>])
+</span></span><span style=display:flex><span>        .normalize();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (b_same_side, b_dist_to_a) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::plane_test(<span style=color:#719e07>&amp;</span>a_verts[<span style=color:#2aa198>0</span>], b_verts, <span style=color:#719e07>&amp;</span>a_norm);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> (a_same_side, a_dist_to_b) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::plane_test(<span style=color:#719e07>&amp;</span>b_verts[<span style=color:#2aa198>0</span>], a_verts, <span style=color:#719e07>&amp;</span>b_norm);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#719e07>!</span>b_same_side <span style=color:#719e07>&amp;&amp;</span> <span style=color:#719e07>!</span>a_same_side {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> <span style=color:#268bd2>Self</span>::is_coplanar(<span style=color:#719e07>&amp;</span>b_dist_to_a) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>return</span> <span style=color:#268bd2>Self</span>::coplanar_test(a_norm, a_verts, b_verts);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> line <span style=color:#719e07>=</span> a_norm.cross(b_norm).normalize();
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> idx <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::abs_max_dim(<span style=color:#719e07>&amp;</span>line);
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> a_onto_line <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>            vec3(a_verts[<span style=color:#2aa198>0</span>][idx], a_verts[<span style=color:#2aa198>1</span>][idx], a_verts[<span style=color:#2aa198>2</span>][idx]);
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> b_onto_line <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>            vec3(b_verts[<span style=color:#2aa198>0</span>][idx], b_verts[<span style=color:#2aa198>1</span>][idx], b_verts[<span style=color:#2aa198>2</span>][idx]);
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> a_int <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::get_interval(
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span>a_onto_line,
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span>a_dist_to_b,
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>Self</span>::opp_vert(<span style=color:#719e07>&amp;</span>a_dist_to_b),
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> b_int <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::get_interval(
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span>b_onto_line,
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span>b_dist_to_a,
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>Self</span>::opp_vert(<span style=color:#719e07>&amp;</span>b_dist_to_a),
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::interval_overlap(a_int, b_int)
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#cb4b16>false</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=collision-resolution class=anchor-link><a href=#collision-resolution>Collision Resolution</a></h2><p>Once a collision is detected, our game engine needs to <em>resolve</em> the collision
+by doing something meaningful. For some applications, it suffices to just
+move all the dynamic objects in the scene, test collisions, and then roll back
+the motion of any objects that have collided. Some objects, such as an arrow shot
+from a bow, can be made static once a collision is detected.</p><p>In the case of Project Oort, it was not sufficient to just &ldquo;undo&rdquo; the movement
+of a colliding object. For example, an object&rsquo;s velocity might have an x and y
+component. The object might collide with something along the x-axis, however,
+it should still keep moving along the y-axis.</p><p>The (relatively simple) physics engine of Project Oort is complex enough to warrant
+another post, so I won&rsquo;t go too much into the details here. The gist is, that
+when two objects collide, we fetch all of the normal vectors of any triangle
+where an intersection was detected. We then compute the average of these normals
+for each colliding body. So if body $A$ collides with body $B$, $N_A$ is the
+averaged normal vector of all intersecting triangles of $A$, and
+$N_B$ is the averaged normal vector of all intersecting triangles of $B$ then
+we can move $A$ along the direction of $N_B$ and vice versa.</p><p>Very briefly, what I did with this information was apply the <a href="https://pressbooks.bccampus.ca/humanbiomechanics/chapter/11-2-the-impulse-momentum-theorem/#:~:text=The%20impulse%2Dmomentum%20theorem%20states,(mfvf).">Impulse-Momentum
+theorem</a> to compute a force acting along each normal vector. So in the above
+example, $B$ is acted on by a force in the direction $A$. Since there can be
+multiple collisions from multiple directions along with other forces such as the force of thrust for the starfighters, all forces are added
+together (as vectors) to get the total force, which then can be used to
+compute the linear and rotational acceleration.</p><p>The core idea is when testing collisions, we return <code>HitData</code> which
+encapsulates the estimated point of impact and normal vector for a collision.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>pub</span> <span style=color:#719e07>struct</span> <span style=color:#268bd2>HitData</span> {
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// The point of collision and the impact normal on the first collider&#39;s mesh
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> pos_norm_a: (Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>, Vector3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>),
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// The point of collision (and the normal computed from it) on the second collider&#39;s mesh
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> pos_norm_b: (Point3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>, Vector3<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>),
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We compute this from a list of intersecting triangles from each object:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Hit data from triangles that a high-accuracy test determines are colliding
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// Requires that for all triangles in `colliders_a`, there exists a triangle that 
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// intersects it in `colliders_b` and vice versa
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>hit_from_colliders</span>(
+</span></span><span style=display:flex><span>    colliders_a: <span style=color:#719e07>&amp;</span>[<span style=color:#719e07>&amp;</span>Triangle<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f32</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>    colliders_b: <span style=color:#719e07>&amp;</span>[<span style=color:#719e07>&amp;</span>Triangle<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f32</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>    model_a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    model_b: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#268bd2>HitData</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> avg_pt_norm <span style=color:#719e07>=</span> <span style=color:#719e07>|</span>colliders: <span style=color:#719e07>&amp;</span>[<span style=color:#719e07>&amp;</span>Triangle<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f32</span><span style=color:#719e07>&gt;</span>], model: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;|</span> {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> avg_point <span style=color:#719e07>=</span> point3(<span style=color:#2aa198>0</span><span style=color:#719e07>f64</span>, <span style=color:#2aa198>0.</span>, <span style=color:#2aa198>0.</span>);
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> avg_norm <span style=color:#719e07>=</span> vec3(<span style=color:#2aa198>0</span><span style=color:#719e07>f64</span>, <span style=color:#2aa198>0.</span>, <span style=color:#2aa198>0.</span>);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> t <span style=color:#719e07>in</span> colliders {
+</span></span><span style=display:flex><span>            avg_point <span style=color:#719e07>+=</span> t.centroid().to_vec();
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>let</span> sum: <span style=color:#268bd2>Vector3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f32</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> t.norms().into_iter().sum();
+</span></span><span style=display:flex><span>            avg_norm <span style=color:#719e07>+=</span> sum.cast().unwrap() <span style=color:#719e07>/</span> <span style=color:#2aa198>3</span><span style=color:#719e07>f64</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        avg_point <span style=color:#719e07>/=</span> colliders_a.len() <span style=color:#719e07>as</span> <span style=color:#dc322f>f64</span>;
+</span></span><span style=display:flex><span>        avg_norm <span style=color:#719e07>/=</span> colliders_a.len() <span style=color:#719e07>as</span> <span style=color:#dc322f>f64</span>;
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> norm_trans <span style=color:#719e07>=</span> Matrix3::new(
+</span></span><span style=display:flex><span>            model.x.x, model.x.y, model.x.z, model.y.x, model.y.y, model.y.z,
+</span></span><span style=display:flex><span>            model.z.x, model.z.y, model.z.z,
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>        (
+</span></span><span style=display:flex><span>            model.transform_point(avg_point),
+</span></span><span style=display:flex><span>            (norm_trans <span style=color:#719e07>*</span> avg_norm).normalize(),
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    HitData {
+</span></span><span style=display:flex><span>        pos_norm_a: <span style=color:#268bd2>avg_pt_norm</span>(colliders_a, model_a),
+</span></span><span style=display:flex><span>        pos_norm_b: <span style=color:#268bd2>avg_pt_norm</span>(colliders_b, model_b),
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Finally, we use this information to make updates to an object&rsquo;s velocities in
+the physics engine:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>    <span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>self</span>.vel <span style=color:#719e07>-=</span> impulse <span style=color:#719e07>/</span> body.mass <span style=color:#719e07>*</span> norm;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>self</span>.rot <span style=color:#719e07>+=</span>
+</span></span><span style=display:flex><span>        body_inertia.invert().unwrap() <span style=color:#719e07>*</span> (impulse <span style=color:#719e07>*</span> norm).cross(body_lever)
+</span></span></code></pre></div><h2 id=optimizations class=anchor-link><a href=#optimizations>Optimizations</a></h2><p>Everything we talked about so far can give us a pretty decent collision detection
+algorithm. With the knowledge we developed up to this point, one might come up with
+the following approach:</p><ol><li>Test collisions of OBBs</li><li>When OBBs intersect, check the collision meshes for triangle intersections</li></ol><p>A key idea in real-time collision detection is the concept of multiple <em>passes</em>.
+We use cheaper and less accurate methods of collision detection first to reject
+as many non-colliding objects as we can before moving on to more accurate
+methods for the cases we need to. The above proposal has 2 passes. Now OBBs aren&rsquo;t
+exactly cheap, so let&rsquo;s add another pass:</p><ol><li>Test bounding spheres</li><li>For objects with a small enough distance apart to possibly collide, test
+OBB intersections</li><li>For all OBBs intersecting, check triangle collisions.</li></ol><p>While this proposed algorithm is accurate, it&rsquo;s not fast enough. The remainder of
+the post will discuss how we can improve upon it, and we&rsquo;ll generate a 224x
+speedup.</p><h3 id=octrees class=anchor-link><a href=#octrees>Octrees</a></h3><p>Let&rsquo;s further optimize step 1. What is the running time of checking the distance
+of an object to every other object? Well, that&rsquo;s $O(N)$ for $N$ objects.
+Therefore, testing the distance of all objects with every other object must be
+$O(N^2)$. Is that the best we can do?</p><p>Well, consider the following 2D scenario where we are testing collisions with the
+red circle in the top left:</p><div style=text-align:center><img src=octree1.svg style=all:unset;background-color:#fff;height:30vw;max-width:100%></div><p>Intuitively, we can easily throw out all objects that don&rsquo;t overlap with the quadrant that
+the red circle belongs to.</p><div style=text-align:center><img src=octree2.svg style=all:unset;background-color:#fff;height:30vw;max-width:100%></div><p>We can then split the quadrant we are left with into 4 sub-quadrants and repeat
+the process until some stopping criteria are met (such as less than $K$ objects left in
+the quadrant for some arbitrarily chosen $K$).</p><div style=text-align:center><img src=octree3.svg style=all:unset;background-color:#fff;height:30vw;max-width:100%></div><p>What is the time complexity of this approach? Assuming determining which objects
+overlap with the quadrant of the object we are testing takes constant time, we get $O(N \log N)$
+since each step reduces the number of objects we need to consider by $\frac34$.</p><p>What we just described is a type of <em>space partition tree</em>, in particular, a <em>quadtree</em>
+in 2D and an <em>octree</em> in 3D. To achieve constant lookup, each node in the
+tree must keep track of the objects that belong in it. What if we have an object
+that intersects multiple quadrants? There are two general approaches to this:
+put the object in all quadrants that intersect it
+or allow objects to belong to non-leaf nodes
+as well as leaf nodes. The former yields faster lookup times in exchange for
+increased complexity when updating and inserting objects;
+in the example above, the big circle in the center could be eliminated in step 3.
+For Project Oort, I opted for the latter since every object is dynamic. This is
+what we&rsquo;ll focus on for the rest of the discussion.</p><p>Let&rsquo;s see another example, this time we&rsquo;ll also display the tree structure.</p><div style=text-align:center><img src=octree4.svg style=all:unset;background-color:#fff;height:30vw;max-width:100%></div><p>In the above example, the right side of the diagram depicts the tree storing
+the objects. The numbers to the right side of a node correspond to the
+ids of each object that belongs to it. If every object has a reference to the
+tree node that owns it, then identifying which objects we must check
+simply requires collecting all objects as we walk up the tree. In this example,
+we must further examine objects 5, 7, and 1 while we can immediately reject objects
+2, 4, and 3.</p><p>Now consider we are testing object 7. Must we also check objects 6 and 5? While it
+is true that they can collide, we need not check them because we already check for
+a 6-7 and 5-7 intersection when we get possible colliders of 6 and 5, respectively.</p><p>In 3D, the only difference is a node will have 8 children instead of 4. Each node
+will be defined by a center and half-width.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// A node in an octree holding weak references to objects that fit in it and
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// (optionally) 8 child nodes
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// Each node is a `2 * h_width` x `2 * h_width` x `2 * h_width` box centered around `center`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>pub</span>(<span style=color:#719e07>super</span>) <span style=color:#719e07>struct</span> <span style=color:#268bd2>ONode</span> {
+</span></span><span style=display:flex><span>    center: <span style=color:#268bd2>Point3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    h_width: <span style=color:#dc322f>f64</span>, <span style=color:#586e75>// dist to center to any axis-aligned side of AABB
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    objects: <span style=color:#268bd2>ObjectList</span>,
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// in this implementation, a node either had all 8 children, or is a leaf
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    children: <span style=color:#b58900>Option</span><span style=color:#719e07>&lt;</span>[Rc<span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>ONode<span style=color:#719e07>&gt;&gt;</span>; <span style=color:#2aa198>8</span>]<span style=color:#719e07>&gt;</span>, <span style=color:#586e75>// ith bit in children index is 1 if ith coordinate is &gt; center
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// parent reference so we can walk up the tree
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    parent: <span style=color:#268bd2>Weak</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>ONode<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    self_ref: <span style=color:#268bd2>Weak</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>ONode<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// index this node is in its parent&#39;s children array
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    self_index: <span style=color:#dc322f>u8</span>,
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We&rsquo;ll cleverly index the children so that the $i^\text{th}$ bit of the index is 1 if
+the $i^\text{th}$ coordinate of the child&rsquo;s
+center is greater than the $i^\text{th}$ coordinate of the parent&rsquo;s center.
+Consider child index 2. In binary, 2 is <code>010</code>. Therefore, this child&rsquo;s center has a smaller
+<code>x</code> value, greater <code>y</code> value, and smaller <code>z</code> value.</p><table><thead><tr><th>z is greater?</th><th>y is greater?</th><th>x is greater?</th></tr></thead><tbody><tr><td>0</td><td>1</td><td>0</td></tr></tbody></table><p>For child index 4, we have that its z coordinate is greater, but its x and y
+coordinates are less than the centers&rsquo; since <code>4 == 0b100</code>.</p><table><thead><tr><th>z is greater?</th><th>y is greater?</th><th>x is greater?</th></tr></thead><tbody><tr><td>1</td><td>0</td><td>0</td></tr></tbody></table><p>This also makes it easy to determine what octant an object should belong:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Gets octant index or `None` if object is in multiple octants
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// The ith bit of the index is 1 if the ith coordinate of the object is &gt; the
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// ith coordinate of the center
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>get_octant_index</span>(
+</span></span><span style=display:flex><span>    center: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    h_width: <span style=color:#dc322f>f64</span>,
+</span></span><span style=display:flex><span>    obj: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Rc</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Option</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>u8</span><span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> o <span style=color:#719e07>=</span> obj.borrow().center() <span style=color:#719e07>-</span> center;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> index <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span><span style=color:#719e07>u8</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> i <span style=color:#719e07>in</span> <span style=color:#2aa198>0</span><span style=color:#719e07>..</span><span style=color:#2aa198>3</span> {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> o[i].abs() <span style=color:#719e07>&lt;</span> obj.borrow().radius()
+</span></span><span style=display:flex><span>            <span style=color:#719e07>||</span> o[i].abs() <span style=color:#719e07>+</span> obj.borrow().radius() <span style=color:#719e07>&gt;</span> h_width
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// if radius is greater than distance to center -&gt; object is in multiple octants
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// if radius + distance to center is greater than half width
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// -&gt; object does not fit in this node (goes beyond the boundaries)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#719e07>return</span> <span style=color:#b58900>None</span>;
+</span></span><span style=display:flex><span>        } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> o[i] <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0.</span> {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// if ith coordinate is greater than the center&#39;s ith coordinate:
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// set the ith bit in the index to 1
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            index <span style=color:#719e07>|=</span> <span style=color:#2aa198>1</span> <span style=color:#719e07>&lt;&lt;</span> i;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#b58900>Some</span>(index)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>To insert an object, into a node:</p><ol><li>If the node is a leaf and adding another object doesn&rsquo;t make the leaf too big,
+then add the object to the node and return.</li><li>If the node is a leaf but adding another object makes the node too big,
+allocate children nodes and split all objects among them. Then move on to step 3.</li><li>The node is a non-leaf, so find the correct child the object belongs to and
+recurse on that child.</li></ol><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>pub</span>(<span style=color:#719e07>super</span>) <span style=color:#719e07>fn</span> <span style=color:#268bd2>insert</span>(<span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> <span style=color:#268bd2>self</span>, obj: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Rc</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#268bd2>self</span>.children.is_none()
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;&amp;</span> <span style=color:#268bd2>self</span>.objects.len() <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span> <span style=color:#719e07>&lt;</span> <span style=color:#268bd2>Self</span>::<span style=color:#cb4b16>MAX_OBJS_PER_LEAF</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// step 1
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        obj.borrow_mut().octree_cell <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.self_ref.clone();
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.objects.push(Rc::downgrade(obj));
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span>;
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> <span style=color:#268bd2>self</span>.children.is_none() {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// step 2
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>self</span>.children <span style=color:#719e07>=</span> <span style=color:#b58900>Some</span>(<span style=color:#268bd2>Self</span>::create_children(
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>.self_ref,
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>.center,
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.h_width,
+</span></span><span style=display:flex><span>        ));
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>self</span>.objects <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::split_into_children(
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.children.as_mut().unwrap(),
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> <span style=color:#268bd2>self</span>.objects,
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>.center,
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.h_width,
+</span></span><span style=display:flex><span>        );
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// continue to step 3
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// step 3
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>match</span> <span style=color:#268bd2>Self</span>::get_octant_index(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>.center, <span style=color:#268bd2>self</span>.h_width, obj) {
+</span></span><span style=display:flex><span>        <span style=color:#b58900>Some</span>(idx) <span style=color:#719e07>=&gt;</span> <span style=color:#268bd2>self</span>.children.as_mut().unwrap()[idx <span style=color:#719e07>as</span> <span style=color:#dc322f>usize</span>]
+</span></span><span style=display:flex><span>            .borrow_mut()
+</span></span><span style=display:flex><span>            .insert(obj),
+</span></span><span style=display:flex><span>        <span style=color:#b58900>None</span> <span style=color:#719e07>=&gt;</span> {
+</span></span><span style=display:flex><span>            obj.borrow_mut().octree_cell <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.self_ref.clone();
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.objects.push(Rc::downgrade(obj));
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Splits objects in `objects` into octree nodes of `children`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// Returns the new object list for the current node
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>split_into_children</span>(
+</span></span><span style=display:flex><span>    children: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> [Rc<span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span><span style=color:#268bd2>Self</span><span style=color:#719e07>&gt;&gt;</span>; <span style=color:#2aa198>8</span>],
+</span></span><span style=display:flex><span>    objects: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> [Weak<span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;</span>],
+</span></span><span style=display:flex><span>    center: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    h_width: <span style=color:#dc322f>f64</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>Weak<span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> new_objs <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::new();
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> obj <span style=color:#719e07>in</span> objects
+</span></span><span style=display:flex><span>        .iter()
+</span></span><span style=display:flex><span>        .filter(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> x.strong_count() <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>)
+</span></span><span style=display:flex><span>        .map(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> x.upgrade().unwrap())
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>match</span> <span style=color:#268bd2>Self</span>::get_octant_index(center, h_width, <span style=color:#719e07>&amp;</span>obj) {
+</span></span><span style=display:flex><span>            <span style=color:#b58900>Some</span>(idx) <span style=color:#719e07>=&gt;</span> {
+</span></span><span style=display:flex><span>                children[idx <span style=color:#719e07>as</span> <span style=color:#dc322f>usize</span>].borrow_mut().insert(<span style=color:#719e07>&amp;</span>obj);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#b58900>None</span> <span style=color:#719e07>=&gt;</span> new_objs.push(Rc::downgrade(<span style=color:#719e07>&amp;</span>obj)),
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    new_objs
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Creates child nodes for the given parent
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>create_children</span>(
+</span></span><span style=display:flex><span>    parent: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Weak</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span><span style=color:#268bd2>Self</span><span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// parent center
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    parent_c: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Point3</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// parent half-width
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    parent_h: <span style=color:#dc322f>f64</span>,
+</span></span><span style=display:flex><span>) -&gt; [Rc<span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span><span style=color:#268bd2>Self</span><span style=color:#719e07>&gt;&gt;</span>; <span style=color:#2aa198>8</span>] {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> res <span style=color:#719e07>=</span> arr_macro::arr![Rc::new(RefCell::new(ONode::empty())); <span style=color:#2aa198>8</span>];
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// child half-width
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> step <span style=color:#719e07>=</span> parent_h <span style=color:#719e07>/</span> <span style=color:#2aa198>2.0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (child, idx) <span style=color:#719e07>in</span> res.iter_mut().zip(<span style=color:#2aa198>0</span><span style=color:#719e07>u32</span><span style=color:#719e07>..</span><span style=color:#2aa198>8</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> step_x <span style=color:#719e07>=</span> <span style=color:#719e07>if</span> idx <span style=color:#719e07>&amp;</span> <span style=color:#2aa198>1</span> <span style=color:#719e07>==</span> <span style=color:#2aa198>1</span> { step } <span style=color:#719e07>else</span> { <span style=color:#719e07>-</span>step };
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> step_y <span style=color:#719e07>=</span> <span style=color:#719e07>if</span> idx <span style=color:#719e07>&amp;</span> <span style=color:#2aa198>2</span> <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span> { step } <span style=color:#719e07>else</span> { <span style=color:#719e07>-</span>step };
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> step_z <span style=color:#719e07>=</span> <span style=color:#719e07>if</span> idx <span style=color:#719e07>&amp;</span> <span style=color:#2aa198>4</span> <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span> { step } <span style=color:#719e07>else</span> { <span style=color:#719e07>-</span>step };
+</span></span><span style=display:flex><span>        child.borrow_mut().center <span style=color:#719e07>=</span> parent_c <span style=color:#719e07>+</span> vec3(step_x, step_y, step_z);
+</span></span><span style=display:flex><span>        child.borrow_mut().h_width <span style=color:#719e07>=</span> step;
+</span></span><span style=display:flex><span>        child.borrow_mut().parent <span style=color:#719e07>=</span> parent.clone();
+</span></span><span style=display:flex><span>        child.borrow_mut().self_ref <span style=color:#719e07>=</span> Rc::downgrade(child);
+</span></span><span style=display:flex><span>        child.borrow_mut().self_index <span style=color:#719e07>=</span> idx <span style=color:#719e07>as</span> <span style=color:#dc322f>u8</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    res
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>To update an object in the tree, we first fetch the current node it belongs to. Then:</p><ol><li>If the node has a parent, compute the object&rsquo;s octant index relative to
+the parent node. If the octant index does not match the index of the current
+node the object belongs to, remove the object from the current node and
+recurse up into the parent.</li><li>Otherwise, compute the octant index and put the node into that child node.</li></ol><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Indicates that `obj` has changed and should be re-evaluated for placement in the octree
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// If `obj` no longer fits in the octree, it remains in the root node
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// Requires that `obj` is already in this node
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>pub</span>(<span style=color:#719e07>super</span>) <span style=color:#719e07>fn</span> <span style=color:#268bd2>update</span>(<span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> <span style=color:#268bd2>self</span>, obj: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Rc</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#268bd2>let</span> <span style=color:#b58900>Some</span>(parent) <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.parent.upgrade() {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> <span style=color:#268bd2>Self</span>::get_octant_index(
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span>parent.borrow().center,
+</span></span><span style=display:flex><span>            parent.borrow().h_width,
+</span></span><span style=display:flex><span>            obj,
+</span></span><span style=display:flex><span>        ) <span style=color:#719e07>!=</span> <span style=color:#b58900>Some</span>(<span style=color:#268bd2>self</span>.self_index)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// if the object no longer should be in this node
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>self</span>.objects.retain(<span style=color:#719e07>|</span>o<span style=color:#719e07>|</span> {
+</span></span><span style=display:flex><span>                o.strong_count() <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>                    <span style=color:#719e07>&amp;&amp;</span> <span style=color:#719e07>!</span>Rc::ptr_eq(<span style=color:#719e07>&amp;</span>o.upgrade().unwrap(), obj)
+</span></span><span style=display:flex><span>            });
+</span></span><span style=display:flex><span>            parent.borrow_mut().insert(obj);
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// insert will not &#34;bubble up&#34; an object that moved out of it
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// Let&#39;s say the object belongs in the grandparent, insert will
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// leave the object in the parent
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>//
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// so if the object is held by the parent (not moved to a sibling),
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// call update to make sure it should not bubble up to the grandparent
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>let</span> obj_holder <span style=color:#719e07>=</span> obj.borrow().octree_cell.upgrade().unwrap();
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> Rc::ptr_eq(<span style=color:#719e07>&amp;</span>obj_holder, <span style=color:#719e07>&amp;</span>parent) {
+</span></span><span style=display:flex><span>                parent.borrow_mut().update(obj);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#268bd2>let</span> <span style=color:#b58900>Some</span>(child_idx) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span>::get_octant_index(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>.center, <span style=color:#268bd2>self</span>.h_width, obj)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// if the object should now be in a child node
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>if</span> <span style=color:#268bd2>let</span> <span style=color:#b58900>Some</span>(children) <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.children.as_mut() {
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.objects.retain(<span style=color:#719e07>|</span>o<span style=color:#719e07>|</span> {
+</span></span><span style=display:flex><span>                o.strong_count() <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>                    <span style=color:#719e07>&amp;&amp;</span> <span style=color:#719e07>!</span>Rc::ptr_eq(<span style=color:#719e07>&amp;</span>o.upgrade().unwrap(), obj)
+</span></span><span style=display:flex><span>            });
+</span></span><span style=display:flex><span>            children[child_idx <span style=color:#719e07>as</span> <span style=color:#dc322f>usize</span>].borrow_mut().insert(obj);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// otherwise do nothing (leave the object in this node)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>Finally, as discussed earlier, to get colliders we just walk up the tree.
+In this implementation, the Octree also performs the bounding sphere collisions.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Gets all objects that have overlapping bounding spheres as
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// `test` object that is a parent of `test_obj` or contained within
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// `node`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// `node` - the containing octree cell of `test_obj`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>get_parent_colliders</span>(
+</span></span><span style=display:flex><span>    node: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Rc</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span><span style=color:#268bd2>Self</span><span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    test_obj: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Rc</span><span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>Rc<span style=color:#719e07>&lt;</span>RefCell<span style=color:#719e07>&lt;</span>Object<span style=color:#719e07>&gt;&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// gets all objects owned by `node` that collide with
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// `test_obj`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> v <span style=color:#719e07>=</span> <span style=color:#268bd2>Self</span>::get_self_colliders(node, test_obj);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> n <span style=color:#719e07>=</span> node.borrow().parent.clone();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// walk up the tree, iterative style
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>while</span> <span style=color:#268bd2>let</span> <span style=color:#b58900>Some</span>(parent) <span style=color:#719e07>=</span> n.upgrade() {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// remove dead references
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        parent.borrow_mut().objects.retain(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> x.strong_count() <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span>);
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// check all objects in the parent that collide:
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>for</span> obj <span style=color:#719e07>in</span>
+</span></span><span style=display:flex><span>            parent.borrow().objects.iter().map(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> x.upgrade().unwrap())
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> obj.borrow().bounding_sphere_collide(<span style=color:#719e07>&amp;*</span>test_obj.borrow()) {
+</span></span><span style=display:flex><span>                v.push(obj);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// move to grandparent
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        n <span style=color:#719e07>=</span> parent.borrow().parent.clone();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    v
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=bounding-volume-hierarchies class=anchor-link><a href=#bounding-volume-hierarchies>Bounding Volume Hierarchies</a></h3><p>The real bottleneck of the proposed algorithm is step 3: checking all intersecting
+triangles. This level of granularity is key to our general, accurate, collision detection
+algorithm yet it&rsquo;s also really slow. Even low-poly models can have a few thousand primitives.
+Checking every pair of triangles of two models can easily require upwards of
+25,000,000 triangle-triangle checks. What we need is a way to quickly narrow down
+how many pairs of triangles we need to examine.</p><p>Consider the following 2D example of a car hitting a box:</p><div style=text-align:center><img src=car1.png style=all:unset;background-color:#fff;max-height:20vw;max-width:100%><br><a href=https://drawcarz.com/how-to-draw-a-realistic-car/ style=font-size:5pt>Image of car from drawcarz.com</a></div><p>The bounding boxes of the car and box are overlapping, but, intuitively, there&rsquo;s no reason
+for us to check triangle-triangle collisions between the car&rsquo;s rear wheel and
+the box. Perhaps we only check collisions with triangles that are near enough
+to collide? In other words: we could put a bounding sphere around each triangle.
+But that still doesn&rsquo;t reduce the number of checks we need to perform, it just
+adds a slightly faster early-out condition. Perhaps we can use an Octree again?
+That&rsquo;s moving in the right direction, but recall that when using an Octree
+an object can belong to potentially many nodes which means it has to be checked
+multiple times. Here&rsquo;s another idea: what if we subdivide each bounding box into smaller bounding boxes?
+So after determining that the root bounding box collides, we now
+check the following bounding boxes:</p><div style=text-align:center><img src=car2.png style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>We then recurse, throwing out large chunks of the car as we determine there is no
+collision in that area:</p><div style=text-align:center><img src=car3.png style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>We repeat this process until some stopping condition is met, such as the amount of triangles contained within a leaf node is too low, or the tree depth is too great.
+What we just described is a type of
+<em>bounding volume hierarchy</em>. Specifically, in this case, an AABB hierarchy.</p><p>We&rsquo;ll implement a 3D AABB hierarchy. When we perform the bounding box intersections,
+we&rsquo;ll convert them to OBBs so we can transform them the same way the object is transformed,
+but for simplicity, we&rsquo;ll construct the tree using AABBs.</p><p>Given a set of triangles, we will construct a BVH node by first computing an
+AABB that can encompass all of the triangles. This will be the largest bounding
+volume for the node. If we should continue splitting, then we will identify
+which axis has the greatest spread of data points and split the triangles in half along that direction to form two child nodes.</p><p>With the car, we get something like this after a few iterations:</p><div style=text-align:center><img src=car_split.png style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><div style=text-align:center><img src=car_split2.png style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><div style=text-align:center><img src=car_split3.png style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>In code, we have something like the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>new</span>(
+</span></span><span style=display:flex><span>    triangles: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>Triangle<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    recursion_depth: <span style=color:#dc322f>u32</span>,
+</span></span><span style=display:flex><span>    stop: <span style=color:#268bd2>TreeStopCriteria</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> volume <span style=color:#719e07>=</span> BoundingVolume::Aabb(aabb_from_triangles(<span style=color:#719e07>&amp;</span>triangles));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> stop.should_stop(triangles.len(), recursion_depth) {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// we should not continue splitting
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>            left: <span style=color:#b58900>None</span>,
+</span></span><span style=display:flex><span>            right: <span style=color:#b58900>None</span>,
+</span></span><span style=display:flex><span>            volume,
+</span></span><span style=display:flex><span>            triangles: <span style=color:#b58900>Some</span>(triangles),
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> split <span style=color:#719e07>=</span> largest_extent_index(<span style=color:#719e07>&amp;</span>volume);
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// split along axis `split`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// `split = 0 =&gt; x-axis`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// `split = 1 =&gt; y-axis`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// `split = 2 =&gt; z-axis`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>Self</span>::with_split(triangles, split, volume, recursion_depth, stop)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Returns an AABB that fully contains `triangles`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>aabb_from_triangles</span><span style=color:#719e07>&lt;</span>T: <span style=color:#268bd2>BaseFloat</span><span style=color:#719e07>&gt;</span>(triangles: <span style=color:#719e07>&amp;</span>[Triangle<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>]) -&gt; <span style=color:#268bd2>Aabb</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> v: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>Point3<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;&gt;</span> <span style=color:#719e07>=</span> triangles
+</span></span><span style=display:flex><span>        .iter()
+</span></span><span style=display:flex><span>        .flat_map(<span style=color:#719e07>|</span>s<span style=color:#719e07>|</span> s.verts().into_iter())
+</span></span><span style=display:flex><span>        .collect();
+</span></span><span style=display:flex><span>    Aabb::from(<span style=color:#719e07>&amp;</span>v)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>impl</span> Aabb {
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>/// Computes an AABB from points
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#2aa198>/// `points` - local space point cloud
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#2aa198>/// `model` - world space transformation
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span>    <span style=color:#719e07>pub</span> <span style=color:#719e07>fn</span> <span style=color:#268bd2>from</span><span style=color:#719e07>&lt;</span>T: <span style=color:#268bd2>BaseNum</span><span style=color:#719e07>&gt;</span>(points: <span style=color:#719e07>&amp;</span>[Point3<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>]) -&gt; <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> mins <span style=color:#719e07>=</span> vec3(<span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MAX</span>, <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MAX</span>, <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MAX</span>);
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> maxs <span style=color:#719e07>=</span> vec3(<span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MIN</span>, <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MIN</span>, <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MIN</span>);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> pt <span style=color:#719e07>in</span> points {
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>let</span> pt <span style=color:#719e07>=</span> pt.cast().unwrap();
+</span></span><span style=display:flex><span>            mins.x <span style=color:#719e07>=</span> mins.x.min(pt.x);
+</span></span><span style=display:flex><span>            mins.y <span style=color:#719e07>=</span> mins.y.min(pt.y);
+</span></span><span style=display:flex><span>            mins.z <span style=color:#719e07>=</span> mins.z.min(pt.z);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            maxs.x <span style=color:#719e07>=</span> maxs.x.max(pt.x);
+</span></span><span style=display:flex><span>            maxs.y <span style=color:#719e07>=</span> maxs.y.max(pt.y);
+</span></span><span style=display:flex><span>            maxs.z <span style=color:#719e07>=</span> maxs.z.max(pt.z);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> center <span style=color:#719e07>=</span> (mins <span style=color:#719e07>+</span> maxs) <span style=color:#719e07>/</span> <span style=color:#2aa198>2.0</span>;
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> extents <span style=color:#719e07>=</span> maxs <span style=color:#719e07>-</span> center;
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>            center: <span style=color:#268bd2>point3</span>(center.x, center.y, center.z),
+</span></span><span style=display:flex><span>            extents,
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>We take the dimension to split on as the dimension with the greatest extent in
+the node&rsquo;s bounding box. So if the bounding box&rsquo;s width is greater than its height
+and depth, we split it on the x-axis.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Gets the index of the largest extent of `aobb`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>largest_extent_index</span>(aobb: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>BoundingVolume</span>) -&gt; <span style=color:#dc322f>usize</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> idx <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> max_extents <span style=color:#719e07>=</span> <span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>MIN</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> i <span style=color:#719e07>in</span> <span style=color:#2aa198>0</span><span style=color:#719e07>..</span><span style=color:#2aa198>3</span> {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> aobb.extents()[i] <span style=color:#719e07>&gt;</span> max_extents {
+</span></span><span style=display:flex><span>            max_extents <span style=color:#719e07>=</span> aobb.extents()[i];
+</span></span><span style=display:flex><span>            idx <span style=color:#719e07>=</span> i;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    idx
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Then we put each triangle into a child based on whether the triangle&rsquo;s centroid
+is greater or less than the node&rsquo;s bounding box in the dimension
+we are splitting on.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Creates a new internal `BVHNode` with bounding volume `volume`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// It&#39;s children will be given triangles divided based on being less than or greater 
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// than `volume`&#39;s center along the `split` axis. `split` of `0` indicates the `x`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// coordinates are being divided, whereas `split` of `2` are the `z` coordinates.
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>with_split</span>(
+</span></span><span style=display:flex><span>    triangles: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>Triangle<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    split: <span style=color:#dc322f>usize</span>,
+</span></span><span style=display:flex><span>    volume: <span style=color:#268bd2>BoundingVolume</span>,
+</span></span><span style=display:flex><span>    rec_depth: <span style=color:#dc322f>u32</span>,
+</span></span><span style=display:flex><span>    stop: <span style=color:#268bd2>TreeStopCriteria</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> left <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::<span style=color:#719e07>&lt;</span>Triangle<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;&gt;</span>::new();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> right <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::<span style=color:#719e07>&lt;</span>Triangle<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;&gt;</span>::new();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// divide each triangle among the node&#39;s soon to be children
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>for</span> tri <span style=color:#719e07>in</span> triangles {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> tri.centroid()[split] <span style=color:#719e07>&lt;</span> volume.center()[split] {
+</span></span><span style=display:flex><span>            left.push(tri);
+</span></span><span style=display:flex><span>        } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>            right.push(tri);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> left.is_empty() <span style=color:#719e07>||</span> right.is_empty() {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// if all triangles are on the same side, stop growing
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// this can happen if the node contains a really large triangle
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        left.append(<span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> right);
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// left now contains all the node&#39;s triangles
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>            left: <span style=color:#b58900>None</span>,
+</span></span><span style=display:flex><span>            right: <span style=color:#b58900>None</span>,
+</span></span><span style=display:flex><span>            volume,
+</span></span><span style=display:flex><span>            triangles: <span style=color:#b58900>Some</span>(left),
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// recurse
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>Self</span> {
+</span></span><span style=display:flex><span>            left: <span style=color:#b58900>Some</span>(<span style=color:#b58900>Box</span>::new(<span style=color:#268bd2>Self</span>::new(left, rec_depth <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>, stop))),
+</span></span><span style=display:flex><span>            right: <span style=color:#b58900>Some</span>(<span style=color:#b58900>Box</span>::new(<span style=color:#268bd2>Self</span>::new(right, rec_depth <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>, stop))),
+</span></span><span style=display:flex><span>            volume,
+</span></span><span style=display:flex><span>            triangles: <span style=color:#b58900>None</span>,
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>In contrast to our Octree implementation, the triangles are not going to move relative
+to each other. In other words, we don&rsquo;t have any animated models. If we did, some
+more work would be required to handle animations.</p><p>So the last thing we have to
+worry about is determining which triangles to check.</p><p>If two bounding boxes collide, we then test collisions between the smaller bounding
+box and the two sub-volumes of the larger bounding box. Of course, this isn&rsquo;t the only
+way to descend the hierarchy, however in practice it&rsquo;s a pretty good heuristic.<sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup>
+If one bounding box has no children, then we subdivide the non-leaf bounding volume. We keep repeating
+these steps until we are left with two leaf nodes. The triangles we have to check are
+the triangles that belong to both leaf nodes.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Descends the collision hierarchy, descending into the largest
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// nodes first.
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>///
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// `on_both_leaf` - function called when two colliding nodes are leaf nodes
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// The first parameter is always a descendant of `self` and the second parameter
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// is the colliding descendant of `other`
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>descend_heirarchy</span><span style=color:#719e07>&lt;</span>F<span style=color:#719e07>&gt;</span>(
+</span></span><span style=display:flex><span>    <span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>,
+</span></span><span style=display:flex><span>    self_transform: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    other: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>,
+</span></span><span style=display:flex><span>    other_transform: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#719e07>mut</span> on_both_leaf: <span style=color:#268bd2>F</span>,
+</span></span><span style=display:flex><span>) <span style=color:#719e07>where</span>
+</span></span><span style=display:flex><span>    F: <span style=color:#b58900>FnMut</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>, <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>),
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// stack of tuples of 
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// (bounding box belonging to the receiver node,
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>//      bounding box belong to the other node)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> stack <span style=color:#719e07>=</span> VecDeque::<span style=color:#719e07>&lt;</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>, <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Self</span>)<span style=color:#719e07>&gt;</span>::new();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// push the top level bounding boxes
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    stack.push_front((<span style=color:#268bd2>self</span>, other));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>while</span> <span style=color:#719e07>!</span>stack.is_empty() {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>let</span> (a, b) <span style=color:#719e07>=</span> stack.pop_front().unwrap();
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> <span style=color:#719e07>!</span>a.volume.is_colliding(
+</span></span><span style=display:flex><span>            <span style=color:#b58900>Some</span>(self_transform),
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span>b.volume,
+</span></span><span style=display:flex><span>            <span style=color:#b58900>Some</span>(other_transform),
+</span></span><span style=display:flex><span>        ) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>continue</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> a.is_leaf() <span style=color:#719e07>&amp;&amp;</span> b.is_leaf() {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// execute call back when both nodes are leaves.
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// There can be multiple such colliding leaves
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// so don&#39;t quit early
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            on_both_leaf(a, b);
+</span></span><span style=display:flex><span>        } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> a.should_descend(b) {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// descend a
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// so add (a.right, b) and (a.left, b) to the
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// stack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            a.right
+</span></span><span style=display:flex><span>                .as_ref()
+</span></span><span style=display:flex><span>                .map(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> stack.push_front((<span style=color:#719e07>&amp;*</span>x, b)))
+</span></span><span style=display:flex><span>                .unwrap();
+</span></span><span style=display:flex><span>            a.left.as_ref().map(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> stack.push_front((<span style=color:#719e07>&amp;*</span>x, b))).unwrap();
+</span></span><span style=display:flex><span>        } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// descend b
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#586e75>// so add (a, b.right) and (a, b.left)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            b.right
+</span></span><span style=display:flex><span>                .as_ref()
+</span></span><span style=display:flex><span>                .map(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> stack.push_front((a, <span style=color:#719e07>&amp;*</span>x)))
+</span></span><span style=display:flex><span>                .unwrap();
+</span></span><span style=display:flex><span>            b.left.as_ref().map(<span style=color:#719e07>|</span>x<span style=color:#719e07>|</span> stack.push_front((a, <span style=color:#719e07>&amp;*</span>x))).unwrap();
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Returns `true` if we should descend this BVH hierarchy, 
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// otherwise `false` to indicate we should descend 
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// `other` during a collision query
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>#[inline]</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>should_descend</span><span style=color:#719e07>&lt;</span>F: <span style=color:#268bd2>BaseFloat</span><span style=color:#719e07>&gt;</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>, other: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>BVHNode</span><span style=color:#719e07>&lt;</span>F<span style=color:#719e07>&gt;</span>) -&gt; <span style=color:#dc322f>bool</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>!</span><span style=color:#268bd2>self</span>.is_leaf()
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;&amp;</span> (<span style=color:#268bd2>self</span>.volume.vol() <span style=color:#719e07>&gt;</span> other.volume.vol() <span style=color:#719e07>||</span> other.is_leaf())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=parallelization class=anchor-link><a href=#parallelization>Parallelization</a></h3><p>Together, these two data structures provide a massive speedup over the naive
+approach. But we can do better!</p><p>Let&rsquo;s consider the following pseudocode for checking triangle collisions:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> a_colliding_triangles <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::new();
+</span></span><span style=display:flex><span><span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> b_colliding_triangles <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::new();
+</span></span><span style=display:flex><span><span style=color:#719e07>for</span> a <span style=color:#719e07>in</span> a_triangles {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> b <span style=color:#719e07>in</span> b_triangles {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> a.collide(b) {
+</span></span><span style=display:flex><span>            a_colliding_triangles.push(a);
+</span></span><span style=display:flex><span>            b_colliding_triangles.push(b);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Notice that each iteration does not depend on any other iterations. This is what
+we call an <em>embarrassingly parallel</em> algorithm! We can even rewrite this code
+to use a single loop instead of two:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>for</span> i <span style=color:#719e07>in</span> <span style=color:#2aa198>0</span> <span style=color:#719e07>..</span> a_triangles.len() <span style=color:#719e07>+</span> b_triangles.len() {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a_index <span style=color:#719e07>=</span> i <span style=color:#719e07>/</span> a_triangles.len();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b_index <span style=color:#719e07>=</span> i <span style=color:#719e07>%</span> a_triangles.len();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a <span style=color:#719e07>=</span> <span style=color:#719e07>&amp;</span>a_triangles[a_index];
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b <span style=color:#719e07>=</span> <span style=color:#719e07>&amp;</span>b_triangles[b_index];
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> a.collide(b) {
+</span></span><span style=display:flex><span>        a_colliding_triangles.push(a);
+</span></span><span style=display:flex><span>        b_colliding_triangles.push(b);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>If we had the compute to run all <code>a_triangles.len() + b_triangles.len()</code>
+checks at once, we could bring down the running time of checking triangles
+tremendously! While we can&rsquo;t perform <em>all</em> the checks in parallel, we can perform
+a huge number of them at once by employing our GPU!</p><p>There are many frameworks for performing parallel computation on specialized
+hardware, but I used the compute shaders in OpenGL since I already had the
+infrastructure written for them from implementing Forward+ rendering.</p><p>In OpenGL, when we execute a compute shader, we must provide the size of a
+<em>work group</em> and how many to execute. A work group has an x, y, and z dimension
+that we can specify, however, we will only use x and y dimensions since our data
+is two-dimensional (<code>a_triangles</code> index and <code>b_triangles</code> index). Within a work group,
+a compute shader defines a <em>local size</em> which is the number of shader invocations
+processed by the work group. So a local size of <code>(x = 8, y = 8, z = 1)</code> and
+a work group size of <code>(x = 10, y = 10, z = 1)</code> yields <code>6400</code> total shader invocations.
+Each invocation within a workgroup will be executed concurrently and they
+can communicate via <code>shared</code> variables. Different work groups can be executed
+in any order, and can&rsquo;t easily communicate. Synchronization within a work group
+can be achieved via atomic loads or stores or <a href=https://registry.khronos.org/OpenGL-Refpages/gl4/html/barrier.xhtml>barriers</a>. Each invocation within a work group
+is given a unique id. This can be accessed within the shader using the variable
+<code>gl_LocalInvocationID</code>. Furthermore, each work group has a unique id readable from
+<code>gl_WorkGroupID</code>. Together, this gives a unique id for every invocation among all
+work groups, accessible from <code>gl_GlobalInvocationID</code>.</p><p>The general structure is that we use a shader storage buffer to pass <code>a_triangles</code>,
+and <code>b_triangles</code> to the GPU. In the shader, we use the global invocation id to
+determine which two triangles to test.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>struct</span> Triangle {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>vec4</span> v[<span style=color:#2aa198>4</span>];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>layout(std430, binding <span style=color:#719e07>=</span> <span style=color:#2aa198>5</span>) readonly buffer ATriangles {
+</span></span><span style=display:flex><span>    Triangle a_triangles[];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>layout(std430, binding <span style=color:#719e07>=</span> <span style=color:#2aa198>6</span>) readonly buffer BTriangles {
+</span></span><span style=display:flex><span>    Triangle b_triangles[];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>layout(std430, binding <span style=color:#719e07>=</span> <span style=color:#2aa198>7</span>) writeonly buffer Collisions {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// array of a_traingles followed by b_triangles</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Assumes that the buffer is sent to the GPU zeroed out</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Each element is not 0 if its corresponding triangle has a collision</span>
+</span></span><span style=display:flex><span>    uvec4 out_buffer[];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>layout(local_size_x <span style=color:#719e07>=</span> <span style=color:#2aa198>8</span>, local_size_y <span style=color:#719e07>=</span> <span style=color:#2aa198>8</span>, local_size_z <span style=color:#719e07>=</span> <span style=color:#2aa198>1</span>) <span style=color:#719e07>in</span>;
+</span></span></code></pre></div><p>A triangle only needs 3 <code>vec3</code>s, however, we must take into account the
+alignment requirements specified in
+<a href=https://registry.khronos.org/OpenGL/specs/gl/glspec46.core.pdf>Section 7.6.2.2 of the OpenGL Spec</a>.
+In it, it specifies how a <code>vec3</code> is treated as a <code>vec4</code> and an array of vectors
+or scalars follows the same rule (ie. <code>int[3]</code> is treated as <code>int[4]</code> and
+<code>vec4[3]</code> is treated as <code>vec4[4]</code>).
+I chose to define <code>Triangle</code> such that it requires no padding so the shader <code>Triangle</code> definition matches the definition in Rust.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>#[derive(Clone, Copy, Debug)]</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>#[repr(C)]</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>#[repr(align(64))]</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>ShaderTriangle</span> {
+</span></span><span style=display:flex><span>    _a: [<span style=color:#dc322f>f32</span>; <span style=color:#2aa198>4</span>],
+</span></span><span style=display:flex><span>    _b: [<span style=color:#dc322f>f32</span>; <span style=color:#2aa198>4</span>],
+</span></span><span style=display:flex><span>    _c: [<span style=color:#dc322f>f32</span>; <span style=color:#2aa198>4</span>],
+</span></span><span style=display:flex><span>    _d: [<span style=color:#dc322f>f32</span>; <span style=color:#2aa198>4</span>],
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Each shader invocation will examine the two triangles specified by the
+invocation&rsquo;s unique id, and if there&rsquo;s a collision, write a <code>1</code> to a buffer
+in the locations representing each triangle.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#719e07>void</span> main() {
+</span></span><span style=display:flex><span>    uvec2 location <span style=color:#719e07>=</span> gl_GlobalInvocationID.xy;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// check if ID is valid since we cannot execute less invocations</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// than specified by a single work group</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (location.x <span style=color:#719e07>&lt;</span> a_triangles.length() <span style=color:#719e07>&amp;&amp;</span> location.y <span style=color:#719e07>&lt;</span> b_triangles.length()) {
+</span></span><span style=display:flex><span>        mollerTriangleTest(location);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-GLSL data-lang=GLSL><span style=display:flex><span><span style=color:#586e75>// Moller&#39;s Triangle-Triangle interval overlap method</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>void</span> mollerTriangleTest(uvec2 location) {
+</span></span><span style=display:flex><span>    Triangle a <span style=color:#719e07>=</span> a_triangles[location.x];
+</span></span><span style=display:flex><span>    Triangle b <span style=color:#719e07>=</span> b_triangles[location.y];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// if collision</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// indicate triangle a has a collision</span>
+</span></span><span style=display:flex><span>        out_buffer[location.x] <span style=color:#719e07>=</span> uvec4(<span style=color:#2aa198>1</span>);
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// indicate triangle b has a collision</span>
+</span></span><span style=display:flex><span>        out_buffer[a_triangles.length() <span style=color:#719e07>+</span> location.y] <span style=color:#719e07>=</span> uvec4(<span style=color:#2aa198>1</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Note that writing to the output buffer is technically a data race.
+However, this is OK because all invocations write the same thing,
+the buffer is zeroed before dispatched, and we only care
+if an element is nonzero and not what&rsquo;s stored in it.</p><p>Now the CPU code for a collision check just needs to format the data
+correctly, compute the number of work groups, dispatch the compute
+shader, and identify colliding triangles from the output buffer:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>collide</span>(
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>,
+</span></span><span style=display:flex><span>        a_triangles: <span style=color:#719e07>&amp;</span>[Triangle<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f32</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>        a_mat: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>        b_triangles: <span style=color:#719e07>&amp;</span>[Triangle<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f32</span><span style=color:#719e07>&gt;</span>],
+</span></span><span style=display:flex><span>        b_mat: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Matrix4</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    ) -&gt; <span style=color:#b58900>Option</span><span style=color:#719e07>&lt;</span>Hit<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a_in_triangles: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>ShaderTriangle<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> a_triangles
+</span></span><span style=display:flex><span>        .iter()
+</span></span><span style=display:flex><span>        .map(<span style=color:#268bd2>Self</span>::get_triangle_to_mat_func(<span style=color:#719e07>*</span>a_mat))
+</span></span><span style=display:flex><span>        .collect();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b_in_triangles: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>ShaderTriangle<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> b_triangles
+</span></span><span style=display:flex><span>        .iter()
+</span></span><span style=display:flex><span>        .map(<span style=color:#268bd2>Self</span>::get_triangle_to_mat_func(<span style=color:#719e07>*</span>b_mat))
+</span></span><span style=display:flex><span>        .collect();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> a <span style=color:#719e07>=</span> ComputeInputBuffer {
+</span></span><span style=display:flex><span>        buf: <span style=color:#268bd2>ssbo</span>::Ssbo::create_static(<span style=color:#719e07>&amp;</span>a_in_triangles),
+</span></span><span style=display:flex><span>        len: <span style=color:#268bd2>a_triangles</span>.len() <span style=color:#719e07>as</span> <span style=color:#dc322f>u32</span>,
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> b <span style=color:#719e07>=</span> ComputeInputBuffer {
+</span></span><span style=display:flex><span>        buf: <span style=color:#268bd2>ssbo</span>::Ssbo::create_static(<span style=color:#719e07>&amp;</span>b_in_triangles),
+</span></span><span style=display:flex><span>        len: <span style=color:#268bd2>b_triangles</span>.len() <span style=color:#719e07>as</span> <span style=color:#dc322f>u32</span>,
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// map index into a_triangles onto x dimension
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// number of work groups is then a.len() / WORK_GROUP_SIZE,
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// rounded up
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> work_groups_x <span style=color:#719e07>=</span> ((a.len
+</span></span><span style=display:flex><span>        <span style=color:#719e07>+</span> a.len <span style=color:#719e07>%</span> TriangleTriangleGPU::<span style=color:#cb4b16>WORK_GROUP_SIZE</span>)
+</span></span><span style=display:flex><span>        <span style=color:#719e07>/</span> TriangleTriangleGPU::<span style=color:#cb4b16>WORK_GROUP_SIZE</span>)
+</span></span><span style=display:flex><span>        .max(<span style=color:#2aa198>1</span>);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> work_groups_y <span style=color:#719e07>=</span> ((b.len
+</span></span><span style=display:flex><span>        <span style=color:#719e07>+</span> b.len <span style=color:#719e07>%</span> TriangleTriangleGPU::<span style=color:#cb4b16>WORK_GROUP_SIZE</span>)
+</span></span><span style=display:flex><span>        <span style=color:#719e07>/</span> TriangleTriangleGPU::<span style=color:#cb4b16>WORK_GROUP_SIZE</span>)
+</span></span><span style=display:flex><span>        .max(<span style=color:#2aa198>1</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> output <span style=color:#719e07>=</span> <span style=color:#268bd2>self</span>.execute_collision_compute(
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>a,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span>b,
+</span></span><span style=display:flex><span>        work_groups_x,
+</span></span><span style=display:flex><span>        work_groups_y,
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> a_colliders <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::new();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> b_colliders <span style=color:#719e07>=</span> <span style=color:#b58900>Vec</span>::new();
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (e, idx) <span style=color:#719e07>in</span>
+</span></span><span style=display:flex><span>        output.map_read().as_slice().iter().zip(<span style=color:#2aa198>0</span><span style=color:#719e07>..</span>a.len <span style=color:#719e07>+</span> b.len)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> e[<span style=color:#2aa198>0</span>] <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>0</span> {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> idx <span style=color:#719e07>&lt;</span> a.len {
+</span></span><span style=display:flex><span>                a_colliders.push(<span style=color:#719e07>&amp;</span>a_triangles[idx <span style=color:#719e07>as</span> <span style=color:#dc322f>usize</span>]);
+</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>                b_colliders.push(<span style=color:#719e07>&amp;</span>b_triangles[(idx <span style=color:#719e07>-</span> a.len) <span style=color:#719e07>as</span> <span style=color:#dc322f>usize</span>]);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>Self</span>::colliders_from_output(a_mat, b_mat, <span style=color:#719e07>&amp;</span>a_colliders, <span style=color:#719e07>&amp;</span>b_colliders)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>For completeness, I&rsquo;ll quickly discuss the execution model of CUDA, a popular parallel computing framework<sup id=fnref:3><a href=#fn:3 class=footnote-ref role=doc-noteref>3</a></sup>. CUDA has an organizational hierarchy of grids,
+thread blocks, and threads. A <em>thread block</em> is similar to OpenGL&rsquo;s work group,
+it&rsquo;s a set of concurrent threads that can cooperate via barrier synchronization
+and shared memory. A <em>grid</em> is a set of independent and parallel thread blocks.
+The user specifies the number of threads per block and the number of blocks in
+a grid. Like OpenGL, each block has a unique id within the grid, and each thread
+has a unique id within its block. CUDA also distinguishes between shared and
+device memory. Shared memory is akin to cache for the accelerator, and device
+memory is akin to onboard DRAM. On video cards, this is typically called VRAM.
+In OpenGL, <code>shared</code> variables would be similar to CUDA&rsquo;s shared memory, and
+buffers would probably map more closely to CUDA&rsquo;s device memory.</p><h3 id=measurements class=anchor-link><a href=#measurements>Measurements</a></h3><p>So it&rsquo;s time to discuss the fruit of our labors, how much faster can we perform
+collision detection with these optimizations? To test this, I computed a 90-second
+rolling average of the time it took to perform collision detection. Specifically,
+I timed the duration it took to run the <code>get_resolving_forces</code> method, which
+runs through every dynamic object in the scene, finds all colliding objects,
+computes resolving forces, and adds them up for each object. I measured the times
+in microseconds using the system clock. I ran the tests on an Ubuntu 22.04 LTS
+machine with an Intel i7-4790, 16GB DDR3 memory, and an NVIDIA GTX 1070.
+This was not a very scientific test as
+I did not fix the seed used to generate the asteroids nor did I pre-program what
+would happen for those 90s. I simply flew around bumping into things, playing
+the game in <em>very</em> roughly the same way. Despite that, I think the measurements
+are good enough to get a sense of how effective optimizations are and identify a
+few key takeaways.</p><p>There is a tremendous amount of room to further optimize. Each algorithm has a
+plethora of policy choices and knobs to tune that I didn&rsquo;t even try adjusting
+such as work group and local size, other tree stop criteria for the BVH or Octree,
+using different bounding volumes in the BVH, how to descend the BVH,
+handling objects overlapping multiple octants differently, computing the split
+dimension in the BVH, and adding or removing passes.</p><p>Furthermore, I designed the collision detection algorithm almost entirely based on
+how fun it would be to implement. I didn&rsquo;t even consider measuring performance
+until writing this post, which is not the approach you&rsquo;d want to take for delivering
+a real product.</p><p>With that being said, our baseline algorithm proposed at the end of section 3
+clocked in at a whopping <strong>2,118,699$\mu$s</strong>. That&rsquo;s an unacceptable 2.118s. This is
+well into seconds per frame territory instead of FPS. The algorithm using
+an Octree with max 32 objects per leaf (denoted Octree(32)), the BVH with 1024
+primitives per leaf (denoted BVH(1024)), and the compute shader, clocks in at
+a speedy <strong>9,448$\mu$s</strong> or <strong>9.4ms</strong>. This is a speedup of <strong>224.25x</strong>!</p><p>Here&rsquo;s all the data I collected:</p><p><img src=all_data.svg alt="All Data Chart"></p><p><img src=Algorithm_Speedup_All.svg alt="All Data Speedup"></p><p>This reveals a few things right off the bat:</p><ol><li>Parallelization is <strong>KING</strong>! Without it, this algorithm would likely not be
+able to be real-time.</li><li>The Octree wasn&rsquo;t that helpful. Project Oort itself doesn&rsquo;t have that many
+objects (on the order of a few hundred), and iterating through 100-200 objects
+and checking distances isn&rsquo;t particularly expensive. The times do <strong>not</strong> include
+the cost of updating and inserting objects into the Octree, so I wouldn&rsquo;t be all
+that surprised if using an Octree is actually <strong>slower</strong>.</li><li>The BVH is fairly helpful for sequential triangle-triangle collision testing.
+For parallel intersection tests, it&rsquo;s not super important since the GPU can chug
+through tons of intersection checks.</li></ol><p>I&rsquo;d also like to point out that for sequential intersection tests, I used a BVH
+with 32 primitives per leaf, but for parallel intersections, I used 1024 primitives.
+This is because for the CPU, we want to narrow down the number of triangles
+we need to check as much as we can, but for the GPU, we want to use enough primitives
+so that data movement costs don&rsquo;t dominate.
+I was a bit surprised that <code>BVH(4), Octree(32)</code> did so poorly, but perhaps
+something like <code>BVH(16)</code> is the sweet spot for sequential triangle-triangle
+intersections.</p><p>Here are just the main sequential variants of the algorithm:</p><p><img src=Algorithm_Speedup_seq.svg alt="Sequential Speedup"></p><p>We can really see that the Octree helps, but barely. Speaking of which, I looked
+into different numbers for the child creation threshold. 32 seems to be a happy
+medium, at least for the sequential algorithm:</p><p><img src=Algorithm_Speedup_octree.svg alt="Algorithm Speedup Octree"></p><p>But again, the differences are minuscule compared to the speedup due to
+parallelization.</p><p>Keep in mind that <em>all</em> the tests were done on the 3-pass algorithm using
+bounding spheres, OBBs, and triangle intersections.</p><h2 id=conclusion class=anchor-link><a href=#conclusion>Conclusion</a></h2><p>We walked through the development of the 3-pass real-time collision detection
+algorithm used in Project Oort. There is <strong>a lot</strong> of work that can be done
+to this. The book <em>Real-time Collision Detection</em> by Ericson<sup id=fnref1:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup> is a great resource
+that covers everything we discussed here and much more.</p><p>There is a key issue with the current algorithm: in every frame, we test for a
+collision solely based on the present location of all objects. It&rsquo;s possible
+for an object to go fast enough, or collide with another object small enough,
+such that in one frame the object is right in front of a collider, and in the next
+frame it&rsquo;s right behind the collider. In both cases, there is no collision
+despite the object traveling through the collider.</p><p>The laser would be most susceptible to this bug, but to solve that we could
+test the collision of a swept ellipsoid with a mesh<sup id=fnref:4><a href=#fn:4 class=footnote-ref role=doc-noteref>4</a></sup>.</p><p>Hopefully, this post was helpful, thanks for reading!</p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p><a href=https://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/tritri_tam.pdf>Möller, T. (1997). A Fast Triangle-Triangle Intersection Test. <em>Journal of Graphics Tools</em>, 2(2), 25–30. doi:10.1080/10867651.1997.10487472</a>&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a>&#160;<a href=#fnref1:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:2><p>Christer Ericson. (2006). <em>Real-time collision detection</em>. Elsevier, [20]10.&#160;<a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a>&#160;<a href=#fnref1:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:3><p><a href=https://ieeexplore.ieee.org/document/4626815>M. Garland et al., &ldquo;Parallel Computing Experiences with CUDA,&rdquo; in <em>IEEE Micro</em>, vol. 28, no. 4, pp. 13-27, July-Aug. 2008, doi: 10.1109/MM.2008.57.</a>&#160;<a href=#fnref:3 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:4><p><a href=http://www.peroxide.dk/papers/collision/collision.pdf>Fauerby, K. (2003). Improved Collision detection and Response. NP</a>&#160;<a href=#fnref:4 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/ProjectOort/tree/main/game/src/collisions><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text><a href=https://github.com/victoriadrake/hugo-theme-introduction/><strong>Introduction</strong></a> theme for <a href=http://gohugo.io/>Hugo</a>. Made with <a href=https://victoria.dev><i class="fa fa-heart"></i> and <i class="fa fa-coffee"></i></a> by open source contributors.</span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

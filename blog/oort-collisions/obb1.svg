@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="100mm"
+   viewBox="0 0 140 70"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="obb1.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.1474186"
+     inkscape:cx="36.168142"
+     inkscape:cy="283.24449"
+     inkscape:window-width="2560"
+     inkscape:window-height="1343"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#e200ff;fill-rule:evenodd;stroke-width:0.264583;fill-opacity:1"
+       id="rect31"
+       width="19.30567"
+       height="27.67907"
+       x="42.85334"
+       y="-15.112195"
+       ry="0.116618"
+       transform="rotate(41.036779)" />
+    <rect
+       style="fill:#e300ff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.565;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect113"
+       width="19.30567"
+       height="27.67907"
+       x="83.717903"
+       y="-50.335041"
+       ry="0.116618"
+       transform="rotate(41.036779)" />
+    <rect
+       style="font-variation-settings:normal;opacity:1;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.560258;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000;stop-opacity:1"
+       id="rect1045"
+       width="33.473629"
+       height="34.690464"
+       x="23.640583"
+       y="16.247412"
+       ry="0.11603719" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="26.139799"
+       y="60.631081"
+       id="text7188"><tspan
+         sodipodi:role="line"
+         id="tspan7186"
+         style="stroke-width:0.264583"
+         x="26.139799"
+         y="60.631081">AABB</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="81.41011"
+       y="59.721485"
+       id="text11536"><tspan
+         sodipodi:role="line"
+         id="tspan11534"
+         style="stroke-width:0.264583"
+         x="81.41011"
+         y="59.721485">OBB</tspan></text>
+  </g>
+</svg>
