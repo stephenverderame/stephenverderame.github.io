@@ -1,0 +1,935 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Compiler Enforced Semantic Unit Types -</title><meta property="og:title" content="Compiler Enforced Semantic Unit Types - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/unit-types/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/home/experience/Intel-Logo.png"><meta property="og:image" content="https://stephenverderame.github.io/home/experience/brdata.jpg"><meta property="og:image" content="https://stephenverderame.github.io/home/experience/cornell-logo.png"><meta property="og:image" content="https://stephenverderame.github.io/home/experience/reliable.jpg"><meta property="og:image" content="https://stephenverderame.github.io/home/headshot.jpeg"><link rel="shortcut icon" href=/img/fav.ico><link rel=stylesheet href=/css/main.min.f8310307e7689f75fe430255441a49dac41c2321ae5a250ff11775d4080e4365.css integrity="sha256-+DEDB+don3X+QwJVRBpJ2sQcIyGuWiUP8Rd11AgOQ2U=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=/#about>About</a>
+<a class=navbar-item href=/#experience>Experience</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=/#contact>Contact</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/unit-types/>Compiler Enforced Semantic Unit Types</a></h2><div class=post-data>Aug 18, 2023
+|
+32 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Compiler%20Enforced%20Semantic%20Unit%20Types%20https%3a%2f%2fstephenverderame.github.io%2fblog%2funit-types%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2funit-types%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2funit-types%2f&amp;description=Compiler%20Enforced%20Semantic%20Unit%20Types" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/pl>pl</a>,
+<a href=/%20/tags/cpp>cpp</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#template-metaprogramming>Template Metaprogramming</a></li><li><a href=#the-unit>The Unit</a></li><li><a href=#type-list-manipulations>Type List Manipulations</a></li><li><a href=#power-list-manipulation>Power List Manipulation</a></li><li><a href=#unit-operations>Unit Operations</a></li><li><a href=#usage>Usage</a></li></ol></nav></div><div class="container markdown top-pad"><p>Computations of physical values in programming languages can quickly get out of
+hand due to the complex units that the programmer has to keep track of.
+Good variable naming and comments can help, but nothing is stopping
+<code>double run_time_sec</code> from storing a time measured in milliseconds.
+Furthermore, different functions might use the same value, but measured
+in different units, requiring manual conversions. Overall, it&rsquo;s
+just an unpleasant burden placed on the programmer and a cause of many errors.
+For example, at an internship, due to data values
+being passed through multiple standard data structures, each requiring
+values in different units, a value originally measured in knots would have to
+be converted from knots (nautical miles per hour) to nautical miles per second,
+then to meters per second, and finally to feet per second. Suffice it to say,
+it was confusing keeping track of which structure required which units and making
+sure the correct conversions were occurring at the correct location.</p><p>One solution to this problem is the idea of <em>semantic types</em>, realized in Rust
+by the <a href=https://doc.rust-lang.org/rust-by-example/generics/new_types.html>Newtype Pattern</a>.</p><p>The gist of this pattern is creating <code>struct</code>s to wrap data value so that the
+programmer cannot accidentally use a value of one type where another is expected.
+In other words, using the type system to encode values with different semantics
+as different types. So instead of values measured in miles and meters
+represented as <code>f64</code>, we can represent them with different <code>struct</code>s that contain
+a <code>f64</code>.</p><p>For example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Meters</span>(<span style=color:#dc322f>f64</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Miles</span>(<span style=color:#dc322f>f64</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>foo</span>(a: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Miles</span>) {
+</span></span><span style=display:flex><span>    println!(<span style=color:#2aa198>&#34;</span><span style=color:#2aa198>{}</span><span style=color:#2aa198> miles&#34;</span>, a.<span style=color:#2aa198>0</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>main</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> miles <span style=color:#719e07>=</span> Miles(<span style=color:#2aa198>10</span>);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> meters <span style=color:#719e07>=</span> Meters(<span style=color:#2aa198>20</span>);
+</span></span><span style=display:flex><span>    foo(miles);
+</span></span><span style=display:flex><span>    foo(meters); <span style=color:#586e75>// Error
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    foo(<span style=color:#2aa198>20.0</span>); <span style=color:#586e75>// Error
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>However, this pattern doesn&rsquo;t enforce correct unit conversions:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>speed</span>(distance: <span style=color:#268bd2>Miles</span>, time: <span style=color:#268bd2>Duration</span>) -&gt; <span style=color:#268bd2>MetersPerSecond</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Incorrect conversion from miles to meters !
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    MetersPerSecond(distance.<span style=color:#2aa198>0</span> <span style=color:#719e07>*</span> <span style=color:#2aa198>100</span> <span style=color:#719e07>/</span> time.as_secs_f64())
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>What if we could also encode conversions in the type system? So not only would
+the compiler be able to catch unit mismatch errors, but they would also catch
+conversion errors too? Going one step further, even values with the same unit
+might encode different information. For example, width, height, and depth can
+all be represented as meters, but we might like the compiler to prevent
+us from passing a <code>width * width</code> to a function expecting an area (<code>width * height</code>).</p><p>I explored all of these questions when developing a small unit library for
+C++17 last year.</p><p>Let&rsquo;s first define a few terms I&rsquo;ll use:</p><ul><li><em>Mismatch error</em> - Error from using a value measured in one unit where a value
+measured in another was expected</li><li><em>Conversion error</em> - Error from improperly converting units</li></ul><p>Besides units, the system needed to handle different scalings
+(think kilometer, millimeter, etc. which are all just scalings of meters)
+and different semantic types within a given unit (such as the height and width example)</p><p>There were a few criteria I had when developing this:</p><ol><li>I wanted the system to be automatic. A programmer would simply define a unit
+and the compiler would handle the rest.</li><li>It needed to catch both mismatch and conversion errors at compile time for
+units (meters vs. seconds), scalings (kilometers vs. centimeters),
+and semantic units (width vs. height).</li><li>Preferably, the system could handle scaling on its own. For example, passing
+a unit measured in kilometers to a function expecting a value in meters would
+work, and be correct with the compiler automatically scaling the value
+appropriately. This requirement comes from the way the time units in
+<code>std::chrono</code> work.</li><li>Be relatively easy on the user</li></ol><p>The solution I came up with was to use extensive C++ template metaprogramming and
+encode the entire unit type system addon as template types.</p><p>The core idea is to encode a unit as a type list of powers of unit types. So
+something like $\frac{m^3}{s}$ could be encoded as</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>3</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Seconds, <span style=color:#719e07>-</span><span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;</span>
+</span></span></code></pre></div><p>Where <code>PowerType</code> is defined as so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// A unit raised to a rational power
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Unit, <span style=color:#dc322f>int32_t</span> numerator, <span style=color:#dc322f>int32_t</span> denominator<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PowerType</span>;
+</span></span></code></pre></div><p>Then, using template metaprogramming, we can implement transformations on
+these lists of power types to represent different computations
+such as multiplying, dividing, adding, subtracting, and raising values to a power.</p><p>By encoding units using template parameters of a template type,
+we get the compiler enforcement against mismatch and conversion errors &ldquo;for free&rdquo;
+because two different units would yield two different instantiations of a template
+which are considered different types
+by the type checker. That is, different
+units are represented as different (not implicitly convertible) types and
+incorrect conversions will not produce the same type.</p><h2 id=template-metaprogramming class=anchor-link><a href=#template-metaprogramming>Template Metaprogramming</a></h2><p>This post will not walk through C++ template metaprogramming. But I will take the
+time to point out that this feature essentially relies on template specialization.
+The core idea is that we have a struct specialization as a base case and the
+struct definition as a main case. TMP in C++ does not have loops or variables,
+so our implementations will be purely functional.</p><p>Let&rsquo;s look at an example of something we&rsquo;ll need later: a simple conditional.
+Our inputs will be a <code>constexpr</code> boolean expression, a <code>TrueType</code> and a <code>FalseType</code>.
+If the condition is true, the <code>TrueType</code> will be &ldquo;returned&rdquo;, otherwise the
+<code>FalseType</code> will be &ldquo;returned&rdquo;. To &ldquo;return&rdquo; a type, we typically use a
+type alias named <code>Type</code>, which the user can use to &ldquo;query&rdquo; the result.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>// False case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>bool</span> expr, <span style=color:#719e07>typename</span> TrueType, <span style=color:#719e07>typename</span> FalseType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>TypeConditional</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// use of type aliases for &#34;variables&#34; and &#34;returns&#34;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> FalseType;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// Specialization for true case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> TrueType, <span style=color:#719e07>typename</span> FalseType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>TypeConditional</span><span style=color:#719e07>&lt;</span><span style=color:#b58900>true</span>, TrueType, FalseType<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> TrueType;
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>And then we can use this like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>using</span> i32 <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> TypeConditional<span style=color:#719e07>&lt;</span><span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>int</span>) <span style=color:#719e07>==</span> <span style=color:#2aa198>4</span>, <span style=color:#dc322f>int</span>, <span style=color:#dc322f>long</span><span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>However, I typically like to create template type aliases to reduce all the
+boilerplate usages of <code>Type</code> and <code>typename</code>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>bool</span> expr, <span style=color:#719e07>typename</span> TrueType, <span style=color:#719e07>typename</span> FalseType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// TrueType if expr is true, FalseType otherwise
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>using</span> type_cond_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> TypeConditional<span style=color:#719e07>&lt;</span>expr, TrueType, FalseType<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>So our earlier example would become:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>using</span> i32 <span style=color:#719e07>=</span> type_cond_t<span style=color:#719e07>&lt;</span><span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>int</span>) <span style=color:#719e07>==</span> <span style=color:#2aa198>4</span>, <span style=color:#dc322f>int</span>, <span style=color:#dc322f>long</span><span style=color:#719e07>&gt;</span>;
+</span></span></code></pre></div><p>But we can do a lot more than simple conditionals; we can implement
+arbitrary recursive functions! We do this by employing a pattern where we have
+a struct with a recursive definition and a template specialization to serve
+as a base case.</p><p>For example, we can compute the factorial like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>// recursive case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#dc322f>unsigned</span> v<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Factorial</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>constexpr</span> <span style=color:#719e07>static</span> value <span style=color:#719e07>=</span> v <span style=color:#719e07>*</span> Factorial<span style=color:#719e07>&lt;</span>v <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;::</span>value;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Factorial</span><span style=color:#719e07>&lt;</span><span style=color:#2aa198>0</span><span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>constexpr</span> <span style=color:#719e07>static</span> value <span style=color:#719e07>=</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>static_assert</span>(Factorial<span style=color:#719e07>&lt;</span><span style=color:#2aa198>10</span><span style=color:#719e07>&gt;::</span>value <span style=color:#719e07>==</span> <span style=color:#2aa198>3628800</span>);
+</span></span></code></pre></div><p>In C++17, <code>constexpr</code> functions can replace template metaprogramming that computes
+values such as this <code>Factorial</code> example, however, it cannot replace algorithms that
+&ldquo;compute&rdquo; a type, which is what we&rsquo;ll focus on for the rest of this post.</p><p>Another core structure we&rsquo;ll use is the type list. Traditionally, this can be
+represented as a linked list of template types. For example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Head, <span style=color:#719e07>typename</span> Tail<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>List</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>List<span style=color:#719e07>&lt;</span><span style=color:#dc322f>int</span>, List<span style=color:#719e07>&lt;</span><span style=color:#dc322f>bool</span>, List<span style=color:#719e07>&lt;</span><span style=color:#dc322f>char</span>, EndType<span style=color:#719e07>&gt;&gt;&gt;</span> f;
+</span></span></code></pre></div><p>In my implementation, I chose to use parameter packs for my type lists.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// A type list
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// This type list is represented just as a parameter pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// The type list does not store a tail node, but operations on the type list
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// will return `Pack&lt;EmptyPack&gt;` when there are no more elements
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> ... Ts<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Pack</span> {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// usage: Pack&lt;int, short, long, std::string&gt;
+</span></span></span></code></pre></div><p>In the following discussion, I will use &ldquo;type list&rdquo; and &ldquo;pack&rdquo; fairly interchangeably.
+I use the term &ldquo;pack&rdquo; since it is not a traditional linked list and because it
+relies on C++ parameter packs.</p><p>To represent an empty type list, I used a <code>Pack</code> consisting only of a special
+<code>EmptyPack</code> type. While this enabled a less bulky notation for defining
+and working with type lists, it required implementing special cases to handle
+empty lists.</p><h2 id=the-unit class=anchor-link><a href=#the-unit>The Unit</a></h2><p>We define our unit type as so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>using</span> scale_t <span style=color:#719e07>=</span> Rational;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @brief A semantically typed unit class
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam T The underlying type of the unit
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam scale the scale of the unit
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam Semantic the Pack of subcategory PowerTypes of the unit to 
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     differentiate different values of the same unit. 
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     Ex: `Pack&lt;PowerType&lt;Length, 2, 1&gt;&gt;` which is Length^2
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     Requires every type in the Pack are subtypes of UnitBase
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam UnitPowerPack the pack of PowerTypes of Units that the value has
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     Ex. `Pack&lt;PowerType&lt;Meters, 2, 1&gt;&gt;`
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     Requires every type in the Pack are subtypes of UnitBase
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, scale_t scale, <span style=color:#719e07>typename</span> SemanticPowerPack, <span style=color:#719e07>typename</span> UnitPowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Unit</span>;
+</span></span></code></pre></div><p>Each unit will have a base numeric representation such as <code>double</code> or <code>int</code>.
+Then each unit will have a <code>scale</code>, which is how we can differentiate something
+like kilometers from meters. The scale will be a rational number. The <code>Rational</code> class
+has all <code>constexpr</code> members so it can be used in a <code>constexpr</code> context,
+and its constructor will ensure that all rational numbers are represented in
+simplest form with a negative numerator for negative rationals.
+Units will have attached semantic types which
+provide further semantic information such as width and height.
+This is encoded in <code>SemanticPowerPack</code>, which is a <code>Pack&lt;></code> of <code>PowerType</code>s of
+semantic unit types (like width and height). For example, we could have:
+<code>Pack&lt;PowerType&lt;Width, 1, 1>, PowerType&lt;Length, 1, 1>></code>.
+Finally, each unit will have a
+<code>UnitPowerPack</code> which is the Pack of PowerTypes of regular unit types
+(like meters and seconds). For example, we could have:
+<code>Pack&lt;PowerType&lt;Seconds, 1, 1>, PowerType&lt;Meters, 2, 1>></code>.</p><p>You may be wondering what is the difference between unit types (the <code>UnitPowerPack</code>)
+and SemanticUnitTypes (the <code>SemanticPowerPack</code>). From an implementation standpoint,
+they will behave the same way. However, the semantic types provide a subcategory
+within the unit. The intended usage is for a unit to match up with physical units
+in the real world such as meters or miles. However, even among values measured
+in the same unit, they could represent different things and not be
+interchangeable. Thus, the semantic unit type provides more fine-grained
+type checking to prevent mismatch errors between values with the <strong>same</strong> unit
+that measures different quantities.</p><p>In this discussion, I will refer to types that are part of the <code>SemanticPowerPack</code>
+as &ldquo;<em>semantic unit types</em>&rdquo;. These include things like <code>Length</code> and <code>Width</code> from
+my previous example. I will refer to types that are part of the <code>UnitPowerPack</code>
+as &ldquo;<em>unit types</em>&rdquo;. These include <code>Seconds</code> and <code>Meters</code>. I will refer to the
+<code>Unit</code> class as <code>Unit</code> and refer to a unit in the general sense as &ldquo;unit&rdquo;. Finally,
+I will refer to a unit or semantic unit type, combined with an exponent in a
+<code>PowerType</code>, as a &ldquo;<em>power type</em>&rdquo;.</p><p>As an example, an area measured in meters squared might be encoded in this system as</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>using</span> area_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational{<span style=color:#2aa198>1</span>}, 
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Semantic Power Pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    sort_unit_pack_t<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Length, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Width, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Unit Power Pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>2</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span></code></pre></div><p>This is a tad unwieldy of notation, so let&rsquo;s break it down. The base numeric type
+is <code>double</code>, and its scale factor is <code>1</code>. Then, semantically, an area is composed
+of a length value times a width value. This is denoted by
+<code>Pack&lt;PowerType&lt;Length, 1, 1>, PowerType&lt;Width, 1, 1>></code>, however, we sort this list
+to ensure that each <code>Unit</code> has a unique representation.
+In terms of units, an area is measured in
+meters squared, denoted by <code>Pack&lt;PowerType&lt;Meters, 2, 1>></code>.</p><p>Some <code>Unit</code>s do not have a semantic unit time. A user might only
+have one notion of time, for example. Therefore, <code>SemanticPowerPack</code> can be
+empty (<code>Pack&lt;EmptyPack></code>).</p><p>We&rsquo;d like to define operations on <code>Unit</code> such as <code>+, -, /, *</code>, and <code>pow</code> that
+&ldquo;do the right thing&rdquo;. For example, multiplication <code>a * b</code> should return
+a value of type <code>Unit</code> with a unit power pack that is the concatenation of
+the unit types of <code>a</code> and <code>b</code>.
+Likewise, the addition should only work on <code>Unit</code>s of the same type.</p><p>We can start by defining addition and subtraction fairly easily. The operands
+must have the same unit and semantic types (or one of the semantic types must
+be empty). Then, we simply add the values taking the scale factor into account:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// True if `Self` and `Other` are convertible semantic power packs 
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Self, <span style=color:#719e07>typename</span> Other<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#dc322f>bool</span> is_semantic_convertable_v <span style=color:#719e07>=</span> std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>Self, Other<span style=color:#719e07>&gt;</span> <span style=color:#719e07>||</span> 
+</span></span><span style=display:flex><span>                                           std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>Self, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span> <span style=color:#719e07>||</span>
+</span></span><span style=display:flex><span>                                           std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>Other, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, scale_t scale, <span style=color:#719e07>typename</span> Semantic, <span style=color:#719e07>typename</span> Units,
+</span></span><span style=display:flex><span>    scale_t otherScale, <span style=color:#719e07>typename</span> OtherSemantic<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#719e07>operator</span><span style=color:#719e07>+</span>(Unit<span style=color:#719e07>&lt;</span>T, scale, Semantic, Units<span style=color:#719e07>&gt;</span> a, 
+</span></span><span style=display:flex><span>                         <span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, otherScale, OtherSemantic, Units<span style=color:#719e07>&gt;&amp;</span> b)
+</span></span><span style=display:flex><span>    <span style=color:#719e07>-&gt;</span> std<span style=color:#719e07>::</span>enable_if_t<span style=color:#719e07>&lt;</span>is_semantic_convertable_v<span style=color:#719e07>&lt;</span>Semantic, OtherSemantic<span style=color:#719e07>&gt;</span>, <span style=color:#719e07>decltype</span>(a)<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    a.val <span style=color:#719e07>+=</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>(b.val <span style=color:#719e07>*</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(otherScale <span style=color:#719e07>/</span> scale));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> a;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, scale_t scale, <span style=color:#719e07>typename</span> Semantic, <span style=color:#719e07>typename</span> Units,
+</span></span><span style=display:flex><span>    scale_t otherScale, <span style=color:#719e07>typename</span> OtherSemantic<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#719e07>operator</span><span style=color:#719e07>-</span>(Unit<span style=color:#719e07>&lt;</span>T, scale, Semantic, Units<span style=color:#719e07>&gt;</span> a, 
+</span></span><span style=display:flex><span>                         <span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, otherScale, OtherSemantic, Units<span style=color:#719e07>&gt;&amp;</span> b)
+</span></span><span style=display:flex><span>    <span style=color:#719e07>-&gt;</span> std<span style=color:#719e07>::</span>enable_if_t<span style=color:#719e07>&lt;</span>is_semantic_convertable_v<span style=color:#719e07>&lt;</span>Semantic, OtherSemantic<span style=color:#719e07>&gt;</span>, <span style=color:#719e07>decltype</span>(a)<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    a.val <span style=color:#719e07>-=</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>(b.val <span style=color:#719e07>*</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(otherScale <span style=color:#719e07>/</span> scale));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> a;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We use a trailing return type that will cause a compiler error if
+<code>is_semantic_convertable_v&lt;Semantic, OtherSemantic></code> evaluates to false, otherwise,
+it will return a <code>Unit</code> with the same type as the left operand.</p><p>Notice, we pass the first operand <em>by value</em> since we want to make a copy of it.
+However, the second operand we only read from so we can pass by const reference.</p><p>To provide implicit conversion between <code>Unit</code>s of different scales, we also
+overload <code>operator=</code>:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> OtherSemantic, scale_t otherScale<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#719e07>operator</span><span style=color:#719e07>=</span>(<span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, otherScale, OtherSemantic, UnitPowerPack<span style=color:#719e07>&gt;&amp;</span> other)
+</span></span><span style=display:flex><span>    <span style=color:#719e07>-&gt;</span> std<span style=color:#719e07>::</span>enable_if_t<span style=color:#719e07>&lt;</span>is_semantic_convertable_v<span style=color:#719e07>&lt;</span>SemanticPowerPack, OtherSemantic<span style=color:#719e07>&gt;</span>, Unit<span style=color:#719e07>&amp;&gt;</span> 
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    val <span style=color:#719e07>=</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>(other.val <span style=color:#719e07>*</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(otherScale <span style=color:#719e07>/</span> scale));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> <span style=color:#719e07>*</span><span style=color:#719e07>this</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>To handle the other operations, we&rsquo;ll need to develop a few utilities for manipulating
+type lists.</p><p>The problems we need to solve can be summed up as follows:</p><ol><li>Type list concatenation: <code>a: Meters * b: Seconds</code> should result in
+<code>c: Pack&lt;Meters, Seconds></code></li><li>Unique ordering: we want <code>Meters * Seconds</code> to correspond to
+the same type as <code>Seconds * Meters</code></li><li>Type list removal: <code>a: Pack&lt;Meters, Seconds> / b: Pack&lt;Seconds></code> should result in
+<code>c: Pack&lt;Meters></code></li><li>Raising a power pack to a rational power and the uniqueness involved with this:
+we want <code>PowerType&lt;Meters, -1, 2></code> to be the same as <code>PowerType&lt;Meters, 1, -2></code> and
+we want to be able to recognize that<div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Seconds, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;</span> <span style=color:#719e07>*</span> Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>2</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;</span>
+</span></span></code></pre></div>should result in a value of the type <code>Pack&lt;PowerType&lt;Meters, 3, 1>, PowerType&lt;Seconds, 1, 1>></code></li><li>Zero power units: $m^3s^0N^0$ should be the same as $s^0m^3$ and $m^3$</li></ol><p>Let&rsquo;s go through the solutions I developed for each one:</p><h2 id=type-list-manipulations class=anchor-link><a href=#type-list-manipulations>Type List Manipulations</a></h2><p>Let&rsquo;s start with the first problem: type list concatenation. For inspiration, let&rsquo;s
+write a simple list concatenation function in OCaml:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-OCaml data-lang=OCaml><span style=display:flex><span><span style=color:#586e75>(** [concat a b] is the list [a] followed by the list [b] *)</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>let</span> <span style=color:#719e07>rec</span> concat a b <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>match</span> a <span style=color:#719e07>with</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>|</span> hd <span style=color:#719e07>::</span> tl <span style=color:#719e07>-&gt;</span> hd <span style=color:#719e07>::</span> <span style=color:#719e07>(</span>concat tl b<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>|</span> <span style=color:#268bd2>[]</span> <span style=color:#719e07>-&gt;</span> b<span style=color:#719e07>;</span>
+</span></span></code></pre></div><p>We&rsquo;re going to translate this same thing into C++ TMP. First, we need
+to destruct a type list into its head and tail:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Gets the head of a type list. Returns `Pack&lt;EmptyPack&gt;` if the list is empty
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Head, <span style=color:#719e07>typename</span> ... Tail<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> pack_head(Pack<span style=color:#719e07>&lt;</span>Head, Tail...<span style=color:#719e07>&gt;</span> p) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Head{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#268bd2>pack_head</span>(Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span> p) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> EmptyPack{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Gets the tail of the type list. Returns `Pack&lt;EmptyPack&gt;` if there is no tail
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Head, <span style=color:#719e07>typename</span> ... Tail<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> pack_tail(Pack<span style=color:#719e07>&lt;</span>Head, Tail...<span style=color:#719e07>&gt;</span> p, <span style=color:#dc322f>float</span>)
+</span></span><span style=display:flex><span>    <span style=color:#719e07>-&gt;</span> std<span style=color:#719e07>::</span>enable_if_t<span style=color:#719e07>&lt;</span><span style=color:#719e07>sizeof</span>...(Tail) <span style=color:#719e07>!=</span> <span style=color:#2aa198>0</span>, Pack<span style=color:#719e07>&lt;</span>Tail...<span style=color:#719e07>&gt;&gt;</span> 
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Pack<span style=color:#719e07>&lt;</span>Tail...<span style=color:#719e07>&gt;</span>{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> pack_tail(Pack<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span> p, <span style=color:#dc322f>int</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// Usage type aliases:
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Pack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> pack_head_t <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(pack_head(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&gt;</span>()));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Pack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> pack_tail_t <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(pack_tail(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&gt;</span>(), <span style=color:#2aa198>0</span>));
+</span></span></code></pre></div><p>We use <code>constexpr</code> functions to destruct <code>Pack</code> and get out
+the parameter pack that it encapsulates. We use <code>std::declval</code> to create
+a value of type <code>Pack</code>, and <code>decltype</code> to get the return type of the
+<code>constexpr</code> function call.</p><p>The unused <code>float</code> and <code>int</code> parameters on <code>pack_tail</code> are for
+<a href=https://www.fluentcpp.com/2018/05/15/make-sfinae-pretty-1-what-value-sfinae-brings-to-code/>SFINAE</a>
+purposes. Essentially, it will first try and instantiate <code>pack_tail(Pack&lt;Head, Tail...>, float)</code>
+but if that fails, it will revert to <code>pack_tail&lt;Pack&lt;T>, int)</code>.</p><p>Next, we need to write a cons helper template to cons a type onto a type list. This
+one is more straightforward:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// The return type is a Pack of T consed onto Ts
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Consing an element of type T onto a Pack&lt;EmptyPack&gt; will result in Pack&lt;T&gt;
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, <span style=color:#719e07>typename</span> ... Ts<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> pack_cons(T a, Pack<span style=color:#719e07>&lt;</span>Ts...<span style=color:#719e07>&gt;</span> p) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Pack<span style=color:#719e07>&lt;</span>T, Ts...<span style=color:#719e07>&gt;</span>{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> pack_cons(T a, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span> p) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Pack<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @}
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, <span style=color:#719e07>typename</span> Pack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Gets the Pack of T consed onto Pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Consing an element of type T onto a Pack&lt;EmptyPack&gt; will result in Pack&lt;T&gt;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>using</span> pack_cons_t <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(pack_cons(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>(), std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&gt;</span>()));
+</span></span></code></pre></div><p>With these out of the way, we can finally implement our recursive concatenation
+function:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Returns a pack of types of the types in PackA followed by the types in PackB
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>typename</span> PackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PackConcat</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case for when we have `[] @ pack`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PackConcat</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, PackB<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PackB;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case for `pack @ []`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PackConcat</span><span style=color:#719e07>&lt;</span>PackA, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PackA;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// Base case for `[] @ []`. We need a special case for this to
+</span></span></span><span style=display:flex><span><span style=color:#586e75>// resolve ambiguity between the two other base cases
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PackConcat</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// recursive case: `hd :: (concat tl b)`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>typename</span> PackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PackConcat</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> pack_cons_t<span style=color:#719e07>&lt;</span>pack_head_t<span style=color:#719e07>&lt;</span>PackA<span style=color:#719e07>&gt;</span>, <span style=color:#719e07>typename</span> PackConcat<span style=color:#719e07>&lt;</span>pack_tail_t<span style=color:#719e07>&lt;</span>PackA<span style=color:#719e07>&gt;</span>, PackB<span style=color:#719e07>&gt;::</span>Type<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// user interface
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>typename</span> PackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> pack_concat_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> PackConcat<span style=color:#719e07>&lt;</span>PackA, PackB<span style=color:#719e07>&gt;::</span>Type;
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @}
+</span></span></span></code></pre></div><p>Observe the redundant base cases. We need this to prevent ambiguity if we
+ever come across <code>pack_concat_t&lt;Pack&lt;EmptyPack>, Pack&lt;EmptyPack>></code>. In this case,
+the compiler wouldn&rsquo;t know whether to choose the <code>struct PackConcat&lt;PackA, Pack&lt;EmptyPack>></code>
+or the <code>struct PackConcat&lt;Pack&lt;EmptyPack>, PackB></code> specialization since both
+are equally good matches. To avoid this, we provide a
+specific <code>struct PackConcat&lt;Pack&lt;EmptyPack>, Pack&lt;EmptyPack>></code> specialization.
+I will note that we won&rsquo;t use <code>pack_concat_t</code>,
+but we&rsquo;ll build upon the idea since combining exponents takes a little more
+logic than just concatenating power packs.
+This is nowhere near as pretty as our OCaml reference implementation but with this,
+we can do the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>static_assert</span>(std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>pack_cons_t<span style=color:#719e07>&lt;</span>Meters, Pack<span style=color:#719e07>&lt;</span>Meters, Meters, Seconds, <span style=color:#dc322f>int</span><span style=color:#719e07>&gt;&gt;</span>, 
+</span></span><span style=display:flex><span>        Pack<span style=color:#719e07>&lt;</span>Meters, Meters, Meters, Seconds, <span style=color:#dc322f>int</span><span style=color:#719e07>&gt;&gt;</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>static_assert</span>(std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>pack_concat_t<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>Meters, <span style=color:#dc322f>int</span><span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>Meters, Seconds<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>         Pack<span style=color:#719e07>&lt;</span>Meters, <span style=color:#dc322f>int</span>, Meters, Seconds<span style=color:#719e07>&gt;&gt;</span>);
+</span></span></code></pre></div><p>The next thing we want to do is to be able to determine when two unit-type lists
+represent the same thing. We can do this by comparing two sorted type lists.
+But we need some way to uniquely identify each type at compile time. To do this,
+every unit and semantic unit type will be a subtype of <code>UnitBase</code>. This class
+will provide a public static <code>id</code> member that we can use to order the types.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// The base class for all unit types
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Gives the inheriter a unique constexpr id
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>uint32_t</span> major, <span style=color:#dc322f>uint32_t</span> minor<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>UnitBase</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>static</span> <span style=color:#719e07>constexpr</span> <span style=color:#dc322f>uint64_t</span> id <span style=color:#719e07>=</span> <span style=color:#dc322f>uint64_t</span>(major) <span style=color:#719e07>&lt;&lt;</span> <span style=color:#2aa198>32</span> <span style=color:#719e07>|</span> minor;
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>We can then use a macro to give each unit type a unique ID based on the file and
+line number at which it is defined.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>#define SEMANTIC_UNIT_TYPE UnitBase&lt;file_hash(__FILE__), __LINE__&gt;
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Grams</span> <span style=color:#719e07>:</span> SEMANTIC_UNIT_TYPE {};
+</span></span></code></pre></div><p>In my demo implementation, I simply made <code>file_hash</code> a function that
+returns the length of the filename, but an actual implementation would
+want to use a good compile-time hash function.</p><p>With this, we can sort a type list based on the id of each type.</p><p>Again, let&rsquo;s start with a reference implementation in OCaml. I chose to use
+Selection Sort:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-OCaml data-lang=OCaml><span style=display:flex><span><span style=color:#586e75>(** [min x] is the minimum element of the list [x] *)</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>let</span> <span style=color:#719e07>rec</span> min x <span style=color:#719e07>=</span> 
+</span></span><span style=display:flex><span>  <span style=color:#719e07>match</span> x <span style=color:#719e07>with</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>|</span> hd <span style=color:#719e07>::</span> tl <span style=color:#719e07>-&gt;</span> 
+</span></span><span style=display:flex><span>      <span style=color:#719e07>let</span> tl_min <span style=color:#719e07>=</span> min tl <span style=color:#719e07>in</span>
+</span></span><span style=display:flex><span>      <span style=color:#719e07>if</span> hd <span style=color:#719e07>&lt;</span> tl_min <span style=color:#719e07>then</span> hd <span style=color:#719e07>else</span> tl_min
+</span></span><span style=display:flex><span>  <span style=color:#719e07>|</span> <span style=color:#268bd2>[]</span> <span style=color:#719e07>-&gt;</span> max_int<span style=color:#719e07>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>(** [remove lst x] is the list [lst] without the first occurence of the 
+</span></span></span><span style=display:flex><span><span style=color:#586e75>    element [x] *)</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>let</span> <span style=color:#719e07>rec</span> remove lst x <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>match</span> lst <span style=color:#719e07>with</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>|</span> hd <span style=color:#719e07>::</span> tl <span style=color:#719e07>-&gt;</span> 
+</span></span><span style=display:flex><span>      <span style=color:#719e07>if</span> hd <span style=color:#719e07>=</span> x <span style=color:#719e07>then</span> tl <span style=color:#719e07>else</span> hd <span style=color:#719e07>::</span> <span style=color:#719e07>(</span>remove tl x<span style=color:#719e07>)</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>|</span> <span style=color:#268bd2>[]</span> <span style=color:#719e07>-&gt;</span> <span style=color:#268bd2>[]</span><span style=color:#719e07>;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>(** [sort ls] is the list [ls] in sorted, least to greatest order *)</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>let</span> <span style=color:#719e07>rec</span> sort ls <span style=color:#719e07>=</span> 
+</span></span><span style=display:flex><span>  <span style=color:#719e07>match</span> ls <span style=color:#719e07>with</span> 
+</span></span><span style=display:flex><span>  <span style=color:#719e07>|</span> <span style=color:#268bd2>[]</span> <span style=color:#719e07>-&gt;</span> <span style=color:#268bd2>[]</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>|</span> lst <span style=color:#719e07>-&gt;</span>
+</span></span><span style=display:flex><span>      <span style=color:#719e07>let</span> min <span style=color:#719e07>=</span> min lst <span style=color:#719e07>in</span>
+</span></span><span style=display:flex><span>      min <span style=color:#719e07>::</span> sort <span style=color:#719e07>(</span>remove lst min<span style=color:#719e07>);</span>
+</span></span></code></pre></div><p>We can test this out in UTOP to convince ourselves we haven&rsquo;t made a mistake.</p><p>Let&rsquo;s start translating:</p><p>We begin with the <code>min</code> helper function. I chose to abstract the comparator
+away by using a <em>template-template parameter</em>. This is a template parameter
+this is itself a template.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Comparator to order unit types
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> A, <span style=color:#719e07>typename</span> B<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>UnitIdComparator</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>static</span> <span style=color:#719e07>constexpr</span> <span style=color:#dc322f>bool</span> value <span style=color:#719e07>=</span> A<span style=color:#719e07>::</span>id <span style=color:#719e07>&lt;</span> B<span style=color:#719e07>::</span>id;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Gets the minimum type in the parameter pack as denoted by the comparator
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam Comparator a type with a `value` member that is `true` if its first type
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     parameter is less than its second type, `false` otherwise.
+</span></span></span><span style=display:flex><span><span style=color:#586e75>//      Comparator should establish a partial ordering
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam Head head of the parameter pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam Tail tail of the parameter pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> Head, <span style=color:#719e07>typename</span> ... Tail<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>MinType</span> {
+</span></span><span style=display:flex><span><span style=color:#719e07>private</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// recursive call
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> TailMinType <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> MinType<span style=color:#719e07>&lt;</span>Comparator, Tail...<span style=color:#719e07>&gt;::</span>Type;
+</span></span><span style=display:flex><span><span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// if Head &lt; TailMinType then Head else TailMinType
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> type_cond_t<span style=color:#719e07>&lt;</span>Comparator<span style=color:#719e07>&lt;</span>Head, TailMinType<span style=color:#719e07>&gt;::</span>value, Head, TailMinType<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case for when the pack has one element
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> Last<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>MinType</span><span style=color:#719e07>&lt;</span>Comparator, Last<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Last;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> ... Ts<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// The minimum of all the unit types in the template list
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Requires all types to have an id member, which is used to order them
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>using</span> min_unit_type_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> MinType<span style=color:#719e07>&lt;</span>UnitIdComparator, Ts...<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>Note that <code>MinType</code> is operating on raw C++ parameter packs and <strong>not</strong>
+<code>Pack&lt;...></code>. We use <code>constexpr</code> functions to convert the two representations.
+Next up is the remove helper function:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Removes the first occurrence of T from the list
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Returns a Pack of types without T
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, <span style=color:#719e07>typename</span> Head, <span style=color:#719e07>typename</span> ... Tail<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>RemoveType</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// if hd = x then
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>//  tl
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// else
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>//  hd :: remove tl x
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> type_cond_t<span style=color:#719e07>&lt;</span>std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>T, Head<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>Tail...<span style=color:#719e07>&gt;</span>, 
+</span></span><span style=display:flex><span>        pack_cons_t<span style=color:#719e07>&lt;</span>Head, <span style=color:#719e07>typename</span> RemoveType<span style=color:#719e07>&lt;</span>T, Tail...<span style=color:#719e07>&gt;::</span>Type<span style=color:#719e07>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, <span style=color:#719e07>typename</span> Head<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>RemoveType</span><span style=color:#719e07>&lt;</span>T, Head<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> type_cond_t<span style=color:#719e07>&lt;</span>std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>T, Head<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>Head<span style=color:#719e07>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// note that pack_cons_t appropriately handles T :: Pack&lt;EmptyPack&gt; by
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// resulting in Pack&lt;T&gt; and NOT Pack&lt;T, EmptyPack&gt;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>};
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @}
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Removes the first occurrence of T from the the Pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, <span style=color:#719e07>typename</span> ... Ts<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> remove_from_pack(T a, Pack<span style=color:#719e07>&lt;</span>Ts...<span style=color:#719e07>&gt;</span> p) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// constexpr function to extract Ts from Pack&lt;Ts...&gt;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>return</span> <span style=color:#719e07>typename</span> RemoveType<span style=color:#719e07>&lt;</span>T, Ts...<span style=color:#719e07>&gt;::</span>Type{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, <span style=color:#719e07>typename</span> Pack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> remove_pack_t <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(remove_from_pack(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>(), std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&gt;</span>()));
+</span></span></code></pre></div><p>And finally, the top-level sort &ldquo;function&rdquo;:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Returns a sorted pack of types, ordered by the comparator via Selection Sort
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam Comparator - a type with a `value` member that is `true` if its first type
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     parameter should be ordered before its second
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam ... Ts - parameter pack of types to sort
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @returns a PACK of the ordered types. So this type constructs a sorted type list
+</span></span></span><span style=display:flex><span><span style=color:#586e75>///     from a parameter pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> ... Ts<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>SortTypes</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> ... Ts<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> sort_pack(Pack<span style=color:#719e07>&lt;</span>Ts...<span style=color:#719e07>&gt;</span> p) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> <span style=color:#719e07>typename</span> SortTypes<span style=color:#719e07>&lt;</span>Comparator, Ts...<span style=color:#719e07>&gt;::</span>Type{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// destruct Pack&lt;...&gt;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> Pack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> sort_pack_t <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(sort_pack<span style=color:#719e07>&lt;</span>Comparator<span style=color:#719e07>&gt;</span>(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&gt;</span>()));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// user &#34;interface&#34; for sorting a pack of unit or semantic unit types
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Pack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> sort_unit_pack_t <span style=color:#719e07>=</span> sort_pack_t<span style=color:#719e07>&lt;</span>UnitIdComparator, Pack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// recursive case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> ... List<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>SortTypes</span> {
+</span></span><span style=display:flex><span><span style=color:#719e07>private</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// let min_elem = min lst
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> Min <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> MinType<span style=color:#719e07>&lt;</span>Comparator, List...<span style=color:#719e07>&gt;::</span>Type;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// let tail_pack = remove lst min_elem
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> TailPack <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> RemoveType<span style=color:#719e07>&lt;</span>Min, List...<span style=color:#719e07>&gt;::</span>Type;
+</span></span><span style=display:flex><span><span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// min_elem :: tail_pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> pack_cons_t<span style=color:#719e07>&lt;</span>Min, sort_pack_t<span style=color:#719e07>&lt;</span>Comparator, TailPack<span style=color:#719e07>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>Comparator</span>, <span style=color:#719e07>typename</span> Last<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>SortTypes</span><span style=color:#719e07>&lt;</span>Comparator, Last<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>Last<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @}
+</span></span></span></code></pre></div><p>Observe that <code>SortTypes</code> is effectively a higher-order function on types. It
+takes a list of types and a comparator that orders two types, and then it
+&ldquo;returns&rdquo; the sorted list of types.</p><h2 id=power-list-manipulation class=anchor-link><a href=#power-list-manipulation>Power List Manipulation</a></h2><p>With these basic tools out of the way, we can build up to manipulating lists of
+<code>PowerType</code>s, which is a part of the representation of <code>Unit</code>.
+Multiplication of power types is not as simple as concatenating
+lists, we want to concatenate lists <strong>and</strong> add the powers of repeated units.
+So we want $m^2 \cdot m^3$ to become $m^5$. If we exponentiate a power type by another
+power type, we want to do the same thing except multiply powers.
+The library currently doesn&rsquo;t support this, but I abstracted away how
+two <code>PowerType</code>s with the same base unit type are combined with a template-template
+parameter to make this feature easier to add later.
+This allows us to use the same procedure for adding exponents
+and multiplying exponents.</p><p>We define a new power type cons helper. Calling this <code>cons</code> is a poor
+naming choice as what it is doing is searching through the list and appending
+the type if it does not already exist. Otherwise, it replaces the existing
+type with a new version according to <code>PowerCombiner</code></p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Adds the PowerType to the end of the PowerPack unless the PowerPack contains 
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// a PowerType with the same base unit type
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// if so, then combines the exponents of both power types via the PowerCombiner
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PowerType power type to add to the pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PowerPack existing pack of power types
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PowerCombiner operation on exponents to combine powers of the same base unit
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType, <span style=color:#719e07>typename</span> PowerPack, <span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>ConsPowerType</span> {
+</span></span><span style=display:flex><span><span style=color:#719e07>private</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Head <span style=color:#719e07>=</span> pack_head_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Tail <span style=color:#719e07>=</span> pack_tail_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span><span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>/*
+</span></span></span><span style=display:flex><span><span style=color:#586e75>        if head = x then
+</span></span></span><span style=display:flex><span><span style=color:#586e75>            (combine head x) :: tail
+</span></span></span><span style=display:flex><span><span style=color:#586e75>        else
+</span></span></span><span style=display:flex><span><span style=color:#586e75>            head :: (append_power_type tail x)
+</span></span></span><span style=display:flex><span><span style=color:#586e75>    */</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> type_cond_t<span style=color:#719e07>&lt;</span>same_unit_v<span style=color:#719e07>&lt;</span>PowerType, Head<span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>        pack_cons_t<span style=color:#719e07>&lt;</span>PowerCombiner<span style=color:#719e07>&lt;</span>PowerType, Head<span style=color:#719e07>&gt;</span>, Tail<span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>        pack_cons_t<span style=color:#719e07>&lt;</span>Head, <span style=color:#719e07>typename</span> ConsPowerType<span style=color:#719e07>&lt;</span>PowerType, Tail, PowerCombiner<span style=color:#719e07>&gt;::</span>Type<span style=color:#719e07>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case for `append_power_type [] x`
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType, <span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>ConsPowerType</span><span style=color:#719e07>&lt;</span>PowerType, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, PowerCombiner<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// ---------------
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// SameBaseUnit 
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> A, <span style=color:#719e07>typename</span> B<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>same_power_unit</span> <span style=color:#719e07>:</span> std<span style=color:#719e07>::</span>false_type {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// specialization for units of the same base type
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Unit, <span style=color:#dc322f>int32_t</span> numA, <span style=color:#dc322f>int32_t</span> numB, <span style=color:#dc322f>int32_t</span> denA, <span style=color:#dc322f>int32_t</span> denB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>same_power_unit</span><span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Unit, numA, denA<span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Unit, numB, denB<span style=color:#719e07>&gt;&gt;</span> 
+</span></span><span style=display:flex><span>    <span style=color:#719e07>:</span> std<span style=color:#719e07>::</span>true_type {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// True if two power types have the same base unit. Their powers may not match
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> UnitA, <span style=color:#719e07>typename</span> UnitB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#dc322f>bool</span> same_unit_v <span style=color:#719e07>=</span> same_power_unit<span style=color:#719e07>&lt;</span>UnitA, UnitB<span style=color:#719e07>&gt;::</span>value;
+</span></span></code></pre></div><p>I choose the convention where all rational exponents are in simplest form and
+if the rational is negative, the numerator is represented as a negative
+number and not the denominator. Enforcing this allows unique representations
+for a single power, so we don&rsquo;t need to worry about recognizing things like
+$\frac{1}{1} = \frac{2}{2} = \frac{-3}{-3}$.</p><p>With this, we can define an implementation of a type that satisfies the concept
+of a <code>PowerCombiner</code>, for adding exponents.</p><p>To do this, we use <code>constexpr</code> functions and type deduction by
+determining what the resulting power should be and returning a default-constructed
+value with that type. In C++, if an
+exception is thrown during compile-time evaluation of a <code>constexpr</code> function,
+that exception becomes a compiler error. Typically, it will say
+<code>&lt;function-name></code> failed to produce a constant value.</p><p>In C++, the most specific overload is prioritized, so the implementation of
+<code>power_add</code> that throws will only be chosen if a user tries to call
+<code>power_add</code> on two power types with different base unit types.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Unit, <span style=color:#dc322f>int32_t</span> numA, <span style=color:#dc322f>int32_t</span> denA, <span style=color:#dc322f>int32_t</span> numB, <span style=color:#dc322f>int32_t</span> denB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> power_add(PowerType<span style=color:#719e07>&lt;</span>Unit, numA, denA<span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Unit, numB, denB<span style=color:#719e07>&gt;</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> r <span style=color:#719e07>=</span> Rational(numA, denA) <span style=color:#719e07>+</span> Rational(numB, denB);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> PowerType<span style=color:#719e07>&lt;</span>Unit, r.num, r.den<span style=color:#719e07>&gt;</span>{};
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// This overload is needed for type checking, but should never get called as two 
+</span></span></span><span style=display:flex><span><span style=color:#586e75>// types of different base unit types should not be added together
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> A, <span style=color:#719e07>typename</span> B<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> A power_add(A a, B) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>throw</span> std<span style=color:#719e07>::</span>invalid_argument(<span style=color:#2aa198>&#34;Cannot add two units of different base units&#34;</span>);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> a;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Combines the powers of two power types by adding them
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Requires the power types share the same base unit
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> UnitA, <span style=color:#719e07>typename</span> UnitB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> add_unit_powers_t <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(
+</span></span><span style=display:flex><span>    power_add(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>UnitA<span style=color:#719e07>&gt;</span>(), std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>UnitB<span style=color:#719e07>&gt;</span>()));
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Adds a power type to a power pack, combining it by adding exponents
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// if the unit type is already present in the pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// If the unit type is not present, adds the new power type to the END of the pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType, <span style=color:#719e07>typename</span> PowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> cons_power_add_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> ConsPowerType<span style=color:#719e07>&lt;</span>PowerType, PowerPack, add_unit_powers_t<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>Now, we can define a way for us to concatenate power packs while also
+merging any repeated units:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Returns a pack of power types of the types in PackA followed by the types in PackB
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// Combines the powers of the unit types that are the same in PackA and PackB
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PackA first pack of power types
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PackB second pack of power types
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PowerCombiner operation on exponents to cons the powers of the same base unit
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>typename</span> PackB, <span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PowerPackCombine</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// Base Case: [] @ _
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackB, <span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PowerPackCombine</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, PackB, PowerCombiner<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PackB;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// Base Case: _ @ []
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PowerPackCombine</span><span style=color:#719e07>&lt;</span>PackA, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, PowerCombiner<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PackA;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// Base Case: [] @ []
+</span></span></span><span style=display:flex><span><span style=color:#586e75>// again, this is technically redundant, but we need it to avoid ambiguity
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PowerPackCombine</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, PowerCombiner<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Merges the power packs, combining exponents if the unit types are the same
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PackA first pack of power types
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PackB second pack of power types
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PowerCombiner operation to cons a power type onto a power pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>typename</span> PackB, <span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span>, <span style=color:#719e07>typename</span><span style=color:#719e07>&gt;</span> <span style=color:#719e07>class</span> <span style=color:#268bd2>PowerCombiner</span><span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>PowerPackCombine</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PowerCombiner<span style=color:#719e07>&lt;</span>pack_head_t<span style=color:#719e07>&lt;</span>PackA<span style=color:#719e07>&gt;</span>, 
+</span></span><span style=display:flex><span>        <span style=color:#719e07>typename</span> PowerPackCombine<span style=color:#719e07>&lt;</span>pack_tail_t<span style=color:#719e07>&lt;</span>PackA<span style=color:#719e07>&gt;</span>, PackB, PowerCombiner<span style=color:#719e07>&gt;::</span>Type<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Combines the power packs, merging any power types that have the same
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// base unit type in both packs by adding exponents
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PackA, <span style=color:#719e07>typename</span> PackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> power_pack_add_t <span style=color:#719e07>=</span> 
+</span></span><span style=display:flex><span>    <span style=color:#719e07>typename</span> PowerPackCombine<span style=color:#719e07>&lt;</span>PackA, PackB, cons_power_add_t<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>There&rsquo;s one hiccup. Suppose we add the exponents of <code>PowerType&lt;Meters, 2, 1></code> with
+<code>PowerType&lt;Meters, -2, 1></code>. We&rsquo;d end up with <code>PowerType&lt;Meters, 0, 1></code>.
+To deal with zero-powered power types, we always <em>clean</em> the type list after
+combining. This clean operation removes all zero-power types. If we didn&rsquo;t do this,
+then a power list like <code>Pack&lt;PowerType&lt;Meters, 0, 1>, PowerType&lt;Seconds, 1, 1>></code>
+would be a different type from <code>Pack&lt;PowerTyper&lt;Seconds, 1, 1>></code> when they are
+the same.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>IsZeroPowerType</span> <span style=color:#719e07>:</span> std<span style=color:#719e07>::</span>false_type {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Unit, <span style=color:#dc322f>int32_t</span> den<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>IsZeroPowerType</span><span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Unit, <span style=color:#2aa198>0</span>, den<span style=color:#719e07>&gt;&gt;</span> <span style=color:#719e07>:</span> std<span style=color:#719e07>::</span>true_type {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Determines if a power type is raided to the zeroth power zero
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#dc322f>bool</span> is_zero_power_v <span style=color:#719e07>=</span> IsZeroPowerType<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&gt;::</span>value;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Removes any power types in the pack with a zero exponent
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>CleanPowerPack</span> {
+</span></span><span style=display:flex><span><span style=color:#719e07>private</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Head <span style=color:#719e07>=</span> pack_head_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Tail <span style=color:#719e07>=</span> pack_tail_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span><span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>/*
+</span></span></span><span style=display:flex><span><span style=color:#586e75>        if is_zero_power hd then
+</span></span></span><span style=display:flex><span><span style=color:#586e75>            clean_power_pack tl
+</span></span></span><span style=display:flex><span><span style=color:#586e75>        else
+</span></span></span><span style=display:flex><span><span style=color:#586e75>            hd :: (clean_power_pack tl)
+</span></span></span><span style=display:flex><span><span style=color:#586e75>    */</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> type_cond_t<span style=color:#719e07>&lt;</span>is_zero_power_v<span style=color:#719e07>&lt;</span>Head<span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>typename</span> CleanPowerPack<span style=color:#719e07>&lt;</span>Tail<span style=color:#719e07>&gt;::</span>Type,
+</span></span><span style=display:flex><span>        pack_cons_t<span style=color:#719e07>&lt;</span>Head, <span style=color:#719e07>typename</span> CleanPowerPack<span style=color:#719e07>&lt;</span>Tail<span style=color:#719e07>&gt;::</span>Type<span style=color:#719e07>&gt;&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>CleanPowerPack</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @}
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Removes all zero-powered power types from the pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> clean_power_pack_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> CleanPowerPack<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>Instead of creating a whole new operation for division, we can represent
+division as multiplication by the negated powers. So
+<code>PowerType&lt;Meters, 1, 1> / PowerType&lt;Seconds, 1, 1> = PowerType&lt;Meters, 1, 1> * PowerType&lt;Seconds, -1, 1></code>.
+Then we just need to define a type to negate all of the powers in the
+type list:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>NegatePowerType</span> {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// negates a single rational number
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Unit, <span style=color:#dc322f>int32_t</span> num, <span style=color:#dc322f>int32_t</span> den<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>NegatePowerType</span><span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Unit, num, den<span style=color:#719e07>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PowerType<span style=color:#719e07>&lt;</span>Unit, <span style=color:#719e07>-</span>num, den<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Negates the power that a unit type is raised to
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerType<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> negate_power_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> NegatePowerType<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&gt;::</span>Type;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// negation recursive case
+</span></span></span><span style=display:flex><span><span style=color:#586e75>// lst matches with hd :: tl
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>NegatePowerPack</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// -hd :: (negate_power_list tl)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> pack_cons_t<span style=color:#719e07>&lt;</span>negate_power_t<span style=color:#719e07>&lt;</span>pack_head_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;&gt;</span>, 
+</span></span><span style=display:flex><span>        <span style=color:#719e07>typename</span> NegatePowerPack<span style=color:#719e07>&lt;</span>pack_tail_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;&gt;::</span>Type<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// negation base case
+</span></span></span><span style=display:flex><span><span style=color:#586e75>// lst matches with []
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>NegatePowerPack</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Negates all the powers of the power types in the power pack
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> negate_power_pack_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> NegatePowerPack<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>And the final piece of the puzzle is being able to exponentiate unit types by
+rational powers. We won&rsquo;t worry about being able to
+exponentiate a unit by another unit.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/// Exponentiates a power type by `powerNum / powerDen`
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @{
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerUnit, <span style=color:#dc322f>int32_t</span> powerNum, <span style=color:#dc322f>int32_t</span> powerDen<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>RaiseUnitPower</span> {};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Unit, <span style=color:#dc322f>int32_t</span> unitNum, <span style=color:#dc322f>int32_t</span> unitDen, 
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int32_t</span> powerNum, <span style=color:#dc322f>int32_t</span> powerDen<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>RaiseUnitPower</span><span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Unit, unitNum, unitDen<span style=color:#719e07>&gt;</span>, powerNum, powerDen<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span><span style=color:#719e07>private</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// multiplies the exponents
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// taking care of putting the rational into its unique form
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>constexpr</span> <span style=color:#719e07>static</span> <span style=color:#719e07>auto</span> r <span style=color:#719e07>=</span> 
+</span></span><span style=display:flex><span>        Rational(unitNum, unitDen) <span style=color:#719e07>*</span> Rational(powerNum, powerDen);
+</span></span><span style=display:flex><span><span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> PowerType<span style=color:#719e07>&lt;</span>Unit, r.num, r.den<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span><span style=color:#586e75>/// @}
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// recursive case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerPack, <span style=color:#dc322f>int32_t</span> powerNum, <span style=color:#dc322f>int32_t</span> powerDen<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>RaisePowerPack</span> {
+</span></span><span style=display:flex><span><span style=color:#719e07>private</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Head <span style=color:#719e07>=</span> pack_head_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Tail <span style=color:#719e07>=</span> pack_tail_t<span style=color:#719e07>&lt;</span>PowerPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span><span style=color:#719e07>public</span><span style=color:#719e07>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>/*
+</span></span></span><span style=display:flex><span><span style=color:#586e75>        (pow hd power_num power_den) :: raise_power tl power_num power_den
+</span></span></span><span style=display:flex><span><span style=color:#586e75>    */</span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> pack_cons_t<span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> RaiseUnitPower<span style=color:#719e07>&lt;</span>Head, powerNum, powerDen<span style=color:#719e07>&gt;::</span>Type,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>typename</span> RaisePowerPack<span style=color:#719e07>&lt;</span>Tail, powerNum, powerDen<span style=color:#719e07>&gt;::</span>Type<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// base case
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>int32_t</span> powerNum, <span style=color:#dc322f>int32_t</span> powerDen<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>RaisePowerPack</span><span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, powerNum, powerDen<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> Type <span style=color:#719e07>=</span> Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/// Exponentiates all power types in a power pack by `powerNum / powerDen`
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam PowerPack The power pack to raise
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam powerNum The numerator of the power to raise to
+</span></span></span><span style=display:flex><span><span style=color:#586e75>/// @tparam powerDen The denominator of the power to raise to
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> PowerPack, <span style=color:#dc322f>int32_t</span> powerNum, <span style=color:#dc322f>int32_t</span> powerDen<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> raise_power_pack_t <span style=color:#719e07>=</span> <span style=color:#719e07>typename</span> RaisePowerPack<span style=color:#719e07>&lt;</span>PowerPack, powerNum, powerDen<span style=color:#719e07>&gt;::</span>Type;
+</span></span></code></pre></div><p>The complexity and verbosity come from
+needing to encode all of these things in C++ templates. I find it can be
+easier to understand what is going on by trying to write an
+implementation of the algorithm in your favorite functional
+language and matching up the functional and metaprogramming implementations.</p><p>I should further mention that by writing this post retrospectively, I am skipping
+a very crucial step: testing. In reality, I implemented this with
+a form of TDD. Every piece was immediately tested and I moved on to the next thing
+only after I trusted my implementation was mostly correct.</p><p>We are finally able to move on to the last step.</p><h2 id=unit-operations class=anchor-link><a href=#unit-operations>Unit Operations</a></h2><p>We already discussed addition and subtraction. So let&rsquo;s now look at
+multiplication and division:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, scale_t scaleA, <span style=color:#719e07>typename</span> SemanticA, <span style=color:#719e07>typename</span> UnitPowerPackA,
+</span></span><span style=display:flex><span>scale_t scaleB, <span style=color:#719e07>typename</span> SemanticB, <span style=color:#719e07>typename</span> UnitPowerPackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#719e07>operator</span><span style=color:#719e07>*</span>(<span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, scaleA, SemanticA, UnitPowerPackA<span style=color:#719e07>&gt;&amp;</span> a,
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, scaleB, SemanticB, UnitPowerPackB<span style=color:#719e07>&gt;&amp;</span> b)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// only requirement is that the units&#39; base numeric type is the same
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>using</span> NewPowerPack <span style=color:#719e07>=</span> clean_power_pack_t<span style=color:#719e07>&lt;</span>
+</span></span><span style=display:flex><span>        sort_unit_pack_t<span style=color:#719e07>&lt;</span>power_pack_add_t<span style=color:#719e07>&lt;</span>UnitPowerPackA, UnitPowerPackB<span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// concatenate power lists, merging duplicates
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// we sort and clean the lists so that each power list is unique
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>using</span> NewSemantic <span style=color:#719e07>=</span> clean_power_pack_t<span style=color:#719e07>&lt;</span>
+</span></span><span style=display:flex><span>        sort_unit_pack_t<span style=color:#719e07>&lt;</span>power_pack_add_t<span style=color:#719e07>&lt;</span>SemanticA, SemanticB<span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#268bd2>constexpr</span> (std<span style=color:#719e07>::</span>is_same_v<span style=color:#719e07>&lt;</span>NewPowerPack, Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;&gt;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// if all powers cancel out, return a scaler
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// `constexpr if` is determined at compile time
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>return</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span>(a.val <span style=color:#719e07>*</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(scaleA) 
+</span></span><span style=display:flex><span>            <span style=color:#719e07>*</span> b.val <span style=color:#719e07>*</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(scaleB));
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> Unit<span style=color:#719e07>&lt;</span>T, scaleA <span style=color:#719e07>*</span> scaleB, NewSemantic, NewPowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span>            (a.val <span style=color:#719e07>*</span> b.val);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, scale_t scale, <span style=color:#719e07>typename</span> Semantic, <span style=color:#719e07>typename</span> UnitPowerPack<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#719e07>operator</span><span style=color:#719e07>/</span>(T b, <span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, scale, Semantic, UnitPowerPack<span style=color:#719e07>&gt;&amp;</span> a)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// inverse() member function of `Rational` inverts the number
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>return</span> Unit<span style=color:#719e07>&lt;</span>T, scale.inverse(), negate_power_pack_t<span style=color:#719e07>&lt;</span>Semantic<span style=color:#719e07>&gt;</span>, 
+</span></span><span style=display:flex><span>        negate_power_pack_t<span style=color:#719e07>&lt;</span>UnitPowerPack<span style=color:#719e07>&gt;&gt;</span>(b <span style=color:#719e07>/</span> a.val);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> T, scale_t scaleA, <span style=color:#719e07>typename</span> Semantic, <span style=color:#719e07>typename</span> UnitPowerPackA,
+</span></span><span style=display:flex><span>    scale_t scaleB, <span style=color:#719e07>typename</span> SemanticB, <span style=color:#719e07>typename</span> UnitPowerPackB<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#719e07>operator</span><span style=color:#719e07>/</span>(<span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, scaleA, Semantic, UnitPowerPackA<span style=color:#719e07>&gt;&amp;</span> a,
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, scaleB, SemanticB, UnitPowerPackB<span style=color:#719e07>&gt;&amp;</span> b)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> a <span style=color:#719e07>*</span> (T{<span style=color:#2aa198>1</span>} <span style=color:#719e07>/</span> b);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>As discussed earlier, the division is implemented in terms of multiplication.
+Now let&rsquo;s look at exponentiation:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>int32_t</span> powerNum, <span style=color:#dc322f>int32_t</span> powerDen, <span style=color:#719e07>typename</span> T, scale_t scale, <span style=color:#719e07>typename</span> Semantic, <span style=color:#719e07>typename</span> Units<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>auto</span> pow(<span style=color:#719e07>const</span> Unit<span style=color:#719e07>&lt;</span>T, scale, Semantic, Units<span style=color:#719e07>&gt;&amp;</span> a)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Unit<span style=color:#719e07>&lt;</span>T, Rational(<span style=color:#2aa198>1</span>), raise_power_pack_t<span style=color:#719e07>&lt;</span>Semantic, powerNum, powerDen<span style=color:#719e07>&gt;</span>, 
+</span></span><span style=display:flex><span>        raise_power_pack_t<span style=color:#719e07>&lt;</span>Units, powerNum, powerDen<span style=color:#719e07>&gt;&gt;</span>
+</span></span><span style=display:flex><span>            (std<span style=color:#719e07>::</span>pow(a.val <span style=color:#719e07>*</span> <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(scale), 
+</span></span><span style=display:flex><span>                <span style=color:#719e07>static_cast</span><span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span><span style=color:#719e07>&gt;</span>(powerNum) <span style=color:#719e07>/</span> powerDen));
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Our unit <code>pow</code> function is slightly more restrictive than a general <code>pow</code> function.
+In particular, it requires that the power is known at compile time. For
+most equations where this library could be applied, such exponents would be
+known ahead of time and the restriction is reasonable.</p><p>Note that because this relies on <code>std::pow</code>, <code>pow</code> is the only unit operation
+that cannot be performed at compile time.</p><h2 id=usage class=anchor-link><a href=#usage>Usage</a></h2><p>Let&rsquo;s recap what we did:</p><ol><li>Created a <code>Unit</code> type with a rational scale factor, a list of rational powers
+of semantic types, and a list of rational powers of unit types</li><li>Ensured <code>Unit</code>s are represented uniquely</li><li>Provided arithmetic operations on <code>Unit</code>s</li><li>Provided implicit conversion between <code>Unit</code>s with the same base type but
+different scales</li></ol><p>To see how this works, suppose we define volume and area like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>// volume has units m^3 and is a length * width * height
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>using</span> volume_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>1</span>), 
+</span></span><span style=display:flex><span>    sort_unit_pack_t<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Length, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Width, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Depth, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>3</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// area has units m^2 and is a length * width
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>using</span> area_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>1</span>), 
+</span></span><span style=display:flex><span>    sort_unit_pack_t<span style=color:#719e07>&lt;</span>Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Length, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;</span>, PowerType<span style=color:#719e07>&lt;</span>Width, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>2</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// a distance is measured in m and has some semantic type
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>template</span><span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Semantic<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> dist_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>1</span>), Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Semantic, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;</span>, Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span></code></pre></div><p>Then we can create a function that takes a volume, divides it by a depth, and
+returns an area:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>constexpr</span> area_t <span style=color:#268bd2>foo</span>(volume_t vol) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> val <span style=color:#719e07>=</span> dist_t<span style=color:#719e07>&lt;</span>Depth<span style=color:#719e07>&gt;</span>(<span style=color:#2aa198>7</span>);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> vol <span style=color:#719e07>/</span> val <span style=color:#719e07>+</span> vol <span style=color:#719e07>/</span> val;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Note that, if we divided by a length, width, or any other unit, we&rsquo;d get a compiler
+error!</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>constexpr</span> area_t <span style=color:#268bd2>foo</span>(volume_t vol) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> val <span style=color:#719e07>=</span> dist_t<span style=color:#719e07>&lt;</span>Width<span style=color:#719e07>&gt;</span>(<span style=color:#2aa198>7</span>);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> vol <span style=color:#719e07>/</span> val <span style=color:#719e07>+</span> vol <span style=color:#719e07>/</span> val; <span style=color:#586e75>// error: no viable conversion
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>Now we can call the function <code>foo</code>, but only by passing a volume:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> x <span style=color:#719e07>=</span> dist_t<span style=color:#719e07>&lt;</span>Length<span style=color:#719e07>&gt;</span>(<span style=color:#2aa198>20</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> y <span style=color:#719e07>=</span> dist_t<span style=color:#719e07>&lt;</span>Width<span style=color:#719e07>&gt;</span>(<span style=color:#2aa198>10</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> z <span style=color:#719e07>=</span> dist_t<span style=color:#719e07>&lt;</span>Depth<span style=color:#719e07>&gt;</span>(<span style=color:#2aa198>5</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> w <span style=color:#719e07>=</span> foo(x <span style=color:#719e07>*</span> y <span style=color:#719e07>*</span> z); <span style=color:#586e75>// works!
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> w <span style=color:#719e07>=</span> foo(z <span style=color:#719e07>*</span> x <span style=color:#719e07>*</span> y); <span style=color:#586e75>// also works!
+</span></span></span></code></pre></div><p>If we make a typo:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> w <span style=color:#719e07>=</span> foo(x <span style=color:#719e07>*</span> x <span style=color:#719e07>*</span> z); <span style=color:#586e75>// error!: no viable conversion
+</span></span></span></code></pre></div><p>We get a compiler error! This is because a <code>Pack&lt;PowerType&lt;Length, 2, 1>, PowerType&lt;Depth, 1, 1>></code>
+is not a volume. This not only works for semantic unit
+subcategories but also the regular unit types.</p><p>Now let&rsquo;s define some more units like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>using</span> sec_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>1</span>), Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Seconds, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> hour_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>3600</span>), Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Seconds, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> km_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>1000</span>), Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> meter_t <span style=color:#719e07>=</span> Unit<span style=color:#719e07>&lt;</span><span style=color:#dc322f>double</span>, Rational(<span style=color:#2aa198>1</span>), Pack<span style=color:#719e07>&lt;</span>EmptyPack<span style=color:#719e07>&gt;</span>, Pack<span style=color:#719e07>&lt;</span>PowerType<span style=color:#719e07>&lt;</span>Meters, <span style=color:#2aa198>1</span>, <span style=color:#2aa198>1</span><span style=color:#719e07>&gt;&gt;&gt;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>using</span> meter_per_sec <span style=color:#719e07>=</span> <span style=color:#719e07>decltype</span>(std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>meter_t<span style=color:#719e07>&gt;</span>() <span style=color:#719e07>/</span> std<span style=color:#719e07>::</span>declval<span style=color:#719e07>&lt;</span>sec_t<span style=color:#719e07>&gt;</span>());
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> <span style=color:#268bd2>get_speed</span>(meter_per_sec speed) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> speed;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>One thing to note is that for each dimension (distance, velocity, etc.), we require
+a single unit that all other units of that dimension are based on.
+This isn&rsquo;t too unreasonable since the &ldquo;cheeseburger per bald eagle
+air-speed&rdquo; system (or as a Chemistry professor I had liked to call it: &ldquo;stupid American units&rdquo;)
+is defined in terms of the metric system.</p><p>Then we have:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> f <span style=color:#719e07>=</span> meter_t{<span style=color:#2aa198>10</span>} <span style=color:#719e07>/</span> sec_t{<span style=color:#2aa198>2</span>};
+</span></span><span style=display:flex><span><span style=color:#719e07>constexpr</span> <span style=color:#719e07>auto</span> t <span style=color:#719e07>=</span> km_t{<span style=color:#2aa198>10</span>} <span style=color:#719e07>/</span> hour_t{<span style=color:#2aa198>2</span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>static_assert</span>(get_speed(f).val <span style=color:#719e07>==</span> <span style=color:#2aa198>5</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// km / hour implicitly converted to meters / sec
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>static_assert</span>(get_speed(t).val <span style=color:#719e07>==</span> <span style=color:#2aa198>5</span> <span style=color:#719e07>/</span> <span style=color:#2aa198>3.6</span>);
+</span></span></code></pre></div><p>We see that <code>Unit</code>s that differ only in scale can be used interchangeably
+and the conversion functions handle everything for us! Therefore, this system
+solves the two main problems we aimed to tackle: mismatch errors and
+conversion errors. Mismatches in scale are handled automatically,
+and mismatches in unit or semantic type cause compiler errors. This ensures
+that conversions are correct (assuming the type definitions are
+correct) since an incorrect conversion will cause a mismatch error at compile
+time or be automatically handled if the mismatch is just a difference of scale.</p><p>There is a downside to this, however. Extensive usage of many different units
+can cause code bloat since each version of the <code>Unit</code> class must be
+instantiated. Furthermore, unless explicit template instantiation is used,
+this can increase compile time.</p><p>Despite this, I think this was an interesting experiment using the type system
+to eliminate a class of programmer errors. This also demonstrates the feasibility
+of achieving this in a common general-purpose programming language with
+nothing more than a header-only library. A relevant paper to this, that I won&rsquo;t
+discuss here, is <a href=https://capra.cs.cornell.edu/research/gator/>Gator</a><sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup>. The
+extremely brief footnotes are that Gator uses a type system that includes
+<em>geometry types</em> to prevent a programmer from mixing up the coordinate scheme,
+reference frame, and geometric object of values that typically would be the
+same type in a language like GLSL. For example, instead of
+<code>vec3 lightDir</code> and <code>vec3 fragPos</code> which have the same
+type but vastly different semantics, we can encode them as
+<code>cart&lt;world>.direction lightDir</code> and <code>hom&lt;model>.point fragPos</code>
+to denote that <code>lightDir</code> is a direction, in cartesian coordinates, in the world
+reference frame and <code>fragPos</code> is a point, in homogenous coordinates, in local
+space.</p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>Dietrich Geisler, Irene Yoon, Aditi Kabra, Horace He, Yinnon Sanders, & Adrian Sampson (2020). Geometry Types for Graphics Programming. In <em>OOPSLA</em>.&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/SUtilities/blob/master/SUtilities/include/units.hpp><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text><a href=https://github.com/victoriadrake/hugo-theme-introduction/><strong>Introduction</strong></a> theme for <a href=http://gohugo.io/>Hugo</a>. Made with <a href=https://victoria.dev><i class="fa fa-heart"></i> and <i class="fa fa-coffee"></i></a> by open source contributors.</span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
