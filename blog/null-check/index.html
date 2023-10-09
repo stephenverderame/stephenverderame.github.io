@@ -1,0 +1,465 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Not Now Null Pointers Llvm Null Analysis -</title><meta property="og:title" content="Not Now Null Pointers: LLVM Null Analysis - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/null-check/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/Dataflow.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/FirstLetterBad.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_cex.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_cex2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_ex1.svg"><link rel="shortcut icon" href=/img/fav.ico><link rel=stylesheet href=/css/main.min.3d98af1587440e554eab0642b061443fd800a0fc588a20d31fadbc785caa9187.css integrity="sha256-PZivFYdEDlVOqwZCsGFEP9gAoPxYiiDTH628eFyqkYc=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=/#about>About</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/#experience>Experience</a>
+<a class=navbar-item href=/#contact>Contact</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/null-check/>Not Now Null Pointers: LLVM Null Analysis</a></h2><div class=post-data>Oct 7, 2023
+|
+25 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Not%20Now%20Null%20Pointers%3a%20LLVM%20Null%20Analysis%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fnull-check%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fnull-check%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fnull-check%2f&amp;description=Not%20Now%20Null%20Pointers%3a%20LLVM%20Null%20Analysis" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/pl>pl</a>,
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/tutorials>tutorials</a>,
+<a href=/%20/tags/compilers>compilers</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#dataflow-analysis>Dataflow Analysis</a></li><li><a href=#abstract-interpretation>Abstract Interpretation</a></li><li><a href=#null-analysis-as-abstract-interpretation>Null Analysis as Abstract Interpretation</a></li><li><a href=#interval-analysis-as-abstract-interpretation>Interval Analysis as Abstract Interpretation</a></li><li><a href=#implementation-details>Implementation Details</a></li><li><a href=#evaluation-and-future-ideas>Evaluation and Future Ideas</a></li></ol></nav></div><div class="container markdown top-pad"><p>I&rsquo;ve always been interested in being able to make guarantees about the correctness
+of a program without the high cost of doing something like a
+full-on verification in an automatic theorem prover such as Coq.
+Moreover, avoiding extra runtime costs would be extremely nice as well,
+especially for systems programming domains.</p><p>I recently began working on an LLVM pass which aims to guarantee the absence
+of loading and storing of null pointers. The analysis is <em>conservative</em>, so if
+it cannot be sure that a pointer is non-null, it will produce a compiler error.</p><p>This post aims to quickly discuss a few standard compiler concepts, talk about some
+design and implementation points, and highlight some interesting problems I&rsquo;ve
+encountered so far.</p><h2 id=dataflow-analysis class=anchor-link><a href=#dataflow-analysis>Dataflow Analysis</a></h2><p>We&rsquo;re going to frame the null analysis as a dataflow analysis, which can be
+run in a generalized dataflow framework.</p><p>A <em>partial order</em> is a <em>binary relation</em> on a set, $\Gamma$ that is <em>reflexive</em>,
+<em>transitive</em>, and <em>anti-symmetric</em>. A binary relation is a set, $R$
+such that if $x \in \Gamma$, relates to $y \in \Gamma$, then $(x, y) \in R$.</p><ul><li>A binary relation is reflexive if every element relates to itself. Formally
+that is to say that if $x \in \Gamma$, then $(x, x) \in R$.</li><li>A relation is transitive if $x$ relates to $y$, and $y$ relates to $z$, then $x$ relates to $z$.
+Formally, that is $(x, y), (y, z) \in R \Rightarrow (x, z) \in R$. Note that
+this definition means that the relation $R$ = {(1, 2)} is transitive.</li><li>Finally, a relation is anti-symmetric if when $x$ relates to $y$ and $y$ relates
+to $x$, this means $x = y$. The canonical example of an anti-symmetric relation
+is $\le$ and $\ge$.</li></ul><p>The key thing behind a partial order (especially in comparison to a <em>total order</em>),
+is that some elements may be incomparable. A partial order you may be familiar
+with is the subset relation ($\subseteq$). For example:
+{$x, y$} $\not \subseteq$ { $a, b, c$ } and { $a, b, c$ } $\not \subseteq$ { $x, y$ }.</p><p>A set with a partial order is commonly referred to as a <em>poset</em>. From this point
+on, we&rsquo;ll be working with the poset $(\Gamma, \sqsubseteq)$ which is the set $\Gamma$ with
+the ordering $\sqsubseteq$.</p><p>For some posets, there may exist an element, $\bot$ (&ldquo;bottom&rdquo;), such that
+$\forall x \in \Gamma, \bot \sqsubseteq x$. $\bot$ is &ldquo;lower&rdquo; or less than
+all elements in the ordering. Likewise, there may exist an element $\top$ (&ldquo;top&rdquo;)
+such that $\forall x \in \Gamma, x \sqsubseteq \top$. That is $\top$ is &ldquo;higher&rdquo;
+or greater than all elements in the ordering. A poset with a top element but no
+bottom is known as an <em>upper semi-lattice</em>. A poset with a bottom element but no top is known
+as a <em>lower semi-lattice</em>. If a poset has both, it is called a (complete) <em>lattice</em>.
+The name lattice comes visualizing posets with
+<a href=https://en.wikipedia.org/wiki/Hasse_diagram>Hasse diagrams</a>.</p><p>Elements $x$ and $y$ in a lattice or semi-lattice have a <em>greatest lower bound</em>, or
+&ldquo;meet&rdquo;, which is denoted as $x \sqcap y$. The greatest lower bound is the biggest element
+which is smaller than both $x$ and $y$. For example, if $\Gamma$ is the set of all
+sets of lower-case alphabetic characters and $\sqsubseteq$ is the subset relation,
+then {$a, b$} $\sqcap$ {$a, c$} is {$a$}. Furthermore, in this example, $\bot = \emptyset$.</p><p>Elements $x$ and $y$ in a lattice or upper-semi lattice have a <em>least upper bound</em>,
+or join, which is denoted as $x \sqcup y$. The least upper bound is the smallest element
+which is greater than both $x$ and $y$. Building off the previous example,
+{$a$, $b$} $\sqcup$ {$a$, $c$} is {$a, b, c$}. Likewise, $\top$ is the set of all
+26 lowercase letters.</p><p>Observe when $\bot = \emptyset$, $\sqcap$ is set intersection, $\sqcup$ is set union,
+and $\sqsubseteq$ is the subset relation. If $\top$ is the empty set, then $\sqcap$
+is set union, $\sqcup$ is set intersection, and $\sqsubseteq$ is the superset relation,
+$\supseteq$.</p><p>We can view dataflow analysis through the lens of order theory. That is, a dataflow
+analysis consists of a set of facts, $\Gamma$, an ordering $\sqsubseteq$, a meet
+operator $\sqcap$, a direction $D$, and a transfer function $F : \Gamma \rightarrow \Gamma$ which
+determines how an input fact is going to be transformed for a CFG node $n$.
+An analysis is forward if it propagates facts from the CFG start to the
+end node, or backward if it propagates facts from the exit to the start.
+Typically, I find it easier to think of $F$ as a set of transfer functions
+$F_n$ where $F_n$ is the specific transfer function for a node $n$. Nodes in a
+CFG are typically basic blocks, however, I like to think of $F_n$ as operating
+on the level of single instructions because it leads to simpler transfer functions
+and allows factoring out the logic for traversing a basic block into the
+generalized data flow framework.</p><div style=text-align:center><img src=Dataflow.svg style=all:unset;max-height:40vw;max-width:100%></div><p>In this diagram, the outer box represents a basic block with a sequence
+of instructions. Input facts come from the predecessor blocks, are converged with
+the meet operator, and then threaded through each instruction of the basic block.
+Each $F_n$ represents the transfer function of a particular instruction. At the
+terminator of the basic block, facts are propagated to the basic block&rsquo;s
+successor nodes.</p><p>A dataflow analysis can be solved by an iterative algorithm, which in pseudocode
+is as follows</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span><span style=color:#719e07>for</span> n <span style=color:#719e07>in</span> nodes:
+</span></span><span style=display:flex><span>    out[n] <span style=color:#719e07>=</span> T
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>while</span> changing:
+</span></span><span style=display:flex><span>    <span style=color:#719e07>in</span>[n] <span style=color:#719e07>=</span> <span style=color:#719e07>in</span>[n] <span style=color:#719e07>=</span> Meet([out[n_] <span style=color:#719e07>for</span> n_ <span style=color:#719e07>in</span> predecessors(n)])
+</span></span><span style=display:flex><span>    out[n] <span style=color:#719e07>=</span> Fn(<span style=color:#719e07>in</span>[n])
+</span></span></code></pre></div><p>In practice, I tend to implement the <em>worklist algorithm</em> which in pseudocode is</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>W <span style=color:#719e07>=</span> []
+</span></span><span style=display:flex><span><span style=color:#719e07>for</span> n <span style=color:#719e07>in</span> nodes:
+</span></span><span style=display:flex><span>    out[n] <span style=color:#719e07>=</span> T
+</span></span><span style=display:flex><span>    W<span style=color:#719e07>.</span>push(n)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>while</span> W <span style=color:#719e07>not</span> empty:
+</span></span><span style=display:flex><span>    <span style=color:#719e07>in</span>[n] <span style=color:#719e07>=</span> Meet([out[n_] <span style=color:#719e07>for</span> n_ <span style=color:#719e07>in</span> predecessors(n)])
+</span></span><span style=display:flex><span>    out_n <span style=color:#719e07>=</span> Fn(<span style=color:#719e07>in</span>[n])
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> out_n <span style=color:#719e07>!=</span> out[n]:
+</span></span><span style=display:flex><span>        out[n] <span style=color:#719e07>=</span> out_n
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> s <span style=color:#719e07>in</span> successors(n):
+</span></span><span style=display:flex><span>            W<span style=color:#719e07>.</span>push(s)
+</span></span></code></pre></div><p>If each transfer function is <em>monotonic</em>
+(informally it either adds stuff or removes stuff but not both) then the algorithm
+will terminate with a solution. Formally, we require that
+$$x \sqsubseteq y \Rightarrow F_n(x) \sqsubseteq F_n(y)$$</p><p>I personally like using the lens of order theory as it helps sanity-check
+the correctness of my analyses. For example, if your meet operator is
+bringing elements toward your top element, something&rsquo;s not right.</p><p>Often times I like to have my lattice top be the empty set. This is
+particularly useful when other options for $\top$ aren&rsquo;t easily computable
+such as the set of all copies in an available copies analysis. But this means that
+my meet operator must be a set union. However, for some analyses, such as available copies, meeting loses
+information which is more suited for set intersection.
+Therefore, what I end up doing is keeping track of elements that are not in the set.</p><p>I think this kind of playing with the ordering and flipping lattices around is
+quite useful, and I think it becomes more intuitive with
+an understanding of the underlying theory.</p><h2 id=abstract-interpretation class=anchor-link><a href=#abstract-interpretation>Abstract Interpretation</a></h2><p>Sometimes, it&rsquo;s helpful to think of a dataflow analysis as an execution of the
+program over an abstracted domain of a set of program states. Program states
+we might be interested in could be the values of variables or the data stored
+in the heap. A set of concrete program states can be abstracted by an <em>abstraction function</em>,
+which forms a mapping between concrete program states in a concrete lattice
+and abstract states in an abstract lattice.</p><p>Suppose our program contains a single pointer, $x$,
+so its concrete state would be the value of this pointer.
+Let the abstract domain of the single pointer be three values,
+$\top$, <code>NonNull</code>, and $\bot$/<code>MaybeNull</code>. In this case, $\top$ represents an
+uninitialized value, <code>NonNull</code> is a nonzero value, and $\bot$ is 0 or an unknown value.
+Here $x$, which in the concrete domain may be one of $2^{64} + 1$ possible values,
+abstracts to just 3. We can define a <em>representation</em> function $\beta$ as</p><p>$$
+\beta(x) = \begin{cases}
+\text{NonNull} \text{ if } x \not = 0, & \
+\top \text{ if } x = \top, & \
+\bot \text{ otherwise} & \
+\end{cases}
+$$</p><p>Then, for a lattice over a set of program states (such as all pointers in the
+program), the abstraction function $\alpha$ could be defined as</p><p>$$\alpha(\gamma) = \begin{Bmatrix} \forall x_i \in \gamma, \beta(x_i) \end{Bmatrix}$$</p><p>That is to say, we can abstract a set of program states as the set
+of abstracted program states mapped by the representation function.</p><p>So in our example</p><p>$$
+\alpha(\begin{Bmatrix} x: 0, & y: 0xFFEF, z: 0x678F, w: 0 \end{Bmatrix}) =
+\begin{Bmatrix} \beta(x), & \beta(y), & \beta(z), & \beta(w) \end{Bmatrix} =
+\begin{Bmatrix} \bot, & \text{NonNull}, & \text{NonNull}, & \bot \end{Bmatrix}
+$$</p><p>Under abstract interpretation, we are kind of dealing with a nested lattice.
+In this example, we have a lattice of sets of abstract pointers, and each
+abstract pointer is a member of the $\top$ - NonNull - $\bot$ lattice.</p><h2 id=null-analysis-as-abstract-interpretation class=anchor-link><a href=#null-analysis-as-abstract-interpretation>Null Analysis as Abstract Interpretation</a></h2><p>With this in mind, we can finally discuss the design of the analysis.
+A fact in our lattice will be a tuple of all the pointers in the program.
+Therefore, $\top$ is the tuple of all pointers being the top value in
+the <code>MaybeNull</code>/<code>NonNull</code> &ldquo;inner&rdquo; lattice. $\bot$ is the tuple of all
+pointers having the abstract <code>MaybeNull</code> value. Meet will be the element-wise
+meet of the tuples. That is we will take the meet of all corresponding abstract
+pointers in the <code>MaybeNull</code>/<code>NonNull</code> lattice. While it doesn&rsquo;t manifest
+itself in the implementation, our ordering will be element-wise
+ordering in the <code>MaybeNull</code>/<code>NonNull</code> lattice. So
+$(\bot, \bot) \sqsubseteq (\text{NonNull}, \bot)$
+while $(\bot, \text{NonNull})$ cannot be compared to $(\text{NonNull}, \bot)$.</p><p>In the actual implementation, instead of doing an extra pass to identify all
+pointers first, I consider any pointer not added to the abstract
+value mapping yet as implicitly $\top$.</p><p>Our transfer function is going to depend on the instruction type.
+Like Conditional Constant Propagation, the output fact can differ for
+different outgoing edges. Consider the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%5 = <span style=color:#719e07>icmp</span> <span style=color:#719e07>ne</span> ptr %4, <span style=color:#719e07>null</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %5, <span style=color:#dc322f>label</span> %6, <span style=color:#dc322f>label</span> %8
+</span></span></code></pre></div><p>We&rsquo;re only going to branch to label 6 if <code>%4</code> is non-null. Therefore,
+on the edge going to label <code>%6</code>, we can set <code>%4</code> as <code>NonNull</code>.
+On the other hand, when we branch to label <code>%8</code>, we know that <code>%4</code> <em>is</em> null,
+so we can set its abstract value to <code>MaybeNull</code>.</p><p>A similar process can be done for the <code>eq</code> opcode of the <code>icmp</code> instruction
+as well.</p><p>Here&rsquo;s a summary of some of the other currently implemented transfer function, where <code>State</code>
+is a map from <code>llvm::Value*</code> to that value&rsquo;s respective abstract value. Abstract
+values are stored in shared pointers to allow for this analysis to work with
+nested pointers and aliases. The way to read this table is, given an instruction
+$x$, to pick the transition $(u, S)$ where $u$ is the most specific matching
+instruction to $x$, and $S$ is $u$&rsquo;s corresponding state change.</p><table><thead><tr><th>Instruction</th><th>State Change</th></tr></thead><tbody><tr><td><code>%1 = alloca ...</code></td><td><code>State[%1] = NonNull</code></td></tr><tr><td><code>%1 = load ptr, ptr %2, ...</code></td><td><code>State[%1] = State[%2]</code></td></tr><tr><td><code>store ptr %2, ptr %1, ...</code></td><td><code>*State[%1] = *State[%2]</code></td></tr><tr><td><code>%1 = call nonnull ... ptr ...</code></td><td><code>State[%1] = NonNull</code></td></tr><tr><td><code>%1 = call ptr ...</code></td><td><code>State[%1] = MaybeNull</code></td></tr><tr><td><code>%1 = phi [%2 ...] [%3 ...] ...</code></td><td><code>State[%1] = State[%2]</code> $\sqcap$ <code>State[%3]</code></td></tr><tr><td><code>%1 = getelementptr ...</code></td><td>?</td></tr><tr><td><code>%1 = ...</code></td><td><code>State[%1] = MaybeNull</code></td></tr></tbody></table><p>There&rsquo;s one more instruction of interest: <code>getelementptr</code>.
+Suppose we are accessing an array, in LLVM this might look like the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%110 = <span style=color:#719e07>load</span> <span style=color:#719e07>i32</span>, ptr %12, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span>%111 = <span style=color:#719e07>sext</span> <span style=color:#719e07>i32</span> %110 <span style=color:#719e07>to</span> <span style=color:#719e07>i64</span>
+</span></span><span style=display:flex><span>%112 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>513</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i8</span>], ptr %9, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> %111
+</span></span><span style=display:flex><span>%113 = <span style=color:#719e07>load</span> <span style=color:#719e07>i8</span>, ptr %112, <span style=color:#719e07>align</span> <span style=color:#2aa198>1</span>
+</span></span></code></pre></div><p>How can we know whether the array access results in a potentially null pointer?
+For that, we&rsquo;re going to need an <em>interval analysis</em>.</p><p>But before we move on, one last thing to note is that we also need to take
+care of function arguments: a pointer argument is <code>NonNull</code> if it has the
+LLVM attribute of the same name, otherwise it must be <code>MaybeNull</code>.</p><h2 id=interval-analysis-as-abstract-interpretation class=anchor-link><a href=#interval-analysis-as-abstract-interpretation>Interval Analysis as Abstract Interpretation</a></h2><p>Interval analysis is similar in spirit to conditional constant propagation,
+but instead of keeping track of single constants, it keeps track of a range
+of possible values that a value may be.</p><p>Suppose we know the size of a <code>char</code> array to be 512. Then if we can be sure
+that the index into the array is between 0 and 511 (inclusive), the access is safe!</p><p>Since we&rsquo;re concerned with indexing into an array, we only care about integral
+types. So our fact is going to be a mapping from integer values to bounds. A bound
+is going to be a lattice where each element consists of two integers, <code>Lower</code> and <code>Upper</code>, that represent
+an inclusive range. $\top$ in this lattice is going to be an unknown bound, and $\bot$
+will be the bound $(-\infty, \infty)$. Therefore, in our lattice of program states,
+$\top$ will be the mapping of every value to an unknown bound and $\bot$ will
+be the mapping of every value to the unbounded range $(-\infty, \infty)$.</p><p>$\sqcap$ on our lattice of program states will be $\sqcap$ on the bounds of
+corresponding elements. The meet of two bounds is rather tricky, so
+we&rsquo;re going to come back to this later. We&rsquo;ll also define arithmetic and comparison
+operators on bounds. These mostly take the form of:</p><p>$$
+\begin{aligned}
+Op(a, b) =
+\begin{cases}
+b \text{ if } a = \top, & \
+a \text{ if } b = \top, & \
+\bot \text{ if } a = \bot \lor b = \bot, & \
+Op(V(a), V(b)) \text{ otherwise }
+\end{cases}
+\end{aligned}
+$$</p><p>Where $V(a)$ means the value of $a$.</p><p>Like the null analysis, what makes this useful is if we propagate different
+facts along different edges of a branch.</p><p>Consider the following:</p><p><img src=if1.svg alt=If></p><p>What can we be sure of being true? Well, on the true edge, we know that
+$i &lt; len$ and $len > i$. On the false edge, we know that $i \ge len$ and
+$len \le i$.</p><p><img src=if2.svg alt=If2></p><p>To understand how we need to meet bounds, let&rsquo;s walk through an example that will roughly
+correspond to the following code:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#268bd2>assert</span>(len <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>100</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// ..
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>j) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// ..
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>We can imagine that in a real program, these loops might contain accesses
+to an array that has 100 elements. The following is a simplified instruction-level
+CFG of this program.</p><p><img src=ia_ex1.svg alt=Ex></p><p>We will consider unlabelled variables on an edge as being $\top$. We&rsquo;ll start
+by assuming that we know that $len \in (-\infty, 99]$. The meet nodes don&rsquo;t
+exist in the CFG and are just for visualization purposes. They represent the meeting of
+a node&rsquo;s input facts before they are passed to the node&rsquo;s transfer function.
+You can think of them as $\phi$ nodes in this CFG, however, my implementation takes
+into account bounds stored in memory, so that isn&rsquo;t a perfect analogy.</p><p>Let&rsquo;s go through this step-by-step. We first come to the <code>i = 0</code>.
+The natural thing to do would be to set the bound of <code>i</code> as $[0, 0]$.
+At the meet point, we&rsquo;d be meeting this bound with $\top$, so this bound
+is passed to the branch.</p><p><img src=ia_ex2.svg alt></p><p>Now we reach a branch. On the true branch, we know that <code>i &lt; len</code> and <code>len > i</code> and
+on the false branch, we know that <code>i >= len</code> and <code>len &lt;= i</code>.
+Updating the bounds is also a bit tricky to see how to do correctly, but
+the somewhat intuitive solution I came up with is for a less than-comparison, <code>a &lt; b</code>, set the
+upper bound of <code>a</code> to be <code>a.upper = min(a.upper, b.upper - 1)</code>. Analogously a similar operation
+will take place for <code>></code>, <code>&lt;=</code>, and <code>>=</code>:</p><table><thead><tr><th>Comparison</th><th>Update</th></tr></thead><tbody><tr><td><code>a &lt; b</code></td><td><code>a.upper = min(a.upper, b.upper - 1)</code></td></tr><tr><td><code>a &lt;= b</code></td><td><code>a.upper = min(a.upper, b.upper)</code></td></tr><tr><td><code>a > b</code></td><td><code>a.lower = max(a.lower, b.lower + 1)</code></td></tr><tr><td><code>a >= b</code></td><td><code>a.lower = max(a.lower, b.lower)</code></td></tr></tbody></table><p>This means on the true branch, we get to assume that <code>i: [0, 0]</code>, <code>len: [1, 99]</code>,
+and on the false branch we have <code>i: [0, 0]</code> and <code>len: [0, 0]</code>.</p><p><img src=ia_ex3.svg alt></p><p>Now we reach <code>i++</code>. The intuitive thing would be to increment the bound of <code>i</code>, so
+let&rsquo;s do that.</p><p><img src=ia_ex4.svg alt></p><p>This brings us to the question I put off earlier: how do we meet bounds? The most
+intuitive thing (at least for me) would be to take the smaller lower bound and
+the greater upper bound. This yields the result of the meet as <code>i: [0, 1]</code> and <code>len: [-inf, 99]</code></p><p>Doing this results in the following:</p><p><img src=ia_ex5.svg alt></p><p>Hmm, that can&rsquo;t be right. Observe what happens to <code>i</code> when we analyze the loop
+again. We increment the bound <code>i: [0, 1]</code> due to <code>i++</code> to get <code>i: [1, 2]</code>. Then,
+when we meet <code>i: [1, 2]</code> with <code>i: [0, 0]</code> we get <code>i: [0, 2]</code>. Rinse and repeat
+and you have yourself a bona-fide infinite loop where the upper limit of <code>i</code> will
+just keep increasing.</p><p>Ok, ok. What about if when we have two non-overlapping bounds, we meet them
+at $\bot$. This is what conditional constant propagation does after all. This idea
+is <em>safe</em>, but it&rsquo;s very conservative. Consider the following which is not part of
+a loop:</p><p><img src=ia_cex.svg alt></p><p>The use case for this might be something like an <code>if</code> and <code>else</code> block. Are we really
+going to say that after meeting, <code>a</code> is $\bot$? Come on, let&rsquo;s say that <code>a: [0, 30]</code>.</p><p>Alright, so if we want to support both cases, we need something more sophisticated.</p><p>The key culprit is <em>mutation</em>, an all too common troublemaker in computer science.
+The mutation I&rsquo;m talking about can come from either memory stores or $\phi$ nodes,
+although one might not typically think of $\phi$ nodes as mutating. We&rsquo;ll need to
+augment our analysis to not just keep track of ranges, but also mutations. A problematic mutation
+occurs when an incoming value to a $\phi$ node uses the same $\phi$ node or when
+a new range overwrites a preexisting one in a store instruction.</p><p>When we meet <code>i: [0, 0]</code> with <code>i: [1, 1]</code> in our previous example, what should
+happen? Well, we <em>should</em> get <code>i: [0, inf]</code>. So suppose value <code>A</code> overwrites
+value <code>B</code>. We&rsquo;ll first flag the new value <code>A</code> as performing a mutation.
+Now let&rsquo;s say <code>A</code> later meets with <code>C</code>, which was not flagged as mutating.
+If <code>A.lower > C.lower</code> and <code>A.upper > C.upper</code>, then the result&rsquo;s upper bound
+should be $\infty$, otherwise, it is <code>max(A.upper, B.upper)</code>.
+Similarly if <code>A.lower &lt; C.lower</code> and <code>A.upper &lt; C.upper</code>,
+the the result&rsquo;s lower bound should be $-\infty$.
+Otherwise, its bound is <code>min(A.lower, C.lower)</code>.</p><p>This yields the desired result for both cases! Before we fix the result
+of the meet for the first loop, let&rsquo;s finish the first iteration for the second
+loop.</p><p><img src=ia_ex6.svg alt></p><p>I&rsquo;ve gone ahead and propagated the values through the assignment to <code>j</code> and the
+meet, as it is the same as the first loop. So now what happens on
+the true branch of <code>if j &lt; len</code>. Well, by our previously discovered rule, we get
+<code>j: [0, -1]</code> and <code>len: [1, 0]</code>. Something is not right. These bounds are invalid.
+Well, let&rsquo;s just roll with it for now I guess. We&rsquo;ll just fix the bounds so
+that they at least make sense.</p><p><img src=ia_ex7.svg alt></p><p>Now, when we meet <code>i: [0, 1]</code> with <code>i: [0, 0]</code> by our previous rule, we get
+<code>i: [0, 1]</code> since both bounds of the mutated value are not strictly greater than
+the old value. But consider the case when we increment <code>j</code> only when a condition is true.
+That is to say, <code>j++</code> doesn&rsquo;t always execute. After we meet <code>j++</code> with
+the path that did not increment <code>j</code>, we&rsquo;re going to end up with the bound
+<code>j: [-1, 1]</code>. But now, no matter what we do, we&rsquo;re always going to have the
+lower bound of <code>j</code> being <code>-1</code>. While this is safe, it&rsquo;s way too conservative
+since there&rsquo;s no way for <code>j</code> to become negative, and if <code>j</code> accesses some array
+inside the loop, we&rsquo;d like for the analysis to be able to tell us that it&rsquo;s safe.</p><p><img src=ia_cex2.svg alt></p><p>Ok, so what went wrong? Well, we don&rsquo;t want these invalid bounds affecting future iterations.
+So the solution I came up with is to set bounds to
+$\top$ if they ever become invalid. This allows the invalid bounds to be ignored
+once they reach the next meet.</p><p>Going back to our original example, if we suppose on the second iteration that
+<code>len</code> will be something more permissive than <code>[0, 0]</code> (as you&rsquo;ll soon see when we
+return to the first loop), then this invalid bounds policy gives the following:</p><p><img src=ia_ex8.svg alt></p><p>Now the meet produces <code>j: [0, 0]</code> and <code>len: [-inf, 99]</code>, which as you may recall
+were the initial states of the first loop. This sets us up for the second loop
+to follow in the footsteps of the first loop.</p><p>So with these hiccups resolved, let&rsquo;s continue to the second iteration of the
+iterative solving algorithm. For the first meet operation, as we discussed earlier, we get
+<code>i: [0, inf]</code> and <code>len: [-inf, 99]</code>. Propagating this to the first branch instruction yields
+<code>i: [0, 98]</code> and <code>len: [1, 99]</code> for the true branch. After <code>i++</code>,
+this becomes <code>i: [1, 99]</code> and <code>len: [1, 99]</code>. These are the <em>fixed point</em> or steady-state bounds for
+the first loop.</p><p>Turning our attention to the false branch, we will get <code>i: [0, inf]</code> and <code>len: [-inf, 99]</code>. Propagating
+this gives the same results for the first iteration of the first loop.</p><p><img src=ia_ex9.svg alt></p><p>And finally, one more iteration to reach the overall fixed point:</p><p><img src=ia_ex10.svg alt></p><p>The key thing to notice is that, in the loop, we have guaranteed bounds on <code>i</code> and
+<code>j</code>. Consider the very common pattern of code that looks something like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#586e75>// length of arr &gt;= len
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>/* tmp */</span> <span style=color:#719e07>=</span> arr[i];
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    arr[i] <span style=color:#719e07>=</span> <span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We know that these memory loads and stores are safe at compile time,
+without any runtime checks!</p><p>With this analysis, we can finish the transfer function of <code>getelementptr</code> for
+our null analysis. In
+particular, if we additionally keep track of the known size of the data each
+pointer refers to, then the transfer function of <code>getelementptr</code> looks like
+the following:</p><pre tabindex=0><code>%1 = getelementptr ..., ptr %2, i64 0, i64 %3, ...
+                       |
+                       |
+%1 = NonNull if Bound(%3).lower &gt;=0 &amp;&amp; Bound(%3).upper &lt; Size(%2)
+%1 = MaybeNull otherwise
+</code></pre><h2 id=implementation-details class=anchor-link><a href=#implementation-details>Implementation Details</a></h2><p>So far I haven&rsquo;t considered how to handle logical <code>and</code> or logical <code>or</code>. Due to short-circuiting,
+the Clang frontend implements logical <code>and</code> as a branch and a $\phi$ node where the incoming value
+on the <code>false</code> branch is <code>false</code>. Similarly for logical <code>or</code>, except <code>true</code> for the
+short-circuiting <code>true</code> branch. So <code>&&</code> looks like the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#2aa198>5</span>:                                                <span style=color:#586e75>; preds = %13, %0
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %6 = <span style=color:#719e07>load</span> ptr, ptr %3, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>
+</span></span><span style=display:flex><span>  %7 = <span style=color:#719e07>icmp</span> <span style=color:#719e07>ne</span> ptr %6, <span style=color:#719e07>null</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %7, <span style=color:#dc322f>label</span> %8, <span style=color:#dc322f>label</span> %11
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>8</span>:                                                <span style=color:#586e75>; preds = %5
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %9 = <span style=color:#719e07>load</span> <span style=color:#719e07>i8</span>, ptr %2, <span style=color:#719e07>align</span> <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>  %10 = <span style=color:#719e07>trunc</span> <span style=color:#719e07>i8</span> %9 <span style=color:#719e07>to</span> <span style=color:#719e07>i1</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %11
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>11</span>:                                               <span style=color:#586e75>; preds = %8, %5
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %12 = <span style=color:#719e07>phi</span> <span style=color:#719e07>i1</span> [ <span style=color:#719e07>false</span>, %5 ], [ %10, %8 ]
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %12, <span style=color:#dc322f>label</span> %13, <span style=color:#dc322f>label</span> %15
+</span></span></code></pre></div><p>To support this, I do something extra to handle branches whose condition is a $\phi$ node
+with two incoming values and one of them is a boolean literal.
+If the boolean literal is <code>false</code> and the
+true branch is taken, then the non-literal incoming value must have been <code>true</code>.
+So we can recurse and call the transfer function on this non-literal, propagating
+the facts we can assume when the incoming condition is true to the true branch
+of the original branch. Symmetrically, if the boolean literal is <code>true</code> and
+the false branch is taken, then the non-literal incoming value must have been <code>false</code>.
+So we recurse and call the transfer function on this non-literal, propagating any
+new assumption we can make when the condition we recursed on is false to the
+false edge of the original branch.</p><p>Another implementation hiccup: when we propagate facts through a transfer function,
+we want to make copies of the data. You can observe this by noting that in my
+interval analysis example, <code>i</code> takes on different bounds depending on where it
+is in the program. This seems obvious, but recall I mentioned that our null analysis
+stores abstract values in pointers to handle nested pointers and aliases. Therefore,
+care needs to be taken to ensure correct deep copies are performed in the copy
+constructor and copy assignment operator.</p><p>For the interval analysis, I didn&rsquo;t go the pointer route. However, we can&rsquo;t exactly
+make copies everywhere because this won&rsquo;t support storing bounds in memory locations.
+Instead, I only keep track of the <em>canonical values</em>. Intuitively, the
+canonical value is like the &ldquo;home&rdquo; location of a particular value (using &ldquo;value&rdquo; in
+the program sense, not the LLVM sense). This is very much like how one
+could implement LVN. One could define the canonical value recursively like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Get the value that is the canonical representative of `V`. The
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * canonical representative is the value that is used to represent `V` in the
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * mapping from values to ranges. For example, if `V` is a load instruction, the
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * canonical representative is the pointer operand of the load instruction.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> getCanonicalValue(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> V)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Cast <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>CastInst<span style=color:#719e07>&gt;</span>(V); Cast <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>getCanonicalValue</span>(Cast<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>0</span>));
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#268bd2>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Load <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>LoadInst<span style=color:#719e07>&gt;</span>(V); Load <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>getCanonicalValue</span>(Load<span style=color:#719e07>-&gt;</span>getPointerOperand());
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> V;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The last implementation detail to note is that my abstract values are wrapped inside
+a <code>LatticeElem&lt;T></code>. This type is essentially a variant type that
+contains either $\top$, $\bot$, or a value of type <code>T</code>. This allows me to
+factor out basic handling of $\top$ and $\bot$ which single abstract
+values typically need during abstract interpretation.</p><p>For example, <code>LatticeElem&lt;T>::meet</code> allows users to make a specific <code>meet</code> function
+that assumes that the lattice elements being met are not $\top$ nor $\bot$.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Meets two individual lattice elements (greatest lower bound).
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * If either is bottom, returns bottom. If either is top, returns the other.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * Otherwise, returns the function applied to the two facts.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> *
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @tparam Meet callable object to perform the meet of two inhabited facts
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param A The first fact
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param B The second fact
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param M The meet function, which must be callable with two facts and
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * return a new fact or a lattice element.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return a new lattice element that represents the meet of the two lattice
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * elements
+</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Meet<span style=color:#719e07>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>requires</span> std<span style=color:#719e07>::</span>is_invocable_v<span style=color:#719e07>&lt;</span>Meet, <span style=color:#719e07>const</span> T<span style=color:#719e07>&amp;</span>, <span style=color:#719e07>const</span> T<span style=color:#719e07>&amp;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>static</span> LatticeElem meet(<span style=color:#719e07>const</span> LatticeElem<span style=color:#719e07>&amp;</span> A, <span style=color:#719e07>const</span> LatticeElem<span style=color:#719e07>&amp;</span> B,
+</span></span><span style=display:flex><span>                        Meet<span style=color:#719e07>&amp;&amp;</span> M)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (A.isBottom() <span style=color:#719e07>||</span> B.isBottom()) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>makeBottom</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (A.isTop()) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> B;
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#268bd2>if</span> (B.isTop()) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> A;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#268bd2>constexpr</span> (std<span style=color:#719e07>::</span>is_convertible_v<span style=color:#719e07>&lt;</span><span style=color:#719e07>decltype</span>(M(A.value(), B.value())),
+</span></span><span style=display:flex><span>                                        LatticeElem<span style=color:#719e07>&gt;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> M(A.value(), B.value());
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>LatticeElem</span>(M(A.value(), B.value()));
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=evaluation-and-future-ideas class=anchor-link><a href=#evaluation-and-future-ideas>Evaluation and Future Ideas</a></h2><p>Here&rsquo;s a small C program that concatenates the first letter of every
+command line argument.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cassert&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdio&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdlib&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (argc <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>256</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;Too many arguments</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// skip the filename
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#dc322f>int</span> arg_num <span style=color:#719e07>=</span> argc <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> args[<span style=color:#2aa198>257</span>];
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> arg_num; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> arg <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// analysis can&#39;t assume anything about `argv`, so we must
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// check for nulls
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>if</span> (arg) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>*</span> word <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>arg;
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (word) {
+</span></span><span style=display:flex><span>                args[i] <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>word;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    args[arg_num] <span style=color:#719e07>=</span> <span style=color:#2aa198>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;%s</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, args);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>You do have to help the analysis a little bit. In this case, I added the extra checks
+on <code>argc</code> and <code>argv</code>.
+Let&rsquo;s compile this with our analysis, and it should be able to tell us our program is safe:</p><p><img src=FirstLetterBad.png alt></p><p>Hm. It&rsquo;s not liking the line: <code>args[arg_num] = '\0';</code>. Ah,
+that&rsquo;s because <code>arg_num</code> can be negative. Nothing is stopping someone
+from calling <code>main</code> and passing <code>-10</code> to <code>argc</code>! This oversight is an honest
+mistake I made when testing the analysis pass: I intended to write a passing
+test but soon discovered I overlooked <code>argc</code> being negative.</p><p>Here&rsquo;s a program that sorts the input arguments and honestly does pass:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cassert&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdio&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdlib&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstring&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(argc <span style=color:#719e07>==</span> <span style=color:#2aa198>2</span>);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> arg <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(arg <span style=color:#719e07>!=</span> nullptr);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> str <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>arg;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(str <span style=color:#719e07>!=</span> nullptr);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> len <span style=color:#719e07>=</span> <span style=color:#268bd2>strlen</span>(str);
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(len <span style=color:#719e07>&lt;=</span> <span style=color:#2aa198>512</span>);
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> sorted[<span style=color:#2aa198>513</span>];
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>*</span> c <span style=color:#719e07>=</span> (str <span style=color:#719e07>+</span> i);
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>assert</span>(c <span style=color:#719e07>!=</span> nullptr);
+</span></span><span style=display:flex><span>        sorted[i] <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>c;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#dc322f>char</span> min <span style=color:#719e07>=</span> sorted[i];
+</span></span><span style=display:flex><span>        <span style=color:#dc322f>int</span> min_idx <span style=color:#719e07>=</span> i;
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>; j <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>j) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (sorted[j] <span style=color:#719e07>&lt;</span> min) {
+</span></span><span style=display:flex><span>                min <span style=color:#719e07>=</span> sorted[j];
+</span></span><span style=display:flex><span>                min_idx <span style=color:#719e07>=</span> j;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> tmp <span style=color:#719e07>=</span> sorted[i];
+</span></span><span style=display:flex><span>        sorted[i] <span style=color:#719e07>=</span> min;
+</span></span><span style=display:flex><span>        <span style=color:#268bd2>assert</span>(min_idx <span style=color:#719e07>&lt;</span> len);
+</span></span><span style=display:flex><span>        sorted[min_idx] <span style=color:#719e07>=</span> tmp;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    sorted[len] <span style=color:#719e07>=</span> <span style=color:#2aa198>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;%s</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, sorted);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Again, the analysis requires writing things in a way that helps it out, but overall
+it can figure out a decent amount of stuff on its own!</p><p>But this does reveal a large number of things that aren&rsquo;t currently supported:</p><ol><li>Dynamic intervals. Currently, all intervals are constant, but even if
+we have two variables, <code>a</code> and <code>b</code>, that could take on any value, knowing that
+<code>a &lt; b</code> can still be quite useful. For example if <code>a</code> is an iteration bound and
+<code>b</code> is the size of a dynamic buffer. Having relations between values would also
+allow the analysis to remove the <code>assert(min_idx &lt; len)</code> in the second example.</li><li>Support intrinsics. I also don&rsquo;t invalidate pointers when they&rsquo;re passed
+to a function. This isn&rsquo;t good because that function might set the pointer to null!
+The reason I didn&rsquo;t do this yet is because it would require supporting intrinsics
+to not be overly conservative. If we also modify the code to add an assignment
+of the pointer to null after every <code>free</code>/<code>delete</code>, then we also get protection
+from double-free errors as well.</li><li>Use interprocedural analysis. We know all call sites to functions with
+internal linkage, so we can analyze internal functions with the specific sets
+of arguments that we pass to them. Likewise, we can analyze the actual return values
+from functions instead of conservatively assuming all return values are $\bot$.</li><li>Handle dynamic arrays. The infrastructure is already in place, but currently
+<code>malloc</code> doesn&rsquo;t set the size of the data a pointer refers to.</li><li>Structs</li><li>For a really big bonus challenge: do something with globals.</li></ol><p>I plan to come back to these improvements in the future.
+But that&rsquo;s all for now, be sure the check out the source if you&rsquo;re interested.</p></div><a href=https://github.com/stephenverderame/cs6120-llvm/tree/main/null-check><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text><a href=https://github.com/victoriadrake/hugo-theme-introduction/><strong>Introduction</strong></a> theme for <a href=http://gohugo.io/>Hugo</a>. Made with <a href=https://victoria.dev><i class="fa fa-heart"></i> and <i class="fa fa-coffee"></i></a> by open source contributors.</span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

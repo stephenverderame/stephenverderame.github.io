@@ -1,0 +1,27 @@
+digraph G {
+    node [shape=rectangle]
+    i [label="i = 0"];
+    j [label="j = 0"];
+    if1 [label="if i < len"];
+    ipp [label="i++"];
+    jpp [label="j++"];
+    if2 [label="if j < len"];
+    meet2 [label="meet"];
+    top [style="invisible"];
+    
+    top -> i [label="len: [-inf, 99]"];
+    i -> meet [label="i: [0, 0]\nlen: [-inf, 99]"];
+    meet -> if1 [label="i: [0, inf]\nlen: [-inf, 99]"];
+    if1 -> ipp [label="T\ni: [0, 98]\nlen: [1, 99]"];
+    ipp:nw -> meet:sw [label="i: [1, 99]\nlen: [1, 99]"];
+    if1 -> j [label="F\ni: [0, inf]\nlen: [-inf, 99]"];
+    
+    
+    j -> meet2 [label="j: [0, 0]\nlen: [-inf, 99]"];
+    if2 -> jpp [label="T\nj: [0, 98]\nlen: [1, 99]"];
+    if2 -> exit [label="F\nj: [0, inf]\nlen: [-inf, 99]"];
+    meet2 -> if2 [label="j: [0, inf]\nlen: [-inf, 99]"];
+    jpp:nw -> meet2:sw [label="j: [1, 99]\nlen: [1, 99]"];
+    
+    
+}
