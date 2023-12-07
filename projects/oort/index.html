@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Project Oort -</title><meta property="og:title" content="Project Oort - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/projects/oort/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/oort_gif2.gif"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/shadows.gif"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/xgame_shot.png"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/ygame_shot1.png"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/z_oort.gif"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.3ec299aca70e5bf150f6ea08ddef6749459ee94e2bca02396c1297f559c53b3f.css integrity="sha256-PsKZrKcOW/FQ9uoI3e9nSUWe6U4rygI5bBKX9VnFOz8=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://stephenverderame.github.io/styles/owlCarousel.min.ac66af72227511c9df5dfd4d1922c4093b918ded1838fc7f2f939b4c54613c32.css integrity="sha256-rGavciJ1EcnfXf1NGSLECTuRje0YOPx/L5ObTFRhPDI=" crossorigin=anonymous media=screen></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Project Oort</h1><div class="post-data post-subtitle">Jan 2022 - June 2023</div></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Project Oort -</title><meta property="og:title" content="Project Oort - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/projects/oort/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/oort_gif2.gif"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/shadows.gif"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/xgame_shot.png"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/ygame_shot1.png"><meta property="og:image" content="https://stephenverderame.github.io/projects/oort/z_oort.gif"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://stephenverderame.github.io/styles/owlCarousel.min.ac66af72227511c9df5dfd4d1922c4093b918ded1838fc7f2f939b4c54613c32.css integrity="sha256-rGavciJ1EcnfXf1NGSLECTuRje0YOPx/L5ObTFRhPDI=" crossorigin=anonymous media=screen></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Project Oort</h1><div class="post-data post-subtitle">Jan 2022 - June 2023</div></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
 <span aria-hidden=true></span>
 <span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
 <a class=navbar-item href=https://stephenverderame.github.io/blog/>Blog</a>
@@ -7,9 +7,64 @@
 is a third-person space shooter game implemented in over 20k+ lines of Rust with
 OpenGL. You control a starfighter that must battle AI enemies in a
 zero-gravity asteroid field while managing the ship&rsquo;s energy and shield.</p><p>Your ship is armed with a photon cannon, <a href=/blog/oort-shadows>cloaking</a>, and a gravity tether that
-allows you to swing from or pull asteroids or other ships.</p><p>Technical Implementations:</p><ul><li>A Forward+ <sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup> physically based rendering engine that supports
+allows you to swing from or pull asteroids or other ships.</p><p>There&rsquo;s no deep aim of the game, the goal is to shoot down your enemies without
+getting shot down yourself. Note that, there is no atmosphere and
+therefore there is no drag that will slow down your ship.
+The ship moves at constant velocity unless accelerated or decelerated.</p><p><strong>Controls:</strong> Left click to fire. Right-click to fire a grappling shot.
+<code>T</code> to turn invisible. <code>W</code>, <code>S</code> to accelerate forwards or backward,
+and mouse movement to control the rotation of the ship.</p><p><strong>Shield:</strong> You have a shield, denoted by the blue number at the top left.
+If this goes to 0, your ship is destroyed and you will respawn somewhere
+randomly on the map. Your shield will regenerate slowly over time.</p><p><strong>Energy:</strong> Denoted by the yellow number in the top left, your energy is
+necessary to fire lasers and accelerate your ship.
+Your energy will regenerate slowly over time.</p><p><strong>Minimap:</strong> In the bottom right, you have a minimap to see where you are
+relative to lasers and asteroids. The minimap is a 2D projection
+of 3D space which is &ldquo;top-down&rdquo; respective to your camera angle.</p><p><strong>Grappling Hook:</strong> You can fire a &ldquo;hook shot&rdquo; by pressing and holding right-click.
+Once landed on an object, a tether will be formed between the target object and the shooter.
+The distance between the shooter and the object will not exceed the distance
+between them when the tether was first formed. The amount a tethered object moves to ensure
+this depends on the momentum of each tethered object.
+To release the tether, release right-click.</p><h3 id=summary class=anchor-link><a href=#summary>Summary</a></h3><p>Technical Implementations:</p><ul><li>A Forward+ <sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup> physically based rendering engine that supports
 area lights, cascading shadow maps, soft shadows, animated models, and
 ray-marched volumetrics</li><li>A 3-phase collision detection system utilizing an Octree, Bounding Volume
 Hierarchy of Oriented Bounded Boxes, and triangle intersections parallelized
-with compute shaders. You can read more about this <a href=/blog/oort-collisions>here</a>.</li><li>A behavior tree AI and a modification of A* for pathfinding</li><li>Rigid Body Simulation with rotational motion</li></ul><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p><a href=https://projet.liris.cnrs.fr/imagine/pub/proceedings/EUROGRAPHICS2012/short/pdf/005-008.pdf target=_blank>Harada, T., McKee, J., & Yang, J. (2012). Forward+: Bringing Deferred Lighting to the Next Level. In Eurographics 2012 - Short Papers. The Eurographics Association.</a>&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/ProjectOort target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script>
+with compute shaders. You can read more about this <a href=/blog/oort-collisions>here</a>.</li><li>A behavior tree AI and a modification of A* for pathfinding</li><li>Rigid Body Simulation with rotational motion</li></ul><h3 id=graphics-engine class=anchor-link><a href=#graphics-engine>Graphics Engine</a></h3><p>The graphics engine was designed, from the ground up using OpenGL.
+The general structure is built on a pipeline system of <code>RenderPass</code>es,
+<code>RenderTarget</code>s and <code>TextureProcessor</code>s. A <code>RenderTarget</code> is, well,
+a render target where objects are drawn to and (typically) produces a texture.
+A <code>TextureProcessor</code> is essentially a function on textures that takes input textures
+and may produce an output texture. To pass extra state between stages, each stage has
+read/write access to a pipeline cache.
+A <code>RenderPass</code>, strings together multiple <code>RenderTarget</code>s and <code>TextureProcessor</code>s,
+ordering them at the discretion of the <code>Pipeline</code>, which holds
+a dependency graph of the stages in the <code>RenderPass</code>. The <code>Pipeline</code> is defined
+by the user via a custom Rust <a href=https://en.wikipedia.org/wiki/Domain-specific_language target=_blank>DSL</a>.</p><p>A <code>Scene</code> has a list of <code>Entity</code>s and <code>RenderPass</code>es. Each <code>Entity</code> can define
+general properties that a <code>RenderPass</code> can access to render the <code>Entity</code> properly,
+such as its required render order. A final <code>Compositor</code> can compose the results
+of multiple <code>RenderPass</code>es together.</p><p>I have a blog post about how my graphics engine handles transparent objects
+<a href=/blog/oort-shadows>here</a>. Below is a diagram of the relevant architecture:</p><p><img src=/projects/GraphicsEngine.png alt=DesignDiagram></p><h3 id=collision-detection class=anchor-link><a href=#collision-detection>Collision Detection</a></h3><p>I have a very detailed blog post about this <a href=/blog/oort-collisions>here</a>.</p><h3 id=physics-engine-and-ai class=anchor-link><a href=#physics-engine-and-ai>Physics Engine and AI</a></h3><p>A rigid body simulation is used to handle the physics and collision resolution.
+Each rigid body is given a manually assigned mass
+or a manually assigned density.
+In the latter case, we can compute an estimated mass using the volume of the
+body&rsquo;s bounding box. For each rigid body, we estimate an inertial tensor
+based on the vertices of the Rigid Body&rsquo;s collision mesh.</p><p>Then at each step of the simulation, we determine the magnitude, direction,
+and point of application of the forces that are applied to each object.
+We then use the impulse-momentum theorem to compute changes in velocity.
+We subtract the point of application from the object&rsquo;s center of
+mass to estimate a lever arm and compute an applied torque for the object.
+Using this and the inertial tensor, we compute a rotational angular velocity.
+I chose not to handle rotational velocity updates quite the same for
+the user-controlled ships for now,
+because it made the controls upon colliding with something feel unintuitive
+(ie. you lost control as the collision would impart a torque, rotating
+your ship).</p><p>For collision resolution, we compute a point of contact by
+averaging the centroids of colliding triangles and an impact force
+based on the momentum of colliding bodies.</p><p>The basic premise of the grappling hook is that if the two objects connected
+by the &ldquo;cable&rdquo; are too far apart, we essentially update the velocities of
+both objects by treating the cable being pulled as an elastic collision.</p><p>For the AI, a behavior tree is used to control the non-player enemy in the game.
+The behavior tree is built up of Sequence, Fallback, and ParallelSequence
+control nodes and custom action nodes for moving and firing.
+Pathfinding is done using a 3D implementation of A*,
+by tiling the 3D space into little cubes.
+Once a path has been computed, a simple local navigator just
+follows the path in segments of straight lines.</p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p><a href=https://projet.liris.cnrs.fr/imagine/pub/proceedings/EUROGRAPHICS2012/short/pdf/005-008.pdf target=_blank>Harada, T., McKee, J., & Yang, J. (2012). Forward+: Bringing Deferred Lighting to the Next Level. In Eurographics 2012 - Short Papers. The Eurographics Association.</a>&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/ProjectOort target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script>
 <script src=https://stephenverderame.github.io/js/bundleOwlCarousel.bc6b73f0a36bf19c70c5df8fc352d322988ca2bc40743fb836ee7371d555c28a.js integrity="sha256-vGtz8KNr8Zxwxd+Pw1LTIpiMorxAdD+4Nu5zcdVVwoo="></script></body></html>
