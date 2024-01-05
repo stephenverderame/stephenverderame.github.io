@@ -1,0 +1,509 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Fuzzing Compilers With Genetic Programming -</title><meta property="og:title" content="Fuzzing Compilers With Genetic Programming - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/bear/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/BearOverview.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/bear_cycle.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/bvec.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/diff_test.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/novelty1.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/bear/>Fuzzing Compilers With Genetic Programming</a></h2><div class=post-data>Dec 20, 2023
+|
+21 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Fuzzing%20Compilers%20With%20Genetic%20Programming%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fbear%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fbear%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fbear%2f&amp;description=Fuzzing%20Compilers%20With%20Genetic%20Programming" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/pl>pl</a>,
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/compilers>compilers</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#background>Background</a><ol><li><a href=#pcfgs>PCFGs</a></li><li><a href=#genetic-programming>Genetic Programming</a></li></ol></li><li><a href=#bear-dsl>Bear DSL</a><ol><li><a href=#generating-bare-c-programs>Generating Bare C Programs</a></li></ol></li><li><a href=#lowering-and-differential-testing>Lowering and Differential Testing</a></li><li><a href=#novelty-search>Novelty Search</a></li><li><a href=#multi-population-search>Multi Population Search</a></li><li><a href=#evaluation>Evaluation</a><ol><li><a href=#future-work>Future Work</a></li></ol></li></ol></nav></div><div class="container markdown top-pad"><p>Ensuring good test coverage of a compiler is hard. That&rsquo;s why I developed
+Bear, a compiler fuzzer that generates random test cases for compiler optimization
+passes. (Named as such because bears are fuzzy?) Bear uses genetic programming
+to evolve <em>novel</em> programs in the search space. Bear generates programs in a
+custom <em>DSL</em> (<a href=https://en.wikipedia.org/wiki/Domain-specific_language target=_blank>domain-specific language</a>)
+known as Bare C before being lowered into the target IR.</p><p>The IR Bear currently targets is BRIL
+(<a href=https://github.com/sampsyo/bril target=_blank>Big Red Intermediate Language</a>), which is the
+IR used in Cornell&rsquo;s PhD level compilers course. As part of that
+class, students write various compiler passes optimizing BRIL programs
+including local value numbering (LVN),
+dead code elimination (DCE), loop-invariant code motion (LICM),
+SSA conversion, and induction variable elimination. As such, these are the
+optimizations that Bare C was designed to be expressive enough to stress.</p><p>Programs are generated in the Bear DSL, Bare C, which are then lowered to the BRIL intermediate
+representation. The lowered program can then be run directly by the BRIL reference
+interpreter and the results can be compared with the result of running the program by the
+compiler being tested. Differences in the printed <code>stdout</code> between the two programs
+would indicate an error in the compiler under test.</p><p>Since we desire Bear to work with most, if not all, BRIL compiler pipelines,
+it will invoke the compiler under test via the command line. Therefore,
+Bear always generates terminating, error-free programs
+that can run in a relatively short amount of time so that every program we take
+the time to run will provide us with a valid test.</p><p><img src=BearOverview.png alt="Bear Overview"></p><h2 id=background class=anchor-link><a href=#background>Background</a></h2><h3 id=pcfgs class=anchor-link><a href=#pcfgs>PCFGs</a></h3><p>Before we continue, let&rsquo;s quickly discuss PCFGs or
+<a href=https://en.wikipedia.org/wiki/Probabilistic_context-free_grammar target=_blank>probabilistic context-free grammars</a>.
+A PCFG is basically a context-free grammar where every production of a nonterminal
+is assigned a probability. The sum of all the probabilities of a nonterminal sum to
+one.</p><p>Consider the following example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>expr <span style=color:#719e07>::=</span>  expr + expr           .1
+</span></span><span style=display:flex><span>        | expr - expr           .1
+</span></span><span style=display:flex><span>        | expr * expr           .05
+</span></span><span style=display:flex><span>        | var                   .25
+</span></span><span style=display:flex><span>        | num                   .5
+</span></span></code></pre></div><p>If we were to generate a random expression from the <code>expr</code> nonterminal,
+then there would be a 50% chance that we generate a number, a 25% chance
+we generate a variable, and so on.</p><p>Now notice that if we were to generate an addition operator, the left and
+right child expressions would have the same chances of producing a given production.
+This might not make sense in all circumstances. For example, we might want our PCFG
+to encode only left associativity, and therefore the probability of the right child of
+an addition generating another addition should be 0.</p><p>To achieve this, we can convert our PCFG to a <em>bigram</em>
+(as opposed to the unigram shown earlier) by making each child nonterminal a
+new nonterminal that has its own set of probabilities.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>expr  <span style=color:#719e07>::=</span>  expr1 + expr2           .1
+</span></span><span style=display:flex><span>         | expr3 - expr4           .1
+</span></span><span style=display:flex><span>         | expr5 * expr6           .05
+</span></span><span style=display:flex><span>         | var                     .25
+</span></span><span style=display:flex><span>         | num                     .5
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>expr1 <span style=color:#719e07>::=</span>  expr1 + expr2           .1
+</span></span><span style=display:flex><span>         | expr3 - expr4           .1
+</span></span><span style=display:flex><span>         | expr5 * expr6           .05
+</span></span><span style=display:flex><span>         | var                     .25
+</span></span><span style=display:flex><span>         | num                     .5
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>expr2 <span style=color:#719e07>::=</span>  expr1 + expr2           0
+</span></span><span style=display:flex><span>         | expr3 - expr4           0
+</span></span><span style=display:flex><span>         | expr5 * expr6           0
+</span></span><span style=display:flex><span>         | var                     .33
+</span></span><span style=display:flex><span>         | num                     .66
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>...
+</span></span></code></pre></div><p>While the grammar itself is context-free, we are essentially making the probabilities
+context-dependent. For even more context, we could repeat this process for the
+child nonterminals and construct a <em>trigram</em> that would have information about the
+last three parent productions, not just the last two as in a bigram or the last one
+as in a unigram.</p><p>With a PCFG, we can easily generate random programs by <em>random probing</em>.
+Given the above bigram, suppose we want to generate an expression. We start by
+randomly generating one of the top-level productions, weighted by their probability.</p><p>So we start by choosing a production for <code>expr</code>. With a 10% probability,
+suppose <code>+</code> is chosen. Now we must choose a production for <code>expr1</code> and <code>expr2</code>.
+For, <code>expr1</code>, suppose that <code>var</code> is chosen and for <code>expr2</code> suppose that <code>num</code>
+is chosen. The total probability of generating such an expression is
+<code>0.1 * 0.25 * 0.66 = 0.0165</code>. Observe that this method inherently biases towards
+shorter programs because, with each choice, there is a chance that a terminal
+production is chosen, preventing the expression from growing deeper.</p><h3 id=genetic-programming class=anchor-link><a href=#genetic-programming>Genetic Programming</a></h3><p>Genetic programming is a method of generating programs by a genetic algorithm,
+which is a biological-inspired stochastic optimization method. Genetic algorithms
+come in handy when the <em>fitness</em> that you are trying to optimize is not
+differentiable.</p><p>In genetic programming, a <em>population</em> of programs is evolved via mutation,
+crossover, or reproduction according to their fitness, which is a score of how good (or fit)
+the program is. For example, when trying to create a program that controls
+a bipedal robot, a possible fitness score for a program could be how far the
+robot moved when the program ran.</p><p>During <em>mutation</em>, a program in the old generation is copied to the new generation
+with some small changes such as changing a node in the AST. During
+<em>crossover</em>, two programs in the previous generation create two new programs
+in the next generation by mixing their genes. For example, swapping subtrees
+in the parent program&rsquo;s ASTs. During <em>reproduction</em>, a parent program
+in the original generation is simply cloned, as is, into the new generation.
+(Why this isn&rsquo;t just called cloning or mitosis is beyond me).</p><p>Not every program in a generation has equal chances of sending their genes to
+the next generation. Typically, a subset of the population is selected to
+spawn the next generation based on their fitness. A common method, known as
+roulette selection is to select a subset at random, weighting the probability
+of an individual being chosen based on their fitness.</p><p>In pseudocode, the basic structure of genetic programming has the following form:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>population <span style=color:#719e07>=</span> [random_program() <span style=color:#719e07>for</span> _ <span style=color:#719e07>in</span> <span style=color:#b58900>range</span>(population_size)]
+</span></span><span style=display:flex><span><span style=color:#719e07>while</span> <span style=color:#cb4b16>True</span>:
+</span></span><span style=display:flex><span>    fitnesses <span style=color:#719e07>=</span> [fitness(p) <span style=color:#719e07>for</span> p <span style=color:#719e07>in</span> population]
+</span></span><span style=display:flex><span>    population <span style=color:#719e07>=</span> select(population, fitnesses, population_size)
+</span></span><span style=display:flex><span>    population <span style=color:#719e07>=</span> [reproduce(population) <span style=color:#719e07>for</span> _ <span style=color:#719e07>in</span> <span style=color:#b58900>range</span>(population_size)]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>def</span> <span style=color:#268bd2>reproduce</span>(population):
+</span></span><span style=display:flex><span>    <span style=color:#719e07>with</span> probability p_mutate:
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> mutate(random<span style=color:#719e07>.</span>choice(population))
+</span></span><span style=display:flex><span>    <span style=color:#719e07>with</span> probability p_crossover:
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> crossover(random<span style=color:#719e07>.</span>choice(population), random<span style=color:#719e07>.</span>choice(population))
+</span></span></code></pre></div><h2 id=bear-dsl class=anchor-link><a href=#bear-dsl>Bear DSL</a></h2><p>The Bear DSL (referred to as Bare C), is a language designed to stress complex control flow and data dependencies
+in BRIL. It consists of basic arithmetic and boolean operators, conditionals, for, while and do-while loops,
+switches, break, continue, intra-procedural (local) try-catch, throw, print, and return. Values in the DSL can
+be one of two types: 64-bit signed integers or booleans. To always generate correctly typed programs,
+the grammar of the language enforces that only correctly typed programs can be formed into valid DSL abstract
+syntax trees.</p><p>Bare C also includes a special syntactic construct for Duff’s Device to
+generate programs with irreducible control flow. To ensure we can generate programs
+that trigger the optimizations we want to test, Bare C has non-terminals for redundant expressions,
+loop-invariant expressions (expressions whose values are constant from one loop iteration to the next), and
+induction variables.</p><p>The DSL also has a dead block which contains only dead code. Dead code does not have any side effects (such
+as prints) nor does it modify any variables that may be necessary for a computation with side effects.</p><p>Below is an excerpt from the Bare C grammar, using regular expressions <code>*</code>, <code>+</code>, and <code>?</code>
+for brevity.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>aexpr <span style=color:#719e07>::=</span> aexpr + aexpr
+</span></span><span style=display:flex><span>            | aexpr - aexpr
+</span></span><span style=display:flex><span>            | aexpr / aexpr
+</span></span><span style=display:flex><span>            | aexpr * aexpr
+</span></span><span style=display:flex><span>            | n | redundant(aexpr) | loop-invariant(aexpr) | induction-var(aexpr * aexpr + aexpr)
+</span></span><span style=display:flex><span>            | var
+</span></span><span style=display:flex><span>;;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>bexpr <span style=color:#719e07>::=</span> aexpr cmp aexpr 
+</span></span><span style=display:flex><span>        | ...
+</span></span><span style=display:flex><span>;;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>expr <span style=color:#719e07>::=</span> aexpr | bexpr
+</span></span><span style=display:flex><span>;;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>statement <span style=color:#719e07>::=</span> var := expr
+</span></span><span style=display:flex><span>            | return expr?
+</span></span><span style=display:flex><span>            | throw(n) expr?
+</span></span><span style=display:flex><span>            | print expr+
+</span></span><span style=display:flex><span>;;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>loop-statement <span style=color:#719e07>::=</span> statement 
+</span></span><span style=display:flex><span>                | break(n) 
+</span></span><span style=display:flex><span>                | continue(n) 
+</span></span><span style=display:flex><span>                | step
+</span></span><span style=display:flex><span>;;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>block <span style=color:#719e07>::=</span> statement 
+</span></span><span style=display:flex><span>        | if bexpr1 { block* } else { block* }
+</span></span><span style=display:flex><span>        | do { loop-block* } while var cmp aexpr1
+</span></span><span style=display:flex><span>        | while var cmp aexpr1 { loop-block* }
+</span></span><span style=display:flex><span>        | for var in aexpr1 .. aexpr1 by aexpr2 { loop-block* }
+</span></span><span style=display:flex><span>        | match aexpr3 { (n =&gt; block*)+ }
+</span></span><span style=display:flex><span>        | try { block* } catch var? { block* }
+</span></span><span style=display:flex><span>        | switch aexpr3 { do { (case n: loop-block*)+ } 
+</span></span><span style=display:flex><span>            for var in aexpr1 .. aexpr1 by aexpr2 } # Duff&#39;s Device
+</span></span><span style=display:flex><span>        | dead { block* }
+</span></span><span style=display:flex><span>;;
+</span></span><span style=display:flex><span>program <span style=color:#719e07>::=</span> block+
+</span></span></code></pre></div><p>One thing to note is that the grammar is neither a unigram nor a bigram
+model. In the above grammar, you can see some repeated productions such as
+<code>loop-statement</code>, <code>loop-block</code>, <code>aexpr1</code>, <code>aexpr2</code>, and <code>bexpr1</code>. However, many things
+are not repeated to avoid an explosion of probabilities. The nonterminals that
+are repeated are those that I thought would benefit the most from having more
+context information to invoke the optimizations I intended to test.</p><h3 id=generating-bare-c-programs class=anchor-link><a href=#generating-bare-c-programs>Generating Bare C Programs</a></h3><p>To generate programs in the Bear DSL, we randomly probe a PCFG, generating programs top-down. While
+the grammar of Bare C enforces things like break and continue only occur in the body of loops, nothing
+enforces that a throw statement must occur in the body of a try block. For constraints like this, we simply
+regenerate the invalid statement or expression until a valid one is yielded. This filtering and retry approach has
+seen success in fuzzers like <a href=https://users.cs.utah.edu/~regehr/papers/pldi11-preprint.pdf target=_blank>CSmith</a>.</p><p>The Bare C language has loop-invariant and redundant nonterminals. When the generator selects to add one of
+these to the program being generated, it needs to know what expressions are redundant and loop invariant. To
+do this we perform an incremental dataflow analysis to keep track of defined variables, available expressions
+(which can be reused in a redundant expression), and loop-invariant variables.
+Every time a new statement is generated, we perform a dataflow analysis on that statement. For example, when
+the assignment <code>x := 10</code> is generated, we must kill all previous available expressions that use x. We keep track of
+the analysis facts in a hierarchical context, where each level of the context corresponds to the current level of
+scope nesting the generator is currently at. When we exit a child scope (such as the body of the if), we merge
+the corresponding child contexts with all of its siblings (in this example, the else block of the if-else) and then
+merge this final output with the parent context.</p><p>For example, when generating an if, we perform the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Generates an if statement
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// # Arguments
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `pcfg` - The pcfg containing probabilities for generating stmts in a block
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `tp` - The top level pcfg containing probabilities for generating top
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// level blocks
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `distribs` - probability distributions
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `funcs` - List of available functions
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `fuel` - Limit to depth of subtree
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `complexity` - Limits to number of statements in the program and subtree
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>pub</span>(<span style=color:#719e07>super</span>) <span style=color:#719e07>fn</span> <span style=color:#268bd2>gen_if</span><span style=color:#719e07>&lt;</span>T: <span style=color:#268bd2>Pretty</span> <span style=color:#719e07>+</span> StatementTy, P: <span style=color:#268bd2>StatementPCFG</span><span style=color:#719e07>&gt;</span>(
+</span></span><span style=display:flex><span>    pcfg: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>BlockPCFG</span><span style=color:#719e07>&lt;</span>P<span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    tp: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>TopPCFG</span>,
+</span></span><span style=display:flex><span>    ctx: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> Context,
+</span></span><span style=display:flex><span>    distribs: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> Distribs,
+</span></span><span style=display:flex><span>    funcs: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> FuncList,
+</span></span><span style=display:flex><span>    fuel: <span style=color:#dc322f>usize</span>,
+</span></span><span style=display:flex><span>    complexity: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> Complexity,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#268bd2>Block</span><span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// generates random condition for the if guard
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> (cond, _) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>        gen_bexpr(<span style=color:#719e07>&amp;</span>pcfg.if_pcfg.guard, ctx, distribs, funcs, <span style=color:#cb4b16>EXPR_FUEL</span>);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Get a context of analysis facts for the child
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> true_frame <span style=color:#719e07>=</span> ctx.child_frame();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// generate blocks for the true branch
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> then_block <span style=color:#719e07>=</span> gen_blocks(
+</span></span><span style=display:flex><span>        pcfg,
+</span></span><span style=display:flex><span>        tp,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> true_frame,
+</span></span><span style=display:flex><span>        distribs,
+</span></span><span style=display:flex><span>        funcs,
+</span></span><span style=display:flex><span>        fuel <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>        complexity,
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// get another context storing analysis facts for the right child
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> false_frame <span style=color:#719e07>=</span> ctx.child_frame();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// generate blocks for the right child
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> else_block <span style=color:#719e07>=</span> gen_blocks(
+</span></span><span style=display:flex><span>        pcfg,
+</span></span><span style=display:flex><span>        tp,
+</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> false_frame,
+</span></span><span style=display:flex><span>        distribs,
+</span></span><span style=display:flex><span>        funcs,
+</span></span><span style=display:flex><span>        fuel <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>        complexity,
+</span></span><span style=display:flex><span>    );
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// meet the analysis facts of the two children
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> sf <span style=color:#719e07>=</span> Context::meet(true_frame, false_frame);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// update the parent context with any new analysis facts.
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    ctx.update(sf);
+</span></span><span style=display:flex><span>    Block::If {
+</span></span><span style=display:flex><span>        guard: <span style=color:#268bd2>cond</span>,
+</span></span><span style=display:flex><span>        then: <span style=color:#268bd2>then_block</span>,
+</span></span><span style=display:flex><span>        otherwise: <span style=color:#268bd2>else_block</span>,
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The incremental analysis also prevents Bear from generating statements after
+all paths have hit a <code>return</code>, <code>break</code>, <code>continue</code>, or <code>throw</code>. The goal is to
+generate correct analysis information from an incomplete program as we are generating
+it. This means that we cannot perform a traditional iterate until convergence
+and instead perform a one-shot analysis pass through the CFG in topological
+order as if it were a DAG (Directed Acyclic Graph).</p><p>For loop invariance, we avoid the need to perform a traditional iterate until convergence algorithm by randomly
+selecting some variables to be immutable throughout the body of the loop before we generate any blocks in the
+loop body. This technique is also used to avoid generating programs that modify the loop iteration variable in
+ways that create nonterminating programs.</p><p>Speaking of nontermination, we use an interval analysis to compute conservative bounds
+on the values any particular variable may take on.
+In <a href=/blog/null-check/#interval-analysis-as-abstract-interpretation>my last post</a>, I discussed
+interval analysis and abstract interpretation in some detail, so go check out that post for more
+information. This information determined by the analysis can be used
+to ensure that loops terminate in a reasonable amount of time by limiting loops to 10,000
+iterations. It also prevents programs from exhibiting divide-by-zero exceptions.</p><p>Consider the following expression that the generator has
+chosen to produce: <code>x := 1000 / a</code>, where <code>a</code> has the range <code>[−100, 100]</code>.
+We want to enforce that $a \not = 0$. The simple approach
+currently used is to add to the divisor the absolute value of the divisor’s lower bound,
+plus one. Therefore, we get
+the statement <code>x := 1000 / (a + 101)</code> where <code>(a + 101)</code> has the range <code>[1, 201]</code>.</p><p>A similar procedure takes place for generating the loop step, initializer, and limit
+to ensure that a loop doesn&rsquo;t exceed 10,000 iterations.</p><h2 id=lowering-and-differential-testing class=anchor-link><a href=#lowering-and-differential-testing>Lowering and Differential Testing</a></h2><p>The way we observe program behavior is through the <code>print</code> statement. Therefore, during lowering we artificially
+insert extra print statements to ensure that we can observe differences in the unoptimized and optimized program
+behavior. Once lowered, we run the program directly with the BRIL reference interpreter. This serves as our
+ground truth program output. We then compare this output with the output produced by the reference interpreter
+after performing the passes and optimizations that we seek to test. This approach is known as differential testing,
+and it is how we can determine whether we’ve identified a bug (mismatch in outputs).</p><p><img src=diff_test.png alt="Differential Testing"></p><p>While running the program for differential testing, we also want to be able to observe the runtime behaviors of
+each program to plot the test program in <em>behavior space</em>, which is the space of all runtime behaviors
+of the programs we are generating. A runtime behavior is a property of the execution
+of the program such as how many loop iterations it ran through or how many add instructions
+were executed.</p><p>To achieve this, we first insert extra <code>NOP</code> instructions during lowering that
+have attached information on the high-level construct being run. For example, at the start of a loop, we insert
+an NOP instruction that contains an argument that specifies the current nested loop depth. During differential
+testing, we run tests on a modified interpreter that will dump out a trace of all the instructions run (including
+these NOPs). The fuzzer can then examine the trace, and use this information to build a behavior vector.</p><p>A behavior vector is essentially a way to encode quantities that describe a program’s runtime behavior as a
+vector of floating point values. For example, one element in the vector represents the maximum loop depth that
+was reached during program execution. Another element in the vector is a numeric representation of how the
+program failed. For example, success is encoded as a 0, failing by causing an exception or crash in any of the
+compiler stages being tested is encoded as a 6, producing less output than expected is encoded as a 2, producing
+the same amount, but a different trace of output is encoded as a 1, optimizations which cause a divide by zero is
+encoded as a 7, etc. This information is vital for novelty search, as we’ll soon discuss.</p><p><img src=bvec.png alt="Behavior Vector"></p><h2 id=novelty-search class=anchor-link><a href=#novelty-search>Novelty Search</a></h2><p>We use a genetic algorithm known as <a href=https://www.cs.swarthmore.edu/~meeden/DevelopmentalRobotics/lehman_ecj11.pdf target=_blank>novelty search</a>,
+which rewards being different rather than
+optimizing a specific metric. We use such an approach because we don’t have a great metric to optimize. We
+could optimize the number of bugs found, but there can be vast areas in the space of programs that are bug-free
+and the gradient for this could be near 0. Furthermore, this metric could lead to the fuzzer getting stuck in a local
+optimum where it continually generates similar programs that expose the same bug. Therefore, the idea is to
+ensure the fuzzer generates many different tests that are adequately spread across the entire space of programs
+and exercise many different aspects of BRIL.</p><p>The workflow of novelty search for Bear is as follows:</p><ol><li>Generate a population of some number of random PCFGs.</li><li>Use each PCFG to generate 3 random programs.</li><li>Run each random program and use the trace to compute a behavior vector for each program.</li><li>Using the behavior vectors, compute a novelty score for each program and assign the PCFG to have the
+median novelty of the programs it generated. This is to provide some robustness against
+a good PCFG getting unlucky and generating a &ldquo;bad&rdquo; program.</li><li>Select a subgroup of the PCFG population to be used as parents for the new generation, with PCFGs that
+generate programs with a higher median novelty being more likely to be in this subgroup.</li><li>Mutate, crossover, and reproduce individuals in the selected subgroup to spawn a new population of the
+next generation of PCFGs.</li><li>Return to step 2</li></ol><p><img src=bear_cycle.png alt="Bear Structure"></p><p>Now one question you might have is how to compute this &ldquo;novelty&rdquo;?
+We define novelty as the average distance of a behavior
+vector to its $k$-nearest neighbors.
+For Bear, we just use a standard Euclidean distance but scale each element
+slightly differently so elements that are inherently larger numbers, such as
+the instruction count, don&rsquo;t dominate the novelty. Specifically, we classify
+measurements that scale with the number of dynamic instructions on a log scale
+before using them as elements in a behavior vector. This is because we care more
+about the difference between 50 divisions and 0 divisions than the difference between
+1200 and 8000 divisions. The former is a difference of 2 orders of magnitude
+while the latter is a difference of 0 orders of magnitude.
+So, for a program&rsquo;s behavior vector $v$, nearest neighbor vectors
+${x_1, &mldr;, x_k}$, and scaling function $s$, we compute:
+$$\rho(v) = \frac1k\sum_{i = 1}^k \sqrt{(s(v) - s(x_i)) \cdot (s(v) - s(x_i))}$$
+where, for a program with $n$ dynamic instructions and behavior vector $a = \langle a_1, a_2, &mldr;, a_j \rangle$
+with element $a_i \ge 0$
+$$s(a_i) = \begin{cases}
+\log(a_i + 1) & \text{ if } a_i \propto n \ \enspace
+a_i & \text{ otherwise} \end{cases}$$
+Another view of novelty ($\rho(v)$) is the sparseness of the area around a point in behavior
+space. The more sparse the area around a behavior vector is, the more novel the
+behaviors of the program are.</p><p>The algorithm keeps track of an <em>archive</em> of individuals that, when
+they were generated, had a novelty exceeding a particular threshold. The nearest
+neighbors used to compute the novelty of a behavior vector are taken
+from individuals in this archive and the current generation.</p><p>As an example, consider the following example transition from generation
+$x$ to generation $x + 1$.</p><p>Gen $x$:
+<img src=novelty1.png alt=Novelty1>
+Gen $x + 1$:
+<img src=novelty2.png alt=Novelty2></p><p>Notice that programs with a lower novelty are not saved to the archive but
+programs with a high novelty are.</p><p>In the Bear implementation the overall structure of the novelty search is
+as follows:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#586e75>// Runs the current population and returns the next population.
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> pop_idx <span style=color:#719e07>=</span> params.pop_idx;
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> bvecs <span style=color:#719e07>=</span> vec![];
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (i, pcfg) <span style=color:#719e07>in</span> pop.iter().enumerate() {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> _ <span style=color:#719e07>in</span> <span style=color:#2aa198>0</span><span style=color:#719e07>..</span><span style=color:#cb4b16>TRIALS_PER_PCFG</span> {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// Generate random cmd line args to run the program with
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>let</span> prog_args <span style=color:#719e07>=</span> gen_main_args(args);
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// Generates a test and runs it
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>let</span> (brc, prog, result) <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>                gen_good_test(pcfg, args, test_pipeline, <span style=color:#719e07>&amp;</span>prog_args, pop_idx);
+</span></span><span style=display:flex><span>            bvecs.push((
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// Keep track of which pcfg a behavior vector came from
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                i,
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// Construct a behavior vector from a trace file saved to disk
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                BehaviorVec::new(
+</span></span><span style=display:flex><span>                    <span style=color:#719e07>&amp;</span>format!(<span style=color:#2aa198>&#34;out/rt_</span><span style=color:#2aa198>{pop_idx}</span><span style=color:#2aa198>.trace&#34;</span>),
+</span></span><span style=display:flex><span>                    FailureType::from(<span style=color:#719e07>&amp;</span>result),
+</span></span><span style=display:flex><span>                ),
+</span></span><span style=display:flex><span>            ));
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Increment number of generations
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    local_stats.gen_count <span style=color:#719e07>+=</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Select the subset of the population that can reproduce
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> r: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>_<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> select(bvecs, archive, stats, local_stats, params)
+</span></span><span style=display:flex><span>        .iter()
+</span></span><span style=display:flex><span>        .map(<span style=color:#719e07>|</span>(pop_id, _)<span style=color:#719e07>|</span> pop[<span style=color:#719e07>*</span>pop_id].clone())
+</span></span><span style=display:flex><span>        .collect();
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Spawn the next generation
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    reproduce(<span style=color:#719e07>&amp;</span>r, params)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Selects `SELECT_SIZE` elements from `gen` probabilistically, weighted by their
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// novelty
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// # Arguments
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `gen` - The population to select from. The first element of each tuple is
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// the index of the behavior vec&#39;s pcfg in the population.
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// # Returns
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// A vector of the selected behavior vectors. The first element of each tuple
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// is the index of the behavior vec&#39;s pcfg in the population.
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>#[allow(clippy::cast_precision_loss)]</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>select</span>(
+</span></span><span style=display:flex><span>    <span style=color:#719e07>mut</span> gen: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    archive: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Arc</span><span style=color:#719e07>&lt;</span>RwLock<span style=color:#719e07>&lt;</span>Archive<span style=color:#719e07>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    params: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>PopParams</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> old_len <span style=color:#719e07>=</span> gen.len();
+</span></span><span style=display:flex><span>    assert!(gen.len() <span style=color:#719e07>%</span> <span style=color:#cb4b16>TRIALS_PER_PCFG</span> <span style=color:#719e07>==</span> <span style=color:#2aa198>0</span>);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Gets the behavior vector with the median novelty out of all the trials
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// ran for a given PCFG
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    gen <span style=color:#719e07>=</span> extract_medians(gen, archive);
+</span></span><span style=display:flex><span>    assert!(old_len <span style=color:#719e07>/</span> <span style=color:#cb4b16>TRIALS_PER_PCFG</span> <span style=color:#719e07>==</span> gen.len());
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// ith element of distance is the average distance of the ith element of gen
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> distances <span style=color:#719e07>=</span> vec![];
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> to_save <span style=color:#719e07>=</span> vec![];
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// Gets the arvhive point cloud and adds the current generation
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// points tp it
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> cur_gen <span style=color:#719e07>=</span> archive.read().unwrap().clone_point_cloud();
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (_, individual) <span style=color:#719e07>in</span> <span style=color:#719e07>&amp;</span>gen {
+</span></span><span style=display:flex><span>            cur_gen.add_point(individual);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// Computes novelty
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>for</span> (pcfg_idx, b) <span style=color:#719e07>in</span> <span style=color:#719e07>&amp;</span>gen {
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>let</span> dist <span style=color:#719e07>=</span> cur_gen
+</span></span><span style=display:flex><span>                .get_nearest_k(b, K)
+</span></span><span style=display:flex><span>                .iter()
+</span></span><span style=display:flex><span>                .map(<span style=color:#719e07>|</span>(b, _)<span style=color:#719e07>|</span> b)
+</span></span><span style=display:flex><span>                .sum::<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>()
+</span></span><span style=display:flex><span>                <span style=color:#719e07>/</span> K <span style=color:#719e07>as</span> <span style=color:#dc322f>f64</span>;
+</span></span><span style=display:flex><span>            distances.push(HeapElem {
+</span></span><span style=display:flex><span>                dist,
+</span></span><span style=display:flex><span>                index: <span style=color:#719e07>*</span>pcfg_idx,
+</span></span><span style=display:flex><span>            });
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// Saves novel data points to the archive
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#719e07>if</span> dist <span style=color:#719e07>&gt;</span> max_dist <span style=color:#719e07>*</span> <span style=color:#2aa198>0.8</span> <span style=color:#719e07>||</span> dist <span style=color:#719e07>&gt;</span> <span style=color:#cb4b16>NOVELTY_THRESH</span> {
+</span></span><span style=display:flex><span>                to_save.push(b.clone());
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> e <span style=color:#719e07>in</span> to_save {
+</span></span><span style=display:flex><span>        archive.write().unwrap().add_point(e);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    gen_select_set(<span style=color:#719e07>&amp;</span>distances, gen, params)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#2aa198>/// Selects `params.select_size` elements from `gen` probabilistically, weighted by their
+</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// novelty (`distances`).
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>gen_select_set</span>(
+</span></span><span style=display:flex><span>    distances: <span style=color:#719e07>&amp;</span>[HeapElem],
+</span></span><span style=display:flex><span>    gen: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span>,
+</span></span><span style=display:flex><span>    params: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>PopParams</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    assert_eq!(distances.len(), gen.len());
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> sum: <span style=color:#dc322f>f64</span> <span style=color:#719e07>=</span> distances.iter().map(<span style=color:#719e07>|</span>e<span style=color:#719e07>|</span> e.dist).sum();
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> sum <span style=color:#719e07>=</span> sum.max(<span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// Mathces each individual with its normalized novelty
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// The normalized novelty will be the probability that pcfg
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// is chosen to reproduce
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> res: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>_<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> gen
+</span></span><span style=display:flex><span>        .into_iter()
+</span></span><span style=display:flex><span>        .zip(distances.iter().map(<span style=color:#719e07>|</span>e<span style=color:#719e07>|</span> e.dist <span style=color:#719e07>/</span> sum))
+</span></span><span style=display:flex><span>        .collect();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> r: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>_<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> res
+</span></span><span style=display:flex><span>        .choose_multiple_weighted(
+</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> rnd::get_rng(),
+</span></span><span style=display:flex><span>            params.global.select_size,
+</span></span><span style=display:flex><span>            <span style=color:#719e07>|</span>e<span style=color:#719e07>|</span> e.<span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>        )
+</span></span><span style=display:flex><span>        .unwrap()
+</span></span><span style=display:flex><span>        .collect();
+</span></span><span style=display:flex><span>    r.into_iter()
+</span></span><span style=display:flex><span>        .map(<span style=color:#719e07>|</span>((pcfg_idx, bv), _)<span style=color:#719e07>|</span> (<span style=color:#719e07>*</span>pcfg_idx, bv.clone()))
+</span></span><span style=display:flex><span>        .collect()
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Behavior vectors are encoded like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Classifies the number of instructions into a given class on a log scale.
+</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>const</span> <span style=color:#719e07>fn</span> <span style=color:#268bd2>icount_class</span>(icount: <span style=color:#dc322f>i64</span>) -&gt; <span style=color:#dc322f>i64</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>1</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>10</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>100</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>2</span>
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>1_000</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>3</span>
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>10_000</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>100_000</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>5</span>
+</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#2aa198>6</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>impl</span> BehaviorVec {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>pub</span> <span style=color:#719e07>const</span> <span style=color:#719e07>fn</span> <span style=color:#268bd2>vectorize</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>) -&gt; [<span style=color:#dc322f>i64</span>; <span style=color:#2aa198>13</span>] {
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// note, these are all dynamic properties of the execution
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// not static properties of the source code
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        [
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.icount),
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// put the most weight on programs which fail differently
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>self</span>.failure_type <span style=color:#719e07>as</span> <span style=color:#dc322f>i64</span> <span style=color:#719e07>*</span> <span style=color:#2aa198>10</span>,
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.arithmetic_ops()),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.control_flow_ops()),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.bool_ops() <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.cmp_ops()),
+</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.max_loop_nest,
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.catches),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.duffs_count),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.switch_cases),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.switch_default),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.break_count),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.continue_count),
+</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.max_repeat_jmps),
+</span></span><span style=display:flex><span>        ]
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=multi-population-search class=anchor-link><a href=#multi-population-search>Multi Population Search</a></h2><p>To speed up the search, and run more test programs, we also employ a
+<em>multi-population</em> search. Each population evolves, as described above,
+mostly independently and in separate threads. Every 8 generations, all of the
+populations will push the genotype of an individual from their most recent
+generation into a collective &ldquo;gene pool.&rdquo; Each population will then use the
+genes from the gene pool to generate $t$ individuals via crossover,
+mutation, and reproduction that will belong to each population&rsquo;s next generation.
+The remaining individuals will be generated as previously described.</p><p>The idea behind multi-population search is inspired by a situation in biology where a species
+might become isolated on separate islands and evolve independently. At some point,
+an individual might travel from one island to another, bringing their genes to a
+different population, however, for the most part, each island population evolves
+independently and diverges from another.</p><p>In the genetic programming paradigm, the goal is to generate more
+programs to explore more parts of the search space in parallel.</p><p>This approach is especially useful to Bear, where much of the time spent by
+each thread will be on running test programs, reading traces, and dumping logs,
+since invoking a compiler pass to test involves spawning
+a subprocess and performing file I/O.
+Therefore, by using many different threads, we can fill the CPU with active work to
+be done whenever a thread needs to stall to perform one of these activities.</p><p><img src=parallelization.png alt></p><h2 id=evaluation class=anchor-link><a href=#evaluation>Evaluation</a></h2><p>I ran Bear to test my LVN, SSA, LICM, and DCE implementations. Within seconds,
+it was able to find at least two bugs in LICM and DCE. I say at least two
+because I&rsquo;ve been lazy and haven&rsquo;t taken the time to investigate the issues,
+so among the many test programs Bear found to expose bugs, I can
+only be certain that there are two unique bugs without spending more time to
+debug the programs.</p><p>It took some more runtime, but within 20 minutes, Bear found a bug in my
+implementation of SSA conversion. Within a few hours, Bear also found a bug
+in my implementation of LVN involving the handling of large integer constants.</p><table><thead><tr><th>Pass</th><th>Min Unique Bugs</th></tr></thead><tbody><tr><td>SSA</td><td>1</td></tr><tr><td>LVN</td><td>1</td></tr><tr><td>DCE</td><td>2</td></tr><tr><td>LICM</td><td>2</td></tr></tbody></table><p>In terms of runtime performance, it&rsquo;s very dependent on the runtime
+of the compiler pipeline being tested but I&rsquo;ve found that for a pipeline with
+two passes being tested (SSA in and SSA out) Bear can generate, run, and evaluate
+9.85 tests per second.</p><p>This was measured by running Bear for about a minute, dividing the number of tests run by the
+total running time, and averaging the measured tests per second over 3 trials.
+These tests were run on an Ubuntu
+22.04 machine with Linux kernel version 6.2.0-37.
+The machine has an Intel i7-13620H with 16 GB RAM.</p><h3 id=future-work class=anchor-link><a href=#future-work>Future Work</a></h3><ol><li>&ldquo;Package&rdquo; Bear into a more easily distributable application. Right now
+it depends on my custom bril-rs library and my custom tracing BRIL interpreter.
+This likely won&rsquo;t change but I would like to make the application easy to install.</li><li>There&rsquo;s a bug where Bear will (rarely) generate a program that doesn&rsquo;t
+terminate before the timeout.</li><li>Implement lowering for while loops.</li><li>Currently, the only way to stop the Bear is to kill it, I want to fix the CTRL-C signal handler.</li><li>Support function calls and multi-function programs.</li></ol><p>Find more information and references
+<a href=Bear_Paper.pdf target=_blank>here</a></p></div><a href=https://github.com/stephenverderame/bear target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
