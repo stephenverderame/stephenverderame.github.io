@@ -1,0 +1,598 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Z3 Powered Constraint Solving for Static Analysis -</title><meta property="og:title" content="Z3-Powered Constraint Solving for Static Analysis - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/null2/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/dependency.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/g1.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/g2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/gep.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/null2/>Z3-Powered Constraint Solving for Static Analysis</a></h2><div class=post-data>Jan 12, 2024
+|
+24 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Z3-Powered%20Constraint%20Solving%20for%20Static%20Analysis%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fnull2%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fnull2%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fnull2%2f&amp;description=Z3-Powered%20Constraint%20Solving%20for%20Static%20Analysis" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/pl>pl</a>,
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/tutorials>tutorials</a>,
+<a href=/%20/tags/compilers>compilers</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#interval-analysis-with-ssa>Interval Analysis with SSA</a></li><li><a href=#constraint-collection>Constraint Collection</a></li><li><a href=#z3-c-api>Z3 C++ API</a></li><li><a href=#keeping-track-of-sizes>Keeping Track of Sizes</a></li><li><a href=#conclusion>Conclusion</a></li></ol></nav></div><div class="container markdown top-pad"><p>In a <a href=/blog/null-check>previous post</a>, we discussed implementing an analysis to detect potential
+uses of <code>null</code> pointers. The workhorse of this analysis was an interval analysis
+that could (conservatively) determine all possible values an integer could
+take on. We used this information to prove whether or not an array access
+could be determined to always be in-bounds.</p><p>This worked, but it could not handle cases such as a dynamically sized buffer.
+Suppose we know that a buffer has $a$ elements. Suppose further we know that $b &lt; a$.
+If we read from the buffer for all indices between $0$ and $b$, we know that this is
+safe. However, our interval analysis can not prove this. For $a$, it would say its
+range of possible values is $(-\infty, \infty)$. While we know that $b &lt; a$, the
+fact we know nothing about $a$ leads the analysis to conclude the range of $b$
+is also $(-\infty, \infty)$. Thus it cannot prove that accessing indices
+between $0$ and $b$ is safe because, as far as the analysis knows $a$ could be 1
+and $b$ could be 10.</p><p>This particular example could be solved with a form of
+<a href=https://en.wikipedia.org/wiki/Logic_programming target=_blank>logic programming</a>. We can
+construct a knowledge graph that is a directed graph where nodes are variables and
+edges are given interval weights which represent the range of possible values
+that could be added from an instance of the start node to get to any instance of the
+end node. For example, knowing that $b &lt; a$, we can encode this like so:</p><p><img src=g1.svg alt></p><p>Since $b &lt; a$ then we must have to add at least $1$ to $b$ to get $a$. Symmetrically
+we must add at most $-1$ to $a$ to get the value of $b$.</p><p>If we know that $b = x + y$ and the ranges of $x$ is $[1, 5]$ and $y$ is
+$[-10, 0]$ we can encode this like so:</p><p><img src=g2.svg alt></p><p>In this second example, we see that $y$ is always greater than $a$ since the
+only path from $y$ to $a$ has a total weight of $[2, \infty)$ indicating
+that we must add at least 2 to $y$ to get to $a$.</p><p>With this method, we know that for two variables $s$ and $t$, $s$ is always less than
+$t$ if there does not exist a path from $s$ to $t$ such that the total weight
+(sum of all edge intervals along the path) contains a non-negative number.</p><p>This is a good idea but it starts to break down when we start to deal with
+variables with unbounded ranges. Suppose now that $x$ and $y$ are unbounded and
+all we know is that $a = x + z$,
+$b = x + y$ and $b &lt; a$. Then surely $y &lt; z$? Unfortunately, this method
+cannot show this since once a path contains an edge with $(-\infty, \infty)$,
+the entire path will have this unbounded total weight.</p><p>So it seems that what we want is a more precise method of determining when an inequality holds.
+This sounds like an
+<a href=https://en.wikipedia.org/wiki/Integer_programming target=_blank>integer linear programming</a> problem.
+Except, is it always linear?
+Suppose we have an index like so where <code>num_elems</code> and <code>elem_size</code> are function
+arguments:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> num_elems; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> masked; <span style=color:#719e07>++</span>j) {
+</span></span><span style=display:flex><span>        data[i <span style=color:#719e07>*</span> elem_size <span style=color:#719e07>+</span> j] <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We essentially want to solve <code>0 &lt;= i * elem_size + j &lt; data_size</code> for variables
+<code>i</code>, <code>elem_size</code>, <code>j</code>, <code>data_size</code>.</p><p>ILP (integer linear programming) can&rsquo;t solve this, and in fact, I&rsquo;m told that
+solving <em>integer</em> inequalities involving multiplication/division like this is &ldquo;the
+hardest problem in modern mathematics.&rdquo; So there goes that approach.</p><p>Instead what we&rsquo;re going to do is use the
+<a href=https://en.wikipedia.org/wiki/Z3_Theorem_Prover target=_blank>Z3 SMT Solver</a>. We&rsquo;re going to use a
+dataflow pass to collect constraints which will then be passed off the Z3. To make
+it easier, we want to collect the constraints with the IR in SSA form. This allows us
+to just map LLLVM values to Z3 variables one-to-one without worrying about
+how to deal with mutation. This does mean that our analysis won&rsquo;t support memory
+operations, but that&rsquo;s OK.</p><p>We&rsquo;re also going to have Z3 reason about everything as <em>integers</em>, which isn&rsquo;t
+quite right since we&rsquo;re actually dealing with <em>bit vectors</em>. Z3 can reason
+about bit vectors too, but for simplicity, I&rsquo;m not going to worry about that.</p><p>The constraints we&rsquo;re going to collect include inequalities that are known to hold
+based on conditional branches, the definitions of values (such as <code>%4 = add %3, %2</code>),
+and the overly conservative ranges of values as determined by our interval analysis.</p><p>The reason we make use of our interval analysis is because that&rsquo;s how we&rsquo;re going
+to handle things like Phi nodes and memory loads and stores. In my previous post
+on this topic, we discussed an interval analysis that can track intervals through
+memory loads and stores of pure functions. The way we did this was essentially to
+take the meet of all intervals being stored to the same memory location.</p><h2 id=interval-analysis-with-ssa class=anchor-link><a href=#interval-analysis-with-ssa>Interval Analysis with SSA</a></h2><p>The first thing we need to do is update our interval analysis to work
+with phi nodes. I actually discussed this in the previous post, however, it
+wasn&rsquo;t quite right.</p><p>As a refresher, what I do when I meet two values is to simply make a new
+interval that contains both intervals being met. However, to support loops, I
+identify any values that have been mutated. When meeting a mutated value, if the
+mutated value&rsquo;s upper bound is greater than the other value&rsquo;s upper bound, the
+upper bound is set to infinity. Symmetrically if the mutated value&rsquo;s lower bound
+is less than the other value&rsquo;s lower bound, the new interval&rsquo;s lower bound is set to negative
+infinity. More detail on this and the cases which led to this decision are
+discussed in the <a href=/blog/null-check>previous post</a>.</p><p>So to reuse this code, we need to identify which incoming values of a phi node
+have been &ldquo;mutated&rdquo;. Let&rsquo;s examine a typical example of what I mean by &ldquo;mutated&rdquo;.</p><p>Consider the following loop where <code>i</code> is mutated:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>10</span>; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    foo(i);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>After running <code>mem2reg</code>, this becomes the following LLVM instructions (see <a href=/blog/scheduling_llvm>this post</a>
+for information on how to precisely schedule LLVM passes):</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#2aa198>3</span>:                                                <span style=color:#586e75>; preds = %7, %2
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>%.0</span> = <span style=color:#719e07>phi</span> <span style=color:#719e07>i32</span> [ <span style=color:#2aa198>0</span>, %2 ], [ %8, %7 ]
+</span></span><span style=display:flex><span>  %4 = <span style=color:#719e07>icmp</span> <span style=color:#719e07>slt</span> <span style=color:#719e07>i32</span> <span style=color:#268bd2>%.0</span>, <span style=color:#2aa198>10</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %4, <span style=color:#dc322f>label</span> %6, <span style=color:#dc322f>label</span> %5
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>5</span>:                                                <span style=color:#586e75>; preds = %3
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %9
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>6</span>:                                                <span style=color:#586e75>; preds = %3
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#719e07>call</span> <span style=color:#dc322f>void</span> @_Z1fi(<span style=color:#719e07>i32</span> no<span style=color:#719e07>undef</span> <span style=color:#268bd2>%.0</span>)
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %7
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#2aa198>7</span>:                                                <span style=color:#586e75>; preds = %6
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %8 = <span style=color:#719e07>add</span> <span style=color:#719e07>nsw</span> <span style=color:#719e07>i32</span> <span style=color:#268bd2>%.0</span>, <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %3, <span style=color:#268bd2>!llvm.loop</span> !5
+</span></span></code></pre></div><p>The variable <code>i</code> maps to values <code>%.0</code> and <code>%8</code>. We want the transfer function of a phi
+node to essentially be performing a meet of two dataflow facts. So, as we discussed
+in the previous post, the range of <code>%.0</code> before the conditional branch should
+be $[0, \infty)$. Based on our previous discussion, this means we will think of <code>%8</code>
+as the &ldquo;mutated&rdquo; version of the same variable. This matches the intuitive description
+of what the source code is doing by incrementing <code>i</code>.</p><p>So given a set of incoming values to a phi node, we will say that an incoming value
+represents a source-level mutation if that incoming value depends on one of its
+uses and the incoming value is not equal to the result of its use. In other words,
+a source-level mutation can be identified by a cycle in a dependency graph such that
+the cycle contains a node that transforms its arguments in some way.</p><p>Constructing a dependency graph for the previous program, we have:</p><p><img src=dependency.svg alt></p><p>Since we have a cycle between <code>%8</code> and <code>%.0</code> containing an instruction
+that changes the value of its arguments (the add), then we will call incoming
+value <code>%8</code> a &ldquo;mutation&rdquo; for computing the result of the phi node&rsquo;s
+transfer function.</p><p>In code, this looks like the following, which is just a BFS through
+the dependency graph:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * Determines if the instruction produces a new value which is not equivalent
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * to its arguments.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
+</span></span><span style=display:flex><span><span style=color:#dc322f>bool</span> <span style=color:#268bd2>isMutatingInstruction</span>(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>User<span style=color:#719e07>*</span> I)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> dyn_cast<span style=color:#719e07>&lt;</span>PHINode<span style=color:#719e07>&gt;</span>(I) <span style=color:#719e07>==</span> <span style=color:#719e07>nullptr</span> <span style=color:#719e07>&amp;&amp;</span> dyn_cast<span style=color:#719e07>&lt;</span>CastInst<span style=color:#719e07>&gt;</span>(I) <span style=color:#719e07>==</span> <span style=color:#719e07>nullptr</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>/**
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Determines of `V` is dependent on `Other` and the dependency chain
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * between them contains a mutating instruction.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> *
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param V
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Other
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Ret
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return true
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return false
+</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
+</span></span><span style=display:flex><span><span style=color:#dc322f>bool</span> <span style=color:#268bd2>isDependentOn</span>(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> V, <span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> Other)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// queue of nodes and whether we passed a mutating instruction to produce
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// that node
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    std<span style=color:#719e07>::</span>queue<span style=color:#719e07>&lt;</span>std<span style=color:#719e07>::</span>pair<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, <span style=color:#dc322f>bool</span><span style=color:#719e07>&gt;&gt;</span> Worklist;
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>unordered_set<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*&gt;</span> Visited;
+</span></span><span style=display:flex><span>    Worklist.push(std<span style=color:#719e07>::</span>make_pair(Other, <span style=color:#b58900>false</span>));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>while</span> (<span style=color:#719e07>!</span>Worklist.empty()) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [Curr, CurrIsMut] <span style=color:#719e07>=</span> Worklist.front();
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Curr <span style=color:#719e07>==</span> V) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>return</span> CurrIsMut;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        Worklist.pop();
+</span></span><span style=display:flex><span>        Visited.emplace(Curr);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Op : Curr<span style=color:#719e07>-&gt;</span>uses()) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> U <span style=color:#719e07>=</span> Op.getUser();
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (Visited.contains(U)) {
+</span></span><span style=display:flex><span>                <span style=color:#719e07>continue</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            Worklist.push(
+</span></span><span style=display:flex><span>                std<span style=color:#719e07>::</span>make_pair(U, CurrIsMut <span style=color:#719e07>||</span> isMutatingInstruction(U)));
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> <span style=color:#b58900>false</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Then the transfer function for a phi node just amounts to identifying these
+so-called &ldquo;mutations&rdquo; and performing the meet operator on all incoming
+values:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>    <span style=color:#719e07>auto</span> PhiRange <span style=color:#719e07>=</span> Res.getRange(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(<span style=color:#2aa198>0</span>));
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (PhiRange.hasValue() <span style=color:#719e07>&amp;&amp;</span> isDependentOn(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(<span style=color:#2aa198>0</span>), Phi)) {
+</span></span><span style=display:flex><span>        PhiRange.value().Mutated <span style=color:#719e07>=</span> <span style=color:#b58900>true</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>unsigned</span> <span style=color:#dc322f>int</span> Idx <span style=color:#719e07>=</span> <span style=color:#2aa198>1</span>; Idx <span style=color:#719e07>&lt;</span> NumIncoming; <span style=color:#719e07>++</span>Idx) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> IncomingRangeI <span style=color:#719e07>=</span> Res.getRange(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(Idx));
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (IncomingRangeI.hasValue() <span style=color:#719e07>&amp;&amp;</span>
+</span></span><span style=display:flex><span>            isDependentOn(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(Idx), Phi)) {
+</span></span><span style=display:flex><span>            IncomingRangeI.value().Mutated <span style=color:#719e07>=</span> <span style=color:#b58900>true</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        PhiRange <span style=color:#719e07>=</span> SingleFact<span style=color:#719e07>::</span>meet(PhiRange, IncomingRangeI, IntRange<span style=color:#719e07>::</span>meet);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    Res.putRange(Phi, PhiRange);
+</span></span></code></pre></div><h2 id=constraint-collection class=anchor-link><a href=#constraint-collection>Constraint Collection</a></h2><p>We are interested in two kinds of constraints: those imposed by the current
+path through a series of conditional branches and those imposed by the operations
+that produce a value.</p><p>For the former, we can use a forward dataflow that just propagates any inequalities
+being tested in conditional branches following a similar procedure to what we
+did to handle conditional branches for the null dataflow analysis.</p><p>A fact for this analysis will just be a mapping from $(LHS, RHS)$ pairs of
+values to a predicate that evaluates to true on those values. So for the
+branch <code>if x &lt; y</code> the blocks in the true branch will contain the mapping
+$(x, y) \rightarrow &lsquo;&lt;&rsquo;$
+and in the false branch we&rsquo;ll have the mapping $(x, y) \rightarrow &lsquo;>=&rsquo;$.</p><p>The top value will be the set of all relations, indicated with a special <code>Top_</code> flag
+in the source code. The meet operator is set intersection. Note that if $\alpha \not = \beta$
+$$
+\begin{Bmatrix}{(x, y) \rightarrow \alpha }\end{Bmatrix} \sqcap \begin{Bmatrix}(x, y) \rightarrow \beta \end{Bmatrix} = \emptyset
+$$</p><p>Finally, the transfer
+function will be the identity for all instructions except branches, which will
+add the condition they are testing to the aforementioned mapping.</p><p>For the second set of constraints, what we&rsquo;ll
+do is simply walk backward through the dependency graph, collecting all nodes
+until we hit a phi node or a memory operation. The constraints of a value
+that is the result of one of these instructions will just be the interval
+we computed with the interval analysis.</p><p>As an example, consider the following pseudocode:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span>y :<span style=color:#719e07>=</span> phi q, w
+</span></span><span style=display:flex><span>x :<span style=color:#719e07>=</span> y <span style=color:#719e07>*</span> y
+</span></span><span style=display:flex><span>a :<span style=color:#719e07>=</span> x <span style=color:#719e07>+</span> y
+</span></span><span style=display:flex><span>k :<span style=color:#719e07>=</span> a <span style=color:#719e07>*</span> a
+</span></span><span style=display:flex><span>i :<span style=color:#719e07>=</span> load <span style=color:#2aa198>0x10</span>
+</span></span><span style=display:flex><span>j :<span style=color:#719e07>=</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>b :<span style=color:#719e07>=</span> j <span style=color:#719e07>*</span> <span style=color:#2aa198>2</span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// is a &lt; b here?
+</span></span></span></code></pre></div><p>We want to determine if <code>a &lt; b</code> is always true. Given this expression, we will
+collect all constraints on variables that are used in the expression (<code>a</code> and <code>b</code>).
+Walking backward from <code>a</code>,
+we get the constraints <code>a = x + y</code>, <code>x = y * y</code>, and <code>y</code> will be constrained
+by its range of possible values determined by the interval analysis. Doing the same
+for <code>b</code> we get <code>j = i + 1</code> and <code>i</code> will be constrained by its range.</p><p>This has the effect of collecting only the constraints that mention potentially
+relevant values. All other constraints could only serve to slow down Z3 and are
+omitted.</p><p>In code, we have something that looks like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Collects all variables which are dependended on
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * (transitive closure of all operands) for the definition of
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * the given instruction.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> *
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param I The instruction to collect the definitions for
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Intervals The result of the interval analysis
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Vars The map of variables to z3 variables
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Constraints The vector of constraints to add to
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Ctx The z3 context
+</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
+</span></span><span style=display:flex><span><span style=color:#dc322f>void</span> <span style=color:#268bd2>collectDefinitions</span>(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*</span> I,
+</span></span><span style=display:flex><span>                        <span style=color:#719e07>const</span> DataFlowFacts<span style=color:#719e07>&lt;</span>IntervalAnalysis<span style=color:#719e07>&gt;&amp;</span> Intervals,
+</span></span><span style=display:flex><span>                        std<span style=color:#719e07>::</span>unordered_map<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;&amp;</span> Vars,
+</span></span><span style=display:flex><span>                        std<span style=color:#719e07>::</span>vector<span style=color:#719e07>&lt;</span>z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;&amp;</span> Constraints, z3<span style=color:#719e07>::</span>context<span style=color:#719e07>&amp;</span> Ctx)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>queue<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*&gt;</span> Worklist;
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>unordered_set<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*&gt;</span> Visited;
+</span></span><span style=display:flex><span>    Worklist.push(I);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>while</span> (<span style=color:#719e07>!</span>Worklist.empty()) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Inst <span style=color:#719e07>=</span> Worklist.front();
+</span></span><span style=display:flex><span>        Worklist.pop();
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Visited.find(Inst) <span style=color:#719e07>!=</span> Visited.end()) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>continue</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        Visited.emplace(Inst);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Inst<span style=color:#719e07>-&gt;</span>getType()<span style=color:#719e07>-&gt;</span>isIntegerTy()) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> BinOp <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>BinaryOperator<span style=color:#719e07>&gt;</span>(Inst);
+</span></span><span style=display:flex><span>                BinOp <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Constraint <span style=color:#719e07>=</span> genBopConstraint(
+</span></span><span style=display:flex><span>                        getZ3Var(BinOp<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>0</span>), Vars, Ctx),
+</span></span><span style=display:flex><span>                        getZ3Var(BinOp<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>1</span>), Vars, Ctx),
+</span></span><span style=display:flex><span>                        BinOp<span style=color:#719e07>-&gt;</span>getOpcode());
+</span></span><span style=display:flex><span>                    Constraint.has_value()) 
+</span></span><span style=display:flex><span>                {
+</span></span><span style=display:flex><span>                    <span style=color:#586e75>// add constraint that BinOp = 
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                    <span style=color:#586e75>//      BinOp.operand(0) OP BinOp.operand(1)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                    Constraints.emplace_back(getZ3Var(BinOp, Vars, Ctx) <span style=color:#719e07>==</span>
+</span></span><span style=display:flex><span>                                                 <span style=color:#719e07>*</span>Constraint);
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> Uop <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>UnaryOperator<span style=color:#719e07>&gt;</span>(Inst);
+</span></span><span style=display:flex><span>                       Uop <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// same idea
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> Cast <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>CastInst<span style=color:#719e07>&gt;</span>(Inst);
+</span></span><span style=display:flex><span>                       Cast <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>                
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// add constraint that Cast = Cast.operand(0)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                Constraints.emplace_back(
+</span></span><span style=display:flex><span>                    getZ3Var(Cast, Vars, Ctx) <span style=color:#719e07>==</span>
+</span></span><span style=display:flex><span>                    getZ3Var(Cast<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>0</span>), Vars, Ctx));
+</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> NextInst <span style=color:#719e07>=</span> Inst<span style=color:#719e07>-&gt;</span>getNextNode();
+</span></span><span style=display:flex><span>                       NextInst <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// use input facts for the next instruction because
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// that will contain the output fact of the current instruction
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Range <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>                    Intervals.InstructionInFacts.at(NextInst).getValRange(Inst);
+</span></span><span style=display:flex><span>                addRangeConstraints(Range, Inst, Vars, Constraints, Ctx,
+</span></span><span style=display:flex><span>                                    DebugConstraints);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// no terminators produce values
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                llvm_unreachable(<span style=color:#2aa198>&#34;Instr is terminator&#34;</span>);
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Operand : Inst<span style=color:#719e07>-&gt;</span>operands()) {
+</span></span><span style=display:flex><span>                <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> OpI <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>&gt;</span>(Operand);
+</span></span><span style=display:flex><span>                    OpI <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>                    Worklist.push(OpI);
+</span></span><span style=display:flex><span>                } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>auto</span> Range <span style=color:#719e07>=</span> Intervals.InstructionInFacts.at(Inst)
+</span></span><span style=display:flex><span>                                            .getValRange(Operand);
+</span></span><span style=display:flex><span>                           Range.has_value() <span style=color:#719e07>&amp;&amp;</span> <span style=color:#719e07>!</span>Vars.contains(Operand)) {
+</span></span><span style=display:flex><span>                    addRangeConstraints(Range, Operand, Vars, Constraints, Ctx,
+</span></span><span style=display:flex><span>                                        DebugConstraints);
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=z3-c-api class=anchor-link><a href=#z3-c-api>Z3 C++ API</a></h2><p>Once we have our constraints, we can just hand them off to Z3.
+I was pleasantly surprised by how simple the C++ API is, it&rsquo;s as straightforward
+as the Python bindings.</p><p>The first thing to do is to install Z3. I just followed the directions
+to build it from <a href=https://github.com/Z3Prover/z3 target=_blank>here</a>. Then I just
+needed to add the following CMake commands to link my pass with the Z3 libraries</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Cmake data-lang=Cmake><span style=display:flex><span><span style=color:#b58900>target_link_directories</span>(<span style=color:#2aa198>NullCheck</span> <span style=color:#2aa198>PUBLIC</span> <span style=color:#2aa198>/usr/lib</span>)
+</span></span><span style=display:flex><span><span style=color:#b58900>target_link_libraries</span>(<span style=color:#2aa198>NullCheck</span> <span style=color:#2aa198>PUBLIC</span> <span style=color:#2aa198>libz3.so</span>)
+</span></span></code></pre></div><p>The first command tells CMake to look in <code>/usr/lib</code> (the default location for
+z3 on Linux) for libraries, and the second command tells CMake to link
+with <code>libz3</code>.</p><p>Then, in our code, we just need to construct a <code>z3::conext</code> for creating
+expressions and a solver for solving a set of equations. <code>z3::expr</code> overloads
+standard operators to construct larger expressions.
+Here&rsquo;s a simple example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;z3++.h&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;iostream&gt;</span><span style=color:#719e07>
+</span></span></span><span style=display:flex><span><span style=color:#719e07></span>
+</span></span><span style=display:flex><span>z3<span style=color:#719e07>::</span>context ctx;
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> a <span style=color:#719e07>=</span> ctx.int_const(<span style=color:#2aa198>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> b <span style=color:#719e07>=</span> ctx.int_const(<span style=color:#2aa198>&#34;b&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> ten <span style=color:#719e07>=</span> ctx.int_val(<span style=color:#2aa198>&#34;10&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> e1 <span style=color:#719e07>=</span> a <span style=color:#719e07>==</span> b <span style=color:#719e07>+</span> ten;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>z3<span style=color:#719e07>::</span>solver s{ctx};
+</span></span><span style=display:flex><span>s.add(e1);
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> ret <span style=color:#719e07>=</span> s.check();
+</span></span><span style=display:flex><span><span style=color:#719e07>if</span> (ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>sat) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> m <span style=color:#719e07>=</span> s.model();
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>cout <span style=color:#719e07>&lt;&lt;</span> <span style=color:#2aa198>&#34;a: &#34;</span><span style=color:#719e07>&lt;&lt;</span> m.eval(a).to_string() <span style=color:#719e07>&lt;&lt;</span> std<span style=color:#719e07>::</span>endl;
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>cout <span style=color:#719e07>&lt;&lt;</span> <span style=color:#2aa198>&#34;b: &#34;</span><span style=color:#719e07>&lt;&lt;</span> m.eval(b).to_string() <span style=color:#719e07>&lt;&lt;</span> std<span style=color:#719e07>::</span>endl;
+</span></span><span style=display:flex><span>} <span style=color:#719e07>else</span> <span style=color:#268bd2>if</span> (ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>unknown) {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>} <span style=color:#719e07>else</span> {
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// unsat
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span></code></pre></div><p>You can read more about using Z3 <a href=https://www.cs.cornell.edu/~asampson/blog/minisynth.html target=_blank>here (Python bindings)</a>
+or <a href=https://users.cs.utah.edu/~vinu/research/formal/tools/notes/z3-notes.html target=_blank>here (C++ bindings)</a>.
+One thing to note is that internally, Z3 uses exceptions during normal operation.
+So if you&rsquo;re debugging your program and have a breakpoint set on all thrown exceptions,
+it&rsquo;ll probably trap the debugger somewhere deep in the Z3 implementation even when
+something isn&rsquo;t necessarily wrong. You can check for actual errors with
+the <code>z3::solver::check_error</code> method.</p><p>Now it&rsquo;s important to know that Z3 solves satisfiability problems. It
+answers the question of <em>whether there exists</em> an assignment of variables such that
+all the constraints hold. This isn&rsquo;t quite the question we want to answer, we
+want to know if <em>for all</em> values of variables that respect the constraints, is the predicate true.</p><p>But this is equivalent to the question of whether there exists an assignment of variables
+such that the predicate <em>doesn&rsquo;t hold</em>. In other words, if we want to know whether
+$P(a, b)$ is always true, we can add the constraint $\lnot P(a, b)$ and check if
+the set of constraints is unsatisfiable. Z3 solves the <em>contrapositive</em>
+of the question we are asking. Instead of asking Z3 $\forall x, P(x)$ we will ask it
+$\exists x, \lnot P(x)$.</p><p>Concretely, if we want to know whether <code>0 &lt;= LHS &lt; RHS</code>, we will collect all
+constraints as previously discussed, then add the constraint <code>LHS &lt; 0 || LHS >= RHS</code>.
+If this set of constraints is satisfiable, then this means there is an assignment
+of variables that respect all the constraints where <code>LHS</code> is negative or greater
+than or equal to <code>RHS</code> (ie. <code>LHS</code> is out of bounds).</p><p>If the constraints are satisfiable, Z3 produces a satisfying assignment of variables.
+We can use this as a counterexample to show something <em>can</em> be out of bounds and display
+this information to the user.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Determines if `LHS &lt; RHS &amp;&amp; LHS &gt;= 0` is always true at the given
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * instruction. If this function returns false, then given the constraints
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * of the values as determined by the definitons and static interval
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * analysis, there exists an assignment of values such that `LHS &lt; RHS` is
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * false.
+</span></span></span><span style=display:flex><span><span style=color:#586e75> *
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param I The instruction where we want to check if the inequality is true
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param LHS The left hand side of the inequality
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param RHS The right hand side of the inequality
+</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return true if `0 &lt;= LHS &lt; RHS` is always true at `I`
+</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
+</span></span><span style=display:flex><span>QueryResult InequalitySolver<span style=color:#719e07>::</span>isAlwaysInRange(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*</span> I,
+</span></span><span style=display:flex><span>                                              <span style=color:#719e07>const</span> LinExpr<span style=color:#719e07>&amp;</span> LHS,
+</span></span><span style=display:flex><span>                                              <span style=color:#719e07>const</span> LinExpr<span style=color:#719e07>&amp;</span> RHS) <span style=color:#719e07>const</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    z3<span style=color:#719e07>::</span>context Ctx;
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Relations <span style=color:#719e07>=</span> RelationFacts_.get().InstructionInFacts.at(I);
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>unordered_map<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;</span> Vars;
+</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>vector<span style=color:#719e07>&lt;</span>z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;</span> Constraints;
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// collect all definitions LHS depends on and any constaints pertaining
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// to LHS or things it depends on
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    collectLinExprDefinitions(I, LHS, IntervalFacts_, Vars, Constraints, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// collect all definitions RHS depends on
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    collectLinExprDefinitions(I, RHS, IntervalFacts_, Vars, Constraints, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [LHSZ3, LHSName] <span style=color:#719e07>=</span> linExprToZ3Var(LHS, Vars, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [RHSZ3, RHSName] <span style=color:#719e07>=</span> linExprToZ3Var(RHS, Vars, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#719e07>auto</span> [Args, Pred] <span style=color:#719e07>:</span> Relations.getRelations()) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [LHSArg, RHSArg] <span style=color:#719e07>=</span> Args;
+</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Vars.contains(LHSArg) <span style=color:#719e07>||</span> Vars.contains(RHSArg)) {
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// collects all definitions LHSArg depends on
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            addConstraintsForVal(I, LHSArg, IntervalFacts_, Vars, 
+</span></span><span style=display:flex><span>                Constraints, Ctx);
+</span></span><span style=display:flex><span>            <span style=color:#586e75>// collects all definitions RHSArg depends on
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            addConstraintsForVal(I, RHSArg, IntervalFacts_, Vars, 
+</span></span><span style=display:flex><span>                Constraints, Ctx);
+</span></span><span style=display:flex><span>            Constraints.emplace_back(
+</span></span><span style=display:flex><span>                genConstraint(Pred, getZ3Var(LHSArg, Vars, Ctx),
+</span></span><span style=display:flex><span>                              getZ3Var(RHSArg, Vars, Ctx)));
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    z3<span style=color:#719e07>::</span>solver Solver(Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Constraint : Constraints) {
+</span></span><span style=display:flex><span>        Solver.add(Constraint);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// forall A, P(A) &lt;=&gt; exists B, !P(B)
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    Solver.add(LHSZ3 <span style=color:#719e07>&gt;=</span> RHSZ3 <span style=color:#719e07>||</span> LHSZ3 <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>0</span>);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Err <span style=color:#719e07>=</span> Solver.check_error();
+</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Ret <span style=color:#719e07>=</span> Solver.check();
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (Ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>sat) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> M <span style=color:#719e07>=</span> Solver.get_model();
+</span></span><span style=display:flex><span>        std<span style=color:#719e07>::</span>unordered_map<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, std<span style=color:#719e07>::</span>string<span style=color:#719e07>&gt;</span> Assignments;
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> [K, V] <span style=color:#719e07>:</span> Vars) {
+</span></span><span style=display:flex><span>            Assignments.emplace(K, M.eval(V).to_string());
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// return not in range, with counterexample
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>return</span> {<span style=color:#b58900>false</span>, Assignments};
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#586e75>// in range if Ret is z3::unsat.
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>return</span> {Ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>unsat, {}};
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Note that we accept queries of whether one <em>linear expression</em>
+is less than another. Linear expressions here are linear in LLVM values,
+but an LLVM value could be produced by something nonlinear, like a multiplication
+of two variables or a remainder.</p><p>The reason we use linear expressions is so that we can handle pointer arithmetic,
+which we&rsquo;ll discuss in the next section.</p><h2 id=keeping-track-of-sizes class=anchor-link><a href=#keeping-track-of-sizes>Keeping Track of Sizes</a></h2><p>When some memory is allocated (either by <code>alloca</code>, <code>malloc</code>, <code>new</code>, etc.) our
+null analysis will keep track of the amount of bytes that each pointer may point to.
+So, when we load or store from/to a pointer, we can check if the amount
+of bytes we are attempting to load or store exceeds the buffer size the pointer
+is known to refer to.</p><p>In LLVM all pointer arithmetic (including indexing into arrays) is done via the
+<code>GetElementPointer</code> instruction or <code>GEP</code>. This instruction simply performs
+the pointer arithmetic and doesn&rsquo;t load or store anything. If you&rsquo;re familiar
+with x86, you can think of it like a suped-up <code>lea</code>. <code>GEP</code> is
+<a href=https://llvm.org/docs/GetElementPtr.html target=_blank>somewhat complicated</a>, but the general
+structure is that we have a pointer argument followed by one or more indices. Each
+index represents an offset to be added to the pointer operand, but each index is
+scaled by a different factor. So <code>%1 = getelementptr %ptr, %0, %2</code> would
+<em>sort of</em> represent the pointer arithmetic <code>%1 = %ptr + a * %0 + b * %2</code> where
+<code>a</code>, and <code>b</code> are (not necessarily unique) compile-time constants. In reality,
+it gets slightly more complicated as sometimes these indices indicate
+field numbers of a struct, which can&rsquo;t be computed by just one multiplication.</p><p>The first index is always an index into the pointer itself. In other words,
+the factor the first index is multiplied by when computing the offset is the size of an element
+the pointer refers to. The second index will be an index into an element of the
+pointer. Consider the following example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> nums[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span>nums[<span style=color:#2aa198>2</span>] <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
+</span></span></code></pre></div><p>which becomes</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], ptr %3, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>2</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %4, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>, <span style=color:#268bd2>!tbaa</span> !5
+</span></span></code></pre></div><p>The first index represents how many chunks of <code>[10 x i32]</code> to offset the
+pointer by. The second index represents how many <code>i32</code> to offset relative to the
+first index. Thus, assuming <code>sizeof(int) == 4</code>, we have that <code>%4 = %3 + 0 * 40 + 2 * 4</code>.
+The following diagram represents this example where the center depicts an area
+of memory divided into 4-byte words and the left side depicts the offsets of the first index and the
+right side depicts the offsets of the second index.</p><p><img src=gep.png alt></p><p>Note that in this example <code>getelementptr %3, 0, 11</code> is the same as
+<code>getelementptr %3, 1, 1</code>.</p><p>Let&rsquo;s consider another example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Bar</span> {
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> a;
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> c;
+</span></span><span style=display:flex><span>    Foo fs[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>Bar b;
+</span></span><span style=display:flex><span>b.a <span style=color:#719e07>=</span> <span style=color:#2aa198>20</span>;
+</span></span><span style=display:flex><span>b.c <span style=color:#719e07>=</span> <span style=color:#2aa198>&#39;a&#39;</span>;
+</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> <span style=color:#268bd2>%struct.Bar</span>, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Bar</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>20</span>, ptr %4, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !5
+</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Bar</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i8</span> <span style=color:#2aa198>97</span>, ptr %5, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !10
+</span></span></code></pre></div><p>Here, the first index is indexing into chunks of <code>sizeof(Bar)</code>, and
+the second index is indexing into the <em>fields</em> of <code>Bar</code>. The 1 in the
+second <code>GEP</code> means <em>field index 1</em> (the second field).</p><p>Now consider this example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> a <span style=color:#719e07>=</span> g();
+</span></span><span style=display:flex><span><span style=color:#dc322f>int</span><span style=color:#719e07>*</span> t <span style=color:#719e07>=</span> g2();
+</span></span><span style=display:flex><span>t[a] <span style=color:#719e07>=</span> <span style=color:#2aa198>2</span>;
+</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>call</span> no<span style=color:#719e07>undef</span> <span style=color:#719e07>i32</span> @_Z1gv()
+</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>call</span> no<span style=color:#719e07>undef</span> ptr @_Z2g2v()
+</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>sext</span> <span style=color:#719e07>i32</span> %3 <span style=color:#719e07>to</span> <span style=color:#719e07>i64</span>
+</span></span><span style=display:flex><span>%6 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#719e07>i32</span>, ptr %4, <span style=color:#719e07>i64</span> %5
+</span></span></code></pre></div><p>Note the lack of a second index. In this case, we only offset by the size
+of the data the pointer is directly pointing to (<code>i32</code>s). This represents
+<code>%6 = %4 + 4 * %5</code>.</p><p><code>GEPs</code> can handle more than two indexes, which you can read about
+<a href=https://blog.yossarian.net/2020/09/19/LLVMs-getelementptr-by-example target=_blank>here (note this is written before the switch to opaque pointers in LLVM)</a>,
+but at least my version of Clang seems to break large nested
+structures into a series of <code>GEP</code> instructions with one or two indices if I don&rsquo;t
+apply further optimizations. For example
+code like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Baz</span> {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>struct</span> {
+</span></span><span style=display:flex><span>        <span style=color:#dc322f>int</span> j;
+</span></span><span style=display:flex><span>        <span style=color:#719e07>struct</span> {
+</span></span><span style=display:flex><span>            <span style=color:#dc322f>int</span> a;
+</span></span><span style=display:flex><span>            <span style=color:#dc322f>int</span> b;
+</span></span><span style=display:flex><span>        } c;
+</span></span><span style=display:flex><span>    } d;
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>long</span> p;
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// ...
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>Baz b;
+</span></span><span style=display:flex><span>b.d.j <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
+</span></span><span style=display:flex><span>b.d.c.a <span style=color:#719e07>=</span> <span style=color:#2aa198>20</span>;
+</span></span></code></pre></div><p>becomes</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> <span style=color:#268bd2>%struct.Baz</span>, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Baz</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.anon</span>, ptr %4, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %5, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>, <span style=color:#268bd2>!tbaa</span> !5
+</span></span><span style=display:flex><span>%6 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Baz</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span>%7 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.anon</span>, ptr %6, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>%8 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.anon.0</span>, ptr %7, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>20</span>, ptr %8, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !13
+</span></span></code></pre></div><p>and code like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Foo</span> {
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> a;
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> nums[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Bar</span> {
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> a;
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> c;
+</span></span><span style=display:flex><span>    Foo fs[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#586e75>// ..
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>Bar bars[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span>bars[<span style=color:#2aa198>2</span>].fs[<span style=color:#2aa198>3</span>].nums[<span style=color:#2aa198>4</span>] <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
+</span></span></code></pre></div><p>becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Bar</span>], <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Bar</span>], ptr %3, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>2</span>
+</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Bar</span>, ptr %4, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>2</span>
+</span></span><span style=display:flex><span>%6 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Foo</span>], ptr %5, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>3</span>
+</span></span><span style=display:flex><span>%7 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Foo</span>, ptr %6, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>
+</span></span><span style=display:flex><span>%8 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], ptr %7, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %8, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !5
+</span></span></code></pre></div><p>but it could also become:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#268bd2>%arrayidx2</span> = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Bar</span>], ptr <span style=color:#268bd2>%bars</span>, 
+</span></span><span style=display:flex><span>                <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>2</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>2</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>3</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>4</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr <span style=color:#268bd2>%arrayidx2</span>, <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
+</span></span></code></pre></div><p>For simplicity, I schedule my analysis right after <code>mem2reg</code> but before anything
+else to not worry about these nested forms.</p><p>The whole point of telling you this is that suppose we have code like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> nums[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#719e07>*</span>k <span style=color:#719e07>=</span> <span style=color:#719e07>&amp;</span>nums[<span style=color:#2aa198>5</span>];
+</span></span><span style=display:flex><span>k[<span style=color:#2aa198>5</span>] <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
+</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], ptr %3, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>5</span>
+</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#719e07>i32</span>, ptr %4, <span style=color:#719e07>i64</span> <span style=color:#2aa198>5</span>
+</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %5, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !5
+</span></span></code></pre></div><p>That store writes to illegal memory! And we can reason about this as follows:</p><ul><li><code>%3</code> is allocated and points to <code>sizeof(i32) * 10 = 40</code> bytes</li><li><code>%4</code> has a size of <code>40 - 0 * 40 - 5 * 4 = 20</code> bytes</li><li><code>%5</code> has a size of <code>20 - 5 *4 = 0</code> bytes</li><li>the store is writing 4 bytes to a pointer with a size of 0 bytes</li></ul><p>For every GEP instruction, we&rsquo;re going to compute the size of the resultant pointer&rsquo;s data
+as the size of the argument pointer&rsquo;s data minus the linear index expression.
+Note by &ldquo;size&rdquo; here I mean how many bytes of memory
+can be accessed by a non-negative offset from the pointer.</p><p>Then we can feed this directly into the SMT solver. So for the previous example,
+to check the store we&rsquo;d ask if</p><p>$$0 \le 4 \le 40 - 0 \cdot 40 - 5 \cdot 4 - 5 \cdot 4 $$</p><p>Of course, this example is trivial, but once we replace hard-coded sizes and indices
+with variables satisfying some constraints, we start to employ the power of
+Z3.</p><p>Note that, because I couldn&rsquo;t think of a nice way to assert the size of memory
+a pointer can legally access, the size analysis is conservative in the sense
+that it allows things that it can&rsquo;t prove are illegal. Otherwise, there&rsquo;d be no way
+to use a function argument that didn&rsquo;t have a <code>dereferenceable</code> attribute because
+we&rsquo;d have no way to know how many bytes the pointer could refer to.
+This is in contrast to
+the part of the analysis determining just if a <code>nullptr</code> is used, as discussed
+in the previous post.</p><h2 id=conclusion class=anchor-link><a href=#conclusion>Conclusion</a></h2><p>With all this work, we can prove the safety of programs our previous
+version of the analysis could not deduce were safe. For example, this program:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> one <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> two <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> <span style=color:#2aa198>2</span>;
+</span></span><span style=display:flex><span>assert(one <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span> <span style=color:#719e07>&amp;&amp;</span> two <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> elem_size <span style=color:#719e07>=</span> atoi(<span style=color:#719e07>*</span>one);
+</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> num_elems <span style=color:#719e07>=</span> atoi(<span style=color:#719e07>*</span>two);
+</span></span><span style=display:flex><span><span style=color:#719e07>auto</span> data <span style=color:#719e07>=</span> (<span style=color:#dc322f>char</span><span style=color:#719e07>*</span>)malloc(elem_size <span style=color:#719e07>*</span> num_elems);
+</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> num_elems <span style=color:#719e07>*</span> elem_size; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    data[i] <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#dc322f>int</span> masked <span style=color:#719e07>=</span> foo();
+</span></span><span style=display:flex><span>assert(masked <span style=color:#719e07>&lt;=</span> elem_size);
+</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> num_elems; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> masked; <span style=color:#719e07>++</span>j) {
+</span></span><span style=display:flex><span>        data[i <span style=color:#719e07>*</span> elem_size <span style=color:#719e07>+</span> j] <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Furthermore, we can also use Z3 to give more useful error messages when it finds
+a counterexample. This program is not safe:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> data_args <span style=color:#719e07>=</span> argc <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span><span style=color:#719e07>*</span> vec <span style=color:#719e07>=</span> (<span style=color:#dc322f>int</span><span style=color:#719e07>*</span>)malloc(<span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>int</span>) <span style=color:#719e07>*</span> data_args);
+</span></span><span style=display:flex><span>    assert(vec <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> data_args; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>auto</span> in_arg <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>        assert(in_arg <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
+</span></span><span style=display:flex><span>        vec[i] <span style=color:#719e07>=</span> atoi(<span style=color:#719e07>*</span>in_arg);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> argc; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>        printf(<span style=color:#2aa198>&#34;%d</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, vec[i]);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><details><summary>The error we get is</summary><blockquote><p>Safety Violation: Use of potentially null pointer in load at MakeVecBad.cc:20</p></blockquote><blockquote><p>Because an index could not be proven to be in range, the following counterexample was found:</p></blockquote><blockquote><p>argc = 1</p></blockquote><blockquote><p>data_args = 0</p></blockquote><blockquote><p>i = 1</p></blockquote><p>Line 20 is the <code>printf</code> in the loop bound by <code>argc</code> instead of <code>data_args</code></p></details><p>Here&rsquo;s another example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (argc <span style=color:#719e07>&gt;=</span> <span style=color:#2aa198>128</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> words[<span style=color:#2aa198>128</span>][<span style=color:#2aa198>128</span>];
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> argc; <span style=color:#719e07>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> word <span style=color:#719e07>=</span> (argv <span style=color:#719e07>+</span> i);
+</span></span><span style=display:flex><span>        assert(word <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> word_data <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>word;
+</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> word_len <span style=color:#719e07>=</span> strlen(word_data);
+</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> word_len; <span style=color:#719e07>++</span>j) {
+</span></span><span style=display:flex><span>            <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> c <span style=color:#719e07>=</span> word_data <span style=color:#719e07>+</span> j;
+</span></span><span style=display:flex><span>            assert(c <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
+</span></span><span style=display:flex><span>            words[i][j] <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>c;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><details><summary>And it's error message is</summary><blockquote><p>Safety Violation: Use of potentially null pointer in store at Bad2DArray.cc:19</p></blockquote><blockquote><p>Because an index could not be proven to be in range, the following counterexample was found:</p></blockquote><blockquote><p>argc = 1</p></blockquote><blockquote><p>i = 1</p></blockquote><blockquote><p>j = 16385</p></blockquote></details><p>SAT problems are NP-complete, but Z3 employs many good heuristics to be reasonably
+quick for many problems, especially small ones. The longest running time
+for the simple set of tests I have is 0.837 seconds. But the main bottleneck is
+the interval analysis which is built in debug mode (without any optimizations).</p><p>It&rsquo;s amazing what Z3 can do, and this static analysis doesn&rsquo;t really do it
+justice since most queries don&rsquo;t even warrant the full power of Z3.</p><p>One thing to note is that currently, the analysis doesn&rsquo;t handle global variables
+or function calls correctly. It assumes all function calls don&rsquo;t mutate or free
+any non-local data. This, of course, is a bad assumption but it&rsquo;s fine as a proof
+of concept.</p><p>The easiest thing to do is to conservatively identify when a function could
+affect non-local data, and then when such a function is called, invalidate all
+facts about non-local variables and all facts about pointers passed to the function.</p><p>Currently, the only thing I do is invalidate information about pointers passed
+to <code>free</code> or <code>delete</code>, which isn&rsquo;t correct in general. Furthermore, the
+analysis does not support concurrency. So for future work which I may or may
+not ever get to, we have:</p><ol><li>Handle globals. At the very least we could not track any information about
+them for correctness.</li><li>Handle function calls. Again, the easiest thing we could do is invalidate all
+information for correctness. Although interprocedural analysis would be nice.</li></ol></div><a href=https://github.com/stephenverderame/cs6120-llvm/tree/main/null-check target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

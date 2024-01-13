@@ -1,0 +1,137 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Scheduling Llvm Passes With the New Pass Manager -</title><meta property="og:title" content="Scheduling LLVM Passes with the New Pass Manager - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/scheduling_llvm/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/home/IMG_5921.jpg"><meta property="og:image" content="https://stephenverderame.github.io/home/IMG_8024.jpg"><meta property="og:image" content="https://stephenverderame.github.io/home/IMG_8796.jpg"><meta property="og:image" content="https://stephenverderame.github.io/home/cmr_headshot.jpg"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/scheduling_llvm/>Scheduling LLVM Passes with the New Pass Manager</a></h2><div class=post-data>Nov 15, 2023
+|
+6 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Scheduling%20LLVM%20Passes%20with%20the%20New%20Pass%20Manager%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fscheduling_llvm%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fscheduling_llvm%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fscheduling_llvm%2f&amp;description=Scheduling%20LLVM%20Passes%20with%20the%20New%20Pass%20Manager" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/compilers>compilers</a>,
+<a href=/%20/tags/tutorials>tutorials</a></p></div><div class="container markdown top-pad"></div><div class="container markdown top-pad"><p>Figuring out how to run a pass with LLVM feels needlessly complicated.
+This short post will briefly lay out two different methods of doing so using
+the new Pass Manager.</p><h2 id=invoking-via-clang class=anchor-link><a href=#invoking-via-clang>Invoking via Clang</a></h2><p>One simple method of running a compiler pass is to directly invoke it via Clang
+as outlined in <a href=https://www.cs.cornell.edu/~asampson/blog/llvm.html target=_blank>this blog post</a>.</p><p>This method is fairly straightforward and super easy, we just need to:</p><ol><li><p>Create a class that inherits from <code>PassInfoMixin</code>, as described
+<a href=https://llvm.org/docs/WritingAnLLVMNewPMPass.html target=_blank>here</a>.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>MyPass</span> <span style=color:#719e07>:</span> <span style=color:#719e07>public</span> PassInfoMixin<span style=color:#719e07>&lt;</span>MyPass<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span>    PreservedAnalyses <span style=color:#268bd2>run</span>(Module<span style=color:#719e07>&amp;</span> M, ModuleAnalysisManager<span style=color:#719e07>&amp;</span> AM)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        outs() <span style=color:#719e07>&lt;&lt;</span> <span style=color:#2aa198>&#34;Hello World</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>;
+</span></span><span style=display:flex><span>        <span style=color:#586e75>// Your code here
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> PreservedAnalyses<span style=color:#719e07>::</span>all();
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>If you&rsquo;re unfamiliar, this bit of inheriting from a template where the derived
+type is the template parameter is known as the
+<a href=https://stephenverderame.github.io/book/more_templates/crtp.html target=_blank>Curiously Recurring Template Pattern (CRTP)</a>.</p><p>Note that this example is a module pass, if you wanted a function pass
+you can just change the signature of <code>run</code> to</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>PreservedAnalyses <span style=color:#268bd2>run</span>(Function<span style=color:#719e07>&amp;</span> F, FunctionAnalysisManager<span style=color:#719e07>&amp;</span> AM);
+</span></span></code></pre></div><p>Or for a loop pass:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>PreservedAnalyses <span style=color:#268bd2>run</span>(Loop <span style=color:#719e07>&amp;</span>L, LoopAnalysisManager <span style=color:#719e07>&amp;</span>AM, 
+</span></span><span style=display:flex><span>    LoopStandardAnalysisResults <span style=color:#719e07>&amp;</span>AR, LPMUpdater <span style=color:#719e07>&amp;</span>U);
+</span></span></code></pre></div></li><li><p>Register your pass by adding the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>extern</span> <span style=color:#2aa198>&#34;C&#34;</span> LLVM_ATTRIBUTE_WEAK <span style=color:#719e07>::</span>llvm<span style=color:#719e07>::</span>PassPluginLibraryInfo
+</span></span><span style=display:flex><span>llvmGetPassPluginInfo()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> {.APIVersion <span style=color:#719e07>=</span> LLVM_PLUGIN_API_VERSION,
+</span></span><span style=display:flex><span>            .PluginName <span style=color:#719e07>=</span> <span style=color:#2aa198>&#34;MyPass&#34;</span>,
+</span></span><span style=display:flex><span>            .PluginVersion <span style=color:#719e07>=</span> <span style=color:#2aa198>&#34;v0.1&#34;</span>,
+</span></span><span style=display:flex><span>            .RegisterPassBuilderCallbacks <span style=color:#719e07>=</span> [](PassBuilder<span style=color:#719e07>&amp;</span> PB) {
+</span></span><span style=display:flex><span>                PB.registerOptimizerEarlyEPCallback(
+</span></span><span style=display:flex><span>                    [](ModulePassManager<span style=color:#719e07>&amp;</span> PM, OptimizationLevel <span style=color:#586e75>/* Level */</span>) {
+</span></span><span style=display:flex><span>                        PM.addPass(MyPass{});
+</span></span><span style=display:flex><span>                    });
+</span></span><span style=display:flex><span>            }};
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></li><li><p>Compile the pass into a pass plugin library and run your pass
+with Clang by giving it the argument <code>-fpass-plugin=PATH_TO_LIB</code>.</p></li></ol><p>For more details, you can look at <a href=https://github.com/sampsyo/llvm-pass-skeleton target=_blank>this repo</a>.</p><p><strong>Pros</strong>:</p><ul><li>Single command line argument to Clang</li></ul><p><strong>Cons</strong>:</p><ul><li>No custom command line arguments for your pass</li><li>Not much control over when your pass is scheduled</li></ul><p>The <code>PassBuilder</code> callbacks provide you with some control over when your pass is
+scheduled, but it&rsquo;s at a very coarse granularity. The <code>registerOptimizerEarlyEPCallback</code>
+will schedule the pass before pretty much every other pass. For example, if you&rsquo;d
+like <code>mem2reg</code> to have been run first, then this extension point is not for you.
+The <code>registerOptimizerLateEPCallback</code> will schedule the pass after almost all other LLVM passes.
+If your pass enables more optimizations for other standard LLVM passes, then this
+extension point is also not for you. There are a few other extension points, but
+they all have similar flavors like registering your pass at the end of the loop
+optimization pipeline. If you need precise control over when you&rsquo;re pass is run, you&rsquo;re probably
+going to have to run the pass using <code>opt</code>.</p><h2 id=using-opt class=anchor-link><a href=#using-opt>Using Opt</a></h2><p>Opt is LLVM&rsquo;s modular optimizer and it gives you full control over which
+passes are run and how they are ordered. Step 1 in the previous section does not change.
+The first difference is in step 2. Now we need to register a pipeline
+parsing callback like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>extern</span> <span style=color:#2aa198>&#34;C&#34;</span> LLVM_ATTRIBUTE_WEAK <span style=color:#719e07>::</span>llvm<span style=color:#719e07>::</span>PassPluginLibraryInfo
+</span></span><span style=display:flex><span>llvmGetPassPluginInfo()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> {.APIVersion <span style=color:#719e07>=</span> LLVM_PLUGIN_API_VERSION,
+</span></span><span style=display:flex><span>            .PluginName <span style=color:#719e07>=</span> <span style=color:#2aa198>&#34;MyPass&#34;</span>,
+</span></span><span style=display:flex><span>            .PluginVersion <span style=color:#719e07>=</span> <span style=color:#2aa198>&#34;v0.1&#34;</span>,
+</span></span><span style=display:flex><span>            .RegisterPassBuilderCallbacks <span style=color:#719e07>=</span> [](PassBuilder<span style=color:#719e07>&amp;</span> PB) {
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// for usage with opt
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                PB.registerPipelineParsingCallback(
+</span></span><span style=display:flex><span>                    [](<span style=color:#719e07>auto</span> Name, ModulePassManager<span style=color:#719e07>&amp;</span> PM,
+</span></span><span style=display:flex><span>                       <span style=color:#719e07>auto</span> <span style=color:#586e75>/* PipelineElement*/</span>) {
+</span></span><span style=display:flex><span>                        <span style=color:#719e07>if</span> (Name <span style=color:#719e07>==</span> <span style=color:#2aa198>&#34;my-pass&#34;</span>) {
+</span></span><span style=display:flex><span>                            <span style=color:#586e75>// if opt command line argument matches &#34;my-pass&#34;
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                            <span style=color:#586e75>// add the pass
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                            PM.addPass(MyPass{});
+</span></span><span style=display:flex><span>                            <span style=color:#719e07>return</span> <span style=color:#b58900>true</span>;
+</span></span><span style=display:flex><span>                        }
+</span></span><span style=display:flex><span>                        <span style=color:#719e07>return</span> <span style=color:#b58900>false</span>;
+</span></span><span style=display:flex><span>                    });
+</span></span><span style=display:flex><span>                <span style=color:#586e75>// for usage with clang
+</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                PB.registerOptimizerEarlyEPCallback(
+</span></span><span style=display:flex><span>                    [](ModulePassManager<span style=color:#719e07>&amp;</span> PM, OptimizationLevel <span style=color:#586e75>/* Level */</span>) {
+</span></span><span style=display:flex><span>                        PM.addPass(MyPass{});
+</span></span><span style=display:flex><span>                    });
+</span></span><span style=display:flex><span>            }};
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The callback will return <code>true</code> when the pass has been added and false otherwise.
+When <code>Name</code> matches the given string, that&rsquo;s when we&rsquo;ll know to add our pass.
+The string we choose will be the string we specify on the command line to run
+our pass with opt. It does not have to match the <code>PluginName</code> field we registered
+the pass plugin with.</p><p>Now <code>opt</code> operates on LLVM IR. So to run a pass with <code>opt</code> we&rsquo;re going
+to have to generate LLVM from Clang. This can be done with
+<code>clang++ file.c -S -emit-llvm</code>.</p><p>But there&rsquo;s a catch, when Clang generates code with optimizations disabled, it
+adds the <code>optnone</code> LLVM attribute to all functions. The LLVM middle-end
+will not optimize such functions, so what we need to do is enable optimizations
+with clang and then pass a flag through clang directly to the optimizer to prevent
+any LLVM optimizations from occurring.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Shell data-lang=Shell><span style=display:flex><span>clang++ -O1 -S -emit-llvm -mllvm -disable-llvm-optzns file.c -o file.ll
+</span></span></code></pre></div><p>The <code>-mllvm</code> flag will tell Clang to pass the next flag or option directly
+to LLVM. In this case, we want it to pass <code>-disable-llvm-optzns</code>.</p><p>The result of this command is the program in LLVM IR textual format. <code>opt</code> accepts
+both the IR textual format and the IR as bitcode. <code>opt</code> will output the optimized
+program as LLVM bitcode.</p><p>Now we can run our pass like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Bash data-lang=Bash><span style=display:flex><span>opt-17 -load-pass-plugin PATH_TO_PASS_LIB -passes<span style=color:#719e07>=</span><span style=color:#2aa198>&#34;my-pass&#34;</span> file.ll -o file.bc
+</span></span></code></pre></div><p>We can turn a bitcode file back into the textual format with
+<code>llvm-dis file.bc -o file.ll</code> and we can compile the IR
+(bitcode or textual) into assembly with <code>llc FILE_NAME -o file.s</code>.</p><p>From here, we now need to run an assembler and linker to produce an executable.
+We can use both of these directly, or, just use Clang like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Shell data-lang=Shell><span style=display:flex><span>clang++-17 file.s -o file -no-pie <span style=color:#719e07>&amp;&amp;</span> ./file
+</span></span></code></pre></div><p>The method I just discussed does not allow for position-independent executables
+(PIE), so we need to tell this to the linker via the <code>-no-pie</code> flag.</p><p>Here&rsquo;s one whole shell command to do this entire pipeline:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Shell data-lang=Shell><span style=display:flex><span>clang++-17 -O1 -mllvm -disable-llvm-optzns <span style=color:#719e07>{</span>filename<span style=color:#719e07>}</span> -emit-llvm -S -o /dev/stdout <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>    | opt-17 -load-pass-plugin PATH_TO_LIB -passes<span style=color:#719e07>=</span><span style=color:#2aa198>&#34;my-pass&#34;</span> <span style=color:#cb4b16>\
+</span></span></span><span style=display:flex><span><span style=color:#cb4b16></span>    | llc-17 -o <span style=color:#719e07>{</span>filebasename<span style=color:#719e07>}</span>.s <span style=color:#719e07>&amp;&amp;</span> clang++-17 <span style=color:#719e07>{</span>filebasename<span style=color:#719e07>}</span>.s -no-pie -o a.out
+</span></span></code></pre></div><p>Now to run some pass, say <code>mem2reg</code>, before our pass, we can just specify it first
+in the <code>-passes</code> argument of <code>opt</code> like
+<code>opt-17 -load-pass-plugin PATH_TO_LIB -passes="mem2reg,my-pass"</code>.</p><p>This works fine if <code>my-pass</code> is a function pass like <code>mem2reg</code>, but this won&rsquo;t work
+if <code>my-pass</code> is a module pass because <code>opt</code> expects passes in order of the LLVM hierarchy.
+In other words, it expects the module passes before the function passes,
+and the function passes before the loop passes. So if <code>my-pass</code> was a function or loop
+pass the above command would work. Similarly, if <code>mem2reg</code> was a module pass then
+the above command would also work.</p><p>So what to do? Well we can chain together multiple invocations of <code>opt</code>, or we
+can specify the granularity of our passes like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Shell data-lang=Shell><span style=display:flex><span>opt-17 -load-pass-plugin PATH_TO_LIB -passes<span style=color:#719e07>=</span><span style=color:#2aa198>&#34;function(mem2reg,sroa),module(my-pass)&#34;</span>
+</span></span></code></pre></div><p>Using either method, we can create the desired orderings of different passes regardless
+of their granularity.</p><h3 id=command-line-arguments class=anchor-link><a href=#command-line-arguments>Command Line Arguments</a></h3><p>Another benefit of using <code>opt</code> is that we can register command line arguments
+to customize our pass.</p><p>To do this, we simply create static global constants in the same file
+we registered our pass plugin in:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>static</span> cl<span style=color:#719e07>::</span>opt<span style=color:#719e07>&lt;</span><span style=color:#dc322f>bool</span><span style=color:#719e07>&gt;</span> EnablePrint(
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>&#34;ive-print&#34;</span> <span style=color:#586e75>/* option name */</span>, 
+</span></span><span style=display:flex><span>    cl<span style=color:#719e07>::</span>desc(<span style=color:#2aa198>&#34;Enable printing of detected induction variables&#34;</span>) <span style=color:#586e75>/*option description*/</span>,
+</span></span><span style=display:flex><span>    cl<span style=color:#719e07>::</span>init(<span style=color:#b58900>false</span>) <span style=color:#586e75>/*default value*/</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#719e07>static</span> cl<span style=color:#719e07>::</span>opt<span style=color:#719e07>&lt;</span><span style=color:#dc322f>bool</span><span style=color:#719e07>&gt;</span> EnableDebug(
+</span></span><span style=display:flex><span>    <span style=color:#2aa198>&#34;ive-debug&#34;</span>, cl<span style=color:#719e07>::</span>desc(<span style=color:#2aa198>&#34;Enable printing of debug information&#34;</span>),
+</span></span><span style=display:flex><span>    cl<span style=color:#719e07>::</span>init(<span style=color:#b58900>false</span>));
+</span></span></code></pre></div><p>Then, when running <code>opt</code> we can just specify our options like any other
+command line flag or option.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Bash data-lang=Bash><span style=display:flex><span>opt-17 -load-pass-plugin PATH_TO_LIB -ive-print -passes<span style=color:#719e07>=</span><span style=color:#2aa198>&#34;ive&#34;</span>
+</span></span></code></pre></div><p>LLVM&rsquo;s command line utility library supports more than just boolean flags,
+you can read more <a href=https://llvm.org/docs/CommandLine.html target=_blank>here</a>.</p><h2 id=conclusion class=anchor-link><a href=#conclusion>Conclusion</a></h2><p>Hopefully, this quick post on scheduling passes was helpful. In general, if you
+need precise control of what optimizations are run and when or if you want custom
+command line arguments, then using <code>opt</code> is likely your best bet. Otherwise, if
+you want something quick and coarse, it&rsquo;s probably easier just to invoke your
+pass with Clang.</p></div><a href=https://github.com/stephenverderame/cs6120-llvm/blob/main/test/ive/turnt.toml target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
