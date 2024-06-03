@@ -1,0 +1,22 @@
+digraph G {
+    si [label="Input(x)"]
+    s_lt [label="Lt(x, 0)"];
+    cx [label="x"];
+    
+    
+    
+    subgraph R1 {
+        edge [dir="none", style="dotted"];
+        node [style="dashed"];
+        ci [label="$x"];
+        ci -> si;
+        cd [label="$d"];
+        cd -> s_lt;
+        cx -> ci;
+        subgraph R2 {
+            edge [dir="forward", style="solid"];
+            s_lt -> cx;
+    
+        }
+    }
+}

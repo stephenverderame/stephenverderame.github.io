@@ -1,0 +1,44 @@
+digraph G {
+    si [label="bar()"]
+    sres1 [label="Extract(0, bar())"];
+    sres2 [label="Extract(1, bar())"];
+    sret [label="Return(Extract(0, bar()))"];
+    sret -> sres1;
+    sres1 -> si;
+    sres2 -> si;
+    
+    ci [label="bar()"]
+    cres1 [label="Extract(0, bar())"];
+    cres2 [label="Extract(1, bar())"];
+    cret [label="Return(Extract(0, bar()))"];
+    cret -> cres1;
+    cres1 -> ci;
+    cres2 -> ci;
+    
+    
+    
+    subgraph R1 {
+        edge [dir="none", style="dotted"];
+        node [style="dashed"];
+        vret [label="$ret"];
+        vr1 [label="$res1"];
+        vr2 [label="$res2"];
+        vb [label="$tmp"];
+        
+        vret -> sret;
+        vr1 -> sres1;
+        vr2 -> sres2;
+        vb -> si;
+        
+        iret [label="%ret"];
+        ir1 [label="%a"];
+        ir2 [label="%b"];
+        ib [label="%tmp"];
+        
+        iret -> cret;
+        ir1 -> cres1;
+        ir2 -> cres2;
+        ib -> ci;
+        
+    }
+}

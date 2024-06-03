@@ -1,0 +1,923 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>A Year in Caiman -</title><meta property="og:title" content="A Year in Caiman - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/caiman/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman/bottom_up1.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman/bottom_up2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman/build_graph.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman/build_graph2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman/build_graph3.svg"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.f6850460613b9030890978fdbf1e620257677cc89df6fcca59d3f538ad85412b.css integrity="sha256-9oUEYGE7kDCJCXj9vx5iAldnfMid9vzKWdP1OK2FQSs=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/caiman/>A Year in Caiman</a></h2><div class=post-data>May 31, 2024
+|
+36 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=A%20Year%20in%20Caiman%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman%2f&amp;description=A%20Year%20in%20Caiman" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/pl>pl</a>,
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/compilers>compilers</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#background>Background</a></li><li><a href=#the-caiman-frontend>The Caiman Frontend</a></li><li><a href=#control-flow>Control Flow</a></li><li><a href=#select-sum-in-caiman>Select Sum in Caiman</a></li><li><a href=#variables-and-references>Variables and References</a></li><li><a href=#hir>HIR</a></li><li><a href=#type-inference>Type Inference</a><ol><li><a href=#type-inference-limitations>Type Inference Limitations</a></li><li><a href=#records-and-subtyping>Records and Subtyping</a></li></ol></li><li><a href=#evaluation-and-future-ideas>Evaluation and Future Ideas</a></li></ol></nav></div><div class="container markdown top-pad"><p>Caiman is a language designed for
+<a href=https://en.wikipedia.org/wiki/Heterogeneous_computing target=_blank>heterogeneous programming</a>
+that formalizes the communication between devices, allocations, and computations
+performed. This post details the current state of the Caiman Frontend and includes
+a brief overview of the implementation of some features such as lowering to
+continuation passing style and the e-graph-based type inference.</p><h2 id=background class=anchor-link><a href=#background>Background</a></h2><p>In heterogeneous programming,
+communication and synchronization between devices is extremely important for
+performance, but it&rsquo;s not at all obvious what the optimal communication
+strategy should be. Take the following simple C program for example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>selectSum</span>(<span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> a, <span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> sum_a <span style=color:#ff79c6>=</span> <span style=color:#50fa7b>sum</span>(a);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (sum_a <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>sum</span>(b);
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_a;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Instead of performing <code>sum</code> locally, a user might want to execute this on
+another device, perhaps a GPU. This might lead to another implementation that
+looks like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>selectSumGPU</span>(<span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> a, <span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> sum_a;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>sumGPU</span>(a, <span style=color:#ff79c6>&amp;</span>sum_a);
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>barrier</span>();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (sum_a <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>int</span> sum_b;
+</span></span><span style=display:flex><span>        <span style=color:#50fa7b>sumGPU</span>(b, <span style=color:#ff79c6>&amp;</span>sum_b);
+</span></span><span style=display:flex><span>        <span style=color:#50fa7b>barrier</span>();
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_b;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_a;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>But wait, if we&rsquo;re going to run these computations on the GPU, why don&rsquo;t we run them
+in parallel? Maybe let&rsquo;s trade extra work for increased parallelism and have
+an implementation like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>selectSumGPU2</span>(<span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> a, <span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> sum_a, sum_b;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>sumGPU</span>(a, <span style=color:#ff79c6>&amp;</span>sum_a);
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>sumGPU</span>(b, <span style=color:#ff79c6>&amp;</span>sum_b);
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>barrier</span>();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (sum_a <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_b;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_a;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Or perhaps, we perform one computation on the GPU, and another computed locally to
+still have the two calls to <code>sum</code> in parallel but reduce the amount of data
+transfer between the two devices:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>selectSumGPU3</span>(<span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> a, <span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span> b) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> sum_a;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>sumGPU</span>(a, <span style=color:#ff79c6>&amp;</span>sum_a);
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> sum_b <span style=color:#ff79c6>=</span> <span style=color:#50fa7b>sum</span>(b);
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>barrier</span>();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (sum_a <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>0</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_b;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> sum_a;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Now we quickly came up with 4 different implementations of the same function,
+so which one is fastest? Well, that depends. If it&rsquo;s very common for
+<code>sum_a</code> to be positive, then perhaps <code>selectSumGPU2</code> or <code>selectSumGPU3</code> would be
+ideal. But if the sizes of <code>a</code> and <code>b</code> are too small, then perhaps <code>selectSum</code>
+would be ideal since it doesn&rsquo;t have the overhead of device
+synchronization and communication. The only real way to know what&rsquo;s fastest for
+a given use case is to time them all.</p><p>If we were to write a function, <code>foo</code> that makes two calls to <code>selectSum</code>, then with
+4 implementation choices, that gives us 16 ways to implement <code>foo</code>. If another
+function <code>bar</code> calls <code>foo</code> twice, then we have 256 ways of implementing it just
+by changing which <code>selectSum</code> implementation we use. So determining what the
+fastest implementation is for a given workload involves an exploration
+of an exponentially large search space.</p><p>While this example might not seem that motivating, many important algorithms
+are composed of basic building blocks similar in spirit to <code>selectSum</code>.</p><p>Caiman solves this program space exploration problem in two ways.
+First, it provides specification languages
+to specify what something computes (the value language), the synchronization
+and communication involved in the computation (the timeline language), and the
+allocations and deallocations (in the spatial language). Notice in the
+<code>selectSum</code> example that each of the implementations computed the
+same thing and none of them had any allocations or deallocations.
+In Caiman, they would all have identical value and spatial specifications, but different timeline specs. This allows you to write implementations
+more easily by declaring what specs it implements and getting a guarantee
+that the implementation adheres to them. In the <code>selectSum</code> example, this would
+prevent us from implementing a <code>selectSum</code> that doesn&rsquo;t compute the correct result.</p><p>Secondly, Caiman introduces an explicator that can use the specifications to
+wholly or partially generate implementations.</p><p>My work on this project has been developing a front-end user-facing language
+for Caiman.</p><h2 id=the-caiman-frontend class=anchor-link><a href=#the-caiman-frontend>The Caiman Frontend</a></h2><p>When I came into this project, there was no way for someone to actually <em>use</em>
+Caiman. For testing, programs could be written in Caiman Assembly, a textual
+format that is a thin wrapper over Caiman&rsquo;s intermediate representation (IR).
+Programs written in this form are extremely verbose and difficult to write.
+Writing a simple program to compute the minimum of two integers could take
+nearly 100 lines of code and a few hours to days to implement correctly by hand.</p><p>For my project, I designed and implemented a user-level language that someone could use to write Caiman programs.
+Some of my contributions are:</p><ol><li>An imperative frontend language with variables, control flow, and recursion</li><li>A high-level intermediate representation for frontend analysis and optimization</li><li>Frontend type inference for data types and specification adherence</li><li>A couple hundred tests with coverage of the new frontend and the existing
+backend; and various fixes in the backend from bugs exposed by these tests</li><li>A VScode language extension for the Caiman Frontend</li></ol><h2 id=control-flow class=anchor-link><a href=#control-flow>Control Flow</a></h2><p>One of the things that makes writing programs in Caiman Assembly so difficult
+is the fact that the IR represents control flow in
+<a href=https://www.cs.cornell.edu/courses/cs4110/2024sp/lectures/lecture19.pdf target=_blank>continuation passing style</a>
+(CPS). In CPS, control flow is made explicit by each function invoking
+a <em>continuation</em> to pass control to the next function. These
+continuations can be thought of as &ldquo;the rest of the program&rdquo;. In CPS, an
+<code>if</code> would be implemented as calling one of
+two functions to pass control flow to.
+This representation is convenient for the compiler, but unintuitive for
+a human to write. For example, a Rust function like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo</span>(x: <span style=color:#8be9fd>i32</span>) {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> c <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>10</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> { 
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>20</span> 
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> x <span style=color:#ff79c6>&amp;</span> <span style=color:#bd93f9>1</span> <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>        c
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        c <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>would end up looking something like this in CPS:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>let</span> foo <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>|</span>x: <span style=color:#8be9fd>i32</span>, k2: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>Fn</span>(<span style=color:#8be9fd>i32</span>)<span style=color:#ff79c6>|</span>  {
+</span></span><span style=display:flex><span>    (<span style=color:#ff79c6>|</span>x: <span style=color:#8be9fd>i32</span>, k1: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>Fn</span>(<span style=color:#8be9fd>i32</span>, <span style=color:#8be9fd>i32</span>)<span style=color:#ff79c6>|</span> { 
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> cond <span style=color:#ff79c6>=</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>        (<span style=color:#ff79c6>|</span>k3: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>Fn</span>(<span style=color:#8be9fd>i32</span>), k4: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>Fn</span>(<span style=color:#8be9fd>i32</span>)<span style=color:#ff79c6>|</span> { <span style=color:#ff79c6>if</span> cond { k3(x) } <span style=color:#ff79c6>else</span> { k4(x) } })
+</span></span><span style=display:flex><span>            (<span style=color:#ff79c6>&amp;|</span>x: <span style=color:#8be9fd>i32</span><span style=color:#ff79c6>|</span> k1(x, <span style=color:#bd93f9>10</span>), <span style=color:#ff79c6>&amp;|</span>x: <span style=color:#8be9fd>i32</span><span style=color:#ff79c6>|</span> k1(x, <span style=color:#bd93f9>20</span>))
+</span></span><span style=display:flex><span>    }) (x, <span style=color:#ff79c6>&amp;|</span>x: <span style=color:#8be9fd>i32</span>, c: <span style=color:#8be9fd>i32</span><span style=color:#ff79c6>|</span> {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> cond2 <span style=color:#ff79c6>=</span> x <span style=color:#ff79c6>&amp;</span> <span style=color:#bd93f9>1</span> <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>        (<span style=color:#ff79c6>|</span>k5: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>Fn</span>(<span style=color:#8be9fd>i32</span>), k6: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd;font-style:italic>Fn</span>(<span style=color:#8be9fd>i32</span>)<span style=color:#ff79c6>|</span> { <span style=color:#ff79c6>if</span> cond2 { k5(c) } <span style=color:#ff79c6>else</span> { k6(c) } })
+</span></span><span style=display:flex><span>            (<span style=color:#ff79c6>&amp;|</span>c: <span style=color:#8be9fd>i32</span><span style=color:#ff79c6>|</span> k2(c), <span style=color:#ff79c6>&amp;|</span>c: <span style=color:#8be9fd>i32</span><span style=color:#ff79c6>|</span> k2(c <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>))
+</span></span><span style=display:flex><span>    })
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><p>There is a close correspondence between the CPS and control flow graph (CFG)
+representation of a program, as seen by the following control flow
+graph for this example program:</p><div style=text-align:center><p><img src=cps.svg alt=CFG></p></div><p>In the CPS example, the starting block (which I&rsquo;m calling <code>k0</code>)
+uses <code>cond</code> to select between invoking <code>k3</code> and <code>k4</code>, both of which pass their
+result to <code>k1</code>. Then <code>k1</code> uses <code>cond2</code> to select between invoking <code>k5</code> and <code>k6</code>,
+and both of these pass their result to <code>k2</code>. This is the same structure
+depicted in the CFG, so it&rsquo;s fairly easy to convert between CFG and CPS
+representations.</p><p>By using a control flow graph as an intermediary step, we can use standard compiler
+techniques to transform the input Caiman program into a CFG, and then transform
+the CFG into the CPS form of the Caiman assembly, which is the target language
+of the Caiman Frontend.</p><p>A typical live variables analysis over the CFG representation of the program
+is then used to determine the input variables to each continuation. In the
+example, this can be seen with how <code>x</code> is passed from <code>k0</code> to <code>k2</code> and <code>k3</code>,
+and then to <code>k1</code>. And how <code>c</code> is passed from
+<code>k1</code> to <code>k5</code> and <code>k6</code>, and then to <code>k2</code>.</p><p>The Caiman Frontend provides standard arithmetic operators and nested expressions
+programmers would be accustomed to from most programming languages. For example,
+something like <code>3 + 4 * (x / 3)</code> which performs 3 operations in one
+expression. Flattening expression trees is a standard thing for compiler frontends
+to perform, but in Caiman, all operations must be implemented as functions
+on a particular device. So we lower operators to function calls of
+standard library functions that run on the local device.</p><p>The Caiman Frontend also enables recursive functions. In Caiman Assembly,
+recursion needs to have <em>yield points</em>, which gives control back to
+the user. The operational model of Caiman is that the user writes a <em>pipeline</em>,
+which may not have cycles. To implement loops, that pipeline would be invoked
+repeatedly. So a yield point gives control back to the user so they can
+invoke the pipeline again or get the result when the recursion stops.</p><p>The Caiman Frontend will construct a call graph and automatically insert
+yield points where recursion is detected, allowing a user to not have to worry
+about the underlying technical details that enable recursion.</p><p>For example, this is how one could implement a recursive sum that computes the sum from <code>a</code> to <code>b</code> in Caiman:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>#version <span style=color:#bd93f9>0.1.0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// timeline spec, no synchronizations so the spec is trivial
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>tmln time(e: <span style=color:#50fa7b>Event</span>) -&gt; <span style=color:#50fa7b>Event</span> { returns e }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// spatial spec, no allocations so the spec is trivial
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>sptl space(s: <span style=color:#50fa7b>BufferSpace</span>) -&gt; <span style=color:#50fa7b>BufferSpace</span> { returns s }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// value spec, basically describes the actual computation being done in a way
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// that&#39;s agnostic to allocations and synchronizations
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>val rec_sum(a: <span style=color:#8be9fd>i64</span>, b: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// observe that specifications invoke other specifications,
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// NOT implementations, allowing a single spec to have
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// many different implementations. So we use `rec_sum`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// here but `rec_sum_impl` in the implementation
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// specifically, a specification will call a function equivalence
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// class. Any spec that isn&#39;t a member of an explicit user-defined
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// equivalence class is a member of its own equivalence class
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// which shares its name
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    returns <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&gt;</span> b <span style=color:#ff79c6>else</span> 
+</span></span><span style=display:flex><span>            a <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>==</span> b <span style=color:#ff79c6>else</span>
+</span></span><span style=display:flex><span>            rec_sum(a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, b) <span style=color:#ff79c6>+</span> a
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>//                     The specs the schedule implements
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// implementation  (aka the schedule)        v
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>rec_sum_impl</span>(a: <span style=color:#8be9fd>i64</span>, b: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> rec_sum, time, space {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// no return keyword, the final expression is the return value
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&gt;</span> b {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>==</span> b {
+</span></span><span style=display:flex><span>        a
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        rec_sum_impl(a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, b) <span style=color:#ff79c6>+</span> a
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// the main pipeline is essentially the entry point to the program
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>pipeline main { rec_sum_impl }
+</span></span></code></pre></div><p>Excluding whitespace and comments, this implementation takes 18 lines
+of code, compared to the 131 lines of code required to implement the
+same thing in the textual representation of the Caiman Assembly.</p><p>As this example shows, this work enables nested control flow in the
+specifications and implementations and nested expressions, such as
+<code>rec_sum_impl(a + 1, b) + a</code>, which would otherwise need to be
+implemented as a series of commands in Caiman Assembly.</p><p>In Caiman, if something is explicitly mentioned in the spec, then it must
+occur in the implementation. For example, consider this function which
+returns <code>2</code> in a convoluted way:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val min() -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    returns (<span style=color:#bd93f9>2</span> <span style=color:#ff79c6>if</span> <span style=color:#bd93f9>2</span> <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>1</span> <span style=color:#ff79c6>else</span> <span style=color:#bd93f9>1</span>) <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>min_impl</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> min, time, space
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// declare a constant
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> a <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>2</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// The Caiman Frontend allows if branches to return a value and store
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// it in a variable in the parent scope. This works like Rust
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> r <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> <span style=color:#bd93f9>2</span> <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>1</span> {
+</span></span><span style=display:flex><span>        a
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// the return value is the final expression (no terminating semicolon)
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// again, this is the same as Rust
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    r <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>We could not have an implementation that just returns 2, even though that&rsquo;s
+essentially what happens. Every operation that we have in the spec must
+also occur in the implementation. Moreover, this implementation would
+also not work:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>min_impl</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> min, time, space
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> a <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>2</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> r <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>1</span> {
+</span></span><span style=display:flex><span>        a
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    r <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>That&rsquo;s because we specified two distinct uses of the constant <code>2</code> but only
+have one shared use in this implementation. The Caiman Frontend could generate
+code in a way that this would work, however we didn&rsquo;t want any kind of pass
+to change what the user specified.</p><h2 id=select-sum-in-caiman class=anchor-link><a href=#select-sum-in-caiman>Select Sum in Caiman</a></h2><p>As a more complicated example, let&rsquo;s see our motivating example of select sum
+in Caiman. For simplicity, we&rsquo;re going to focus on computing summations
+between two bounds.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>#version <span style=color:#bd93f9>0.1.0</span>
+</span></span><span style=display:flex><span>tmln time(e: <span style=color:#50fa7b>Event</span>) -&gt; <span style=color:#50fa7b>Event</span> { returns e }
+</span></span><span style=display:flex><span>sptl space(s: <span style=color:#50fa7b>BufferSpace</span>) -&gt; <span style=color:#50fa7b>BufferSpace</span> { returns s }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// function equivalence class, declaring that these
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// are all equivalent
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>feq rec_sum {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>extern</span>(cpu) pure rec_sum_cpu(<span style=color:#8be9fd>i32</span>, <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>extern</span>(gpu) rec_sum_gpu(<span style=color:#8be9fd>i32</span>, <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span> {
+</span></span><span style=display:flex><span>        path: <span style=color:#f1fa8c>&#34;rec_sum_gpu.comp&#34;</span>,
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// the number of dimensions is the dimensions of the grid
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#6272a4>// to dispatch this kernel to
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        dimensions: <span style=color:#bd93f9>3</span>,
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#6272a4>// some details about the external 
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#6272a4>// GPU kernel we&#39;re calling omittted
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// rec sum spec from before
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    val rec_sum(a: <span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span> {
+</span></span><span style=display:flex><span>        returns <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&gt;</span> b <span style=color:#ff79c6>else</span> 
+</span></span><span style=display:flex><span>                a <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>==</span> b <span style=color:#ff79c6>else</span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// special _dim constants are available for specifications
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                <span style=color:#6272a4>// (and schedules that implement them) which are in the same
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                <span style=color:#6272a4>// function class as a GPU extern
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// this is a call to the `rec_sum` function equivalence class
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                rec_sum<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span>_dim0, _dim1, _dim2<span style=color:#ff79c6>&gt;</span>(a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, b) <span style=color:#ff79c6>+</span> a
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// rec sum implementation from before, now just with
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// dimension constants since the specification `rec_sum` is a member of
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// the `rec_sum` equivalence class which contains a GPU extern
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// that takes 3 dimensional arguments
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>rec_sum_local</span>(a: <span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span> <span style=color:#50fa7b>impls</span> rec_sum, time, space {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&gt;</span> b {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>==</span> b {
+</span></span><span style=display:flex><span>        a
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        rec_sum_local<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span>_dim0, _dim1, _dim2<span style=color:#ff79c6>&gt;</span>(a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>, b) <span style=color:#ff79c6>+</span> a
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// value spec for select sum
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>val select_sum(a: <span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>i32</span>, c: <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span> {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// the specification invokes the equivalence class
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// `feq rec_sum`, and an implementation can choose to invoke
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// `rec_sum_cpu`, `rec_sum_gpu`, or an implementation
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// of the spec `rec_sum`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// as such, we must specify the grid size since some
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// implementation may choose to invoke the GPU version
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    x :<span style=color:#ff79c6>-</span> rec_sum<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(a, b)
+</span></span><span style=display:flex><span>    returns rec_sum<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(b, c) <span style=color:#ff79c6>if</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>else</span> x
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// `selectSum` in our motivating example
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>select_sum_local</span>(a: <span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>i32</span>, c: <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span> <span style=color:#50fa7b>impls</span> select_sum, time, space {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> x <span style=color:#ff79c6>=</span> rec_sum_local<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(a, b);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>        rec_sum_local<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(b, c)
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        x
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// timeline spec for a select sum with two encodings, submissions
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// and synchronizations in parallel on every control path
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>tmln double_sync(e: <span style=color:#50fa7b>Event</span>) -&gt; <span style=color:#50fa7b>Event</span> {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// encode_event, submit_event, and sync_event
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// are special functions provided in the timeline language
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// the first argument and first return of a timeline spec
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// are implicit events. This can be thought of as tracking the
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// latest thing that the coordinator knows about.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    loc1, rem1 :<span style=color:#ff79c6>-</span> encode_event(e)
+</span></span><span style=display:flex><span>    sub :<span style=color:#ff79c6>-</span> submit_event(rem1)
+</span></span><span style=display:flex><span>    loc2, rem2 :<span style=color:#ff79c6>-</span> encode_event(loc1, sub)
+</span></span><span style=display:flex><span>    sub2 :<span style=color:#ff79c6>-</span> submit_event(rem2)
+</span></span><span style=display:flex><span>    f1 :<span style=color:#ff79c6>-</span> sync_event(loc2, sub)
+</span></span><span style=display:flex><span>    f2 :<span style=color:#ff79c6>-</span> sync_event(f1, sub2)
+</span></span><span style=display:flex><span>    returns f1
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// `selectSumGPU`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>select_sum_gpu</span>(a: <span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>i32</span>, c: <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#8be9fd>i32</span> 
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// we still implement `select_sum` and `space`, but
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// now we implement `double_sync` instead of `time`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    impls select_sum, double_sync, space 
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// encoding requires we supply a reference, and we cannot
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// take references of constants so we copy the variables here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    var a <span style=color:#ff79c6>=</span> a;
+</span></span><span style=display:flex><span>    var b <span style=color:#ff79c6>=</span> b;
+</span></span><span style=display:flex><span>    var c <span style=color:#ff79c6>=</span> c;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// start encoding a command to the GPU
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> e <span style=color:#ff79c6>=</span> encode<span style=color:#ff79c6>-</span>begin gpu;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// encode a copy command which will copy a reference to a local variable
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// to the device we are encoding commands to
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    encode e.copy[a_gpu <span style=color:#ff79c6>&lt;-</span> <span style=color:#ff79c6>&amp;</span>a];
+</span></span><span style=display:flex><span>    encode e.copy[b_gpu <span style=color:#ff79c6>&lt;-</span> <span style=color:#ff79c6>&amp;</span>b];
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// encode the invocation to the `rec_sum_gpu` kernel
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// this kernel has 3 dimensions, x, y, and z. The 
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// &#39;&lt;1, 1, 1&gt; here is setting the grid dimensions
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// of the kernel dispatch to be a 1x1x1 grid
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// Basically, we&#39;re computing this on the GPU but not
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// actually using the data parallelism of the GPU.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    encode e.call[x_gpu <span style=color:#ff79c6>&lt;-</span> rec_sum_gpu<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(a_gpu, b_gpu)];
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// dispatch the buffered commands and get a fence that we can
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// wait on to get the result
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// the commands we encode don&#39;t take effect until they&#39;re
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// submitted. Submitted commands are executed concurrently
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> f1 <span style=color:#ff79c6>=</span> submit e;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// make another encoding
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// each encoder has its own scope, so `b_gpu` doesn&#39;t conflict with
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// `b_gpu` from the earlier encoder
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> e2 <span style=color:#ff79c6>=</span> encode<span style=color:#ff79c6>-</span>begin gpu;
+</span></span><span style=display:flex><span>    encode e2.copy[b_gpu <span style=color:#ff79c6>&lt;-</span> <span style=color:#ff79c6>&amp;</span>b];
+</span></span><span style=display:flex><span>    encode e2.copy[c_gpu <span style=color:#ff79c6>&lt;-</span> <span style=color:#ff79c6>&amp;</span>c];
+</span></span><span style=display:flex><span>    encode e2.call[x_gpu <span style=color:#ff79c6>&lt;-</span> rec_sum_gpu<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(b_gpu, c_gpu)];
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> f2 <span style=color:#ff79c6>=</span> submit e2;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// synchronize on the first result and copy `x_gpu` from the
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// GPU back to the local device
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> x <span style=color:#ff79c6>=</span> (<span style=color:#ff79c6>await</span> f1).x_gpu;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// synchronize on the second result
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> r <span style=color:#ff79c6>=</span> (<span style=color:#ff79c6>await</span> f2).x_gpu
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>        r
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        x
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pipeline main { select_sum_gpu }
+</span></span></code></pre></div><p>Caiman uses a single quote followed by angled brackets for setting the
+grid and block sizes of a kernel dispatch. This syntax came about since it&rsquo;s
+not ambiguous like C++&rsquo;s template argument syntax and is (in my opinion) less
+ugly than CUDA&rsquo;s triple angle brackets. Although not shown here, the single
+quote followed by angled brackets or a single quote followed by a type is
+the general syntax approach taken for things that can be thought of as
+&ldquo;template arguments&rdquo;.</p><p>GPU variables are syntactically and semantically in another scope. This
+prevents a user from mixing up local and encoded variables. For example,
+in <code>select_sum_gpu</code>, a user could declare a new variable <code>a_gpu</code>, which would
+not shadow the existing <code>a_gpu</code> that is encoded. Furthermore, <code>b_gpu</code> from <code>e2</code>
+doesn&rsquo;t conflict with <code>b_gpu</code> from encoder <code>e</code>, since
+the two encoders effectively have different scopes. The idea here is to make
+the encoded commands almost like a tiny <a href=https://en.wikipedia.org/wiki/Domain-specific_language target=_blank>DSL</a>
+embedded into Caiman. The
+slightly different syntax emphasizes the different semantics of encoding
+a command to be executed later on another device versus executing something
+immediately on the local device.</p><p>One design decision I made is that an encoded call must use arguments that
+have already been encoded into the command buffer with <code>e.copy[]</code>, and expressions
+on the right-hand side of <code>&lt;-</code> cannot be nested. This isn&rsquo;t
+necessary, as the compiler <em>could</em> insert copies for you, but I didn&rsquo;t
+like the implicit nature of this. For example, suppose the compiler did insert copies
+as necessary, then we wouldn&rsquo;t need an encode copy construct at all. Syntactically looking at
+something like <code>encode e[y &lt;- kernel'&lt;x, y, z>(local_buffer, g + y)]</code>,
+a user might not realize that <code>local_buffer</code> is copied over to another device, but
+more importantly, it becomes unclear of whether <code>g</code> and <code>y</code> are copied over and
+then added on the other device or if <code>g + y</code> is computed locally
+and then the result is copied.</p><p>For <code>e.copy</code>, nested expressions are allowed on the right-hand side of <code>&lt;-</code>,
+in which case they are flattened on the local device and the final result is copied.
+I found this to be OK since the idea of copy is taking something from the local device
+and putting it into something on the remote device.</p><p>A timeline spec has 3 different types, encoders, fences, and events. Events
+are essentially local events that the coordinator is aware of, encoders are
+used to encode commands to a remote device and fences are single-use
+synchronization points between two devices.</p><p>When writing <code>select_sum_gpu</code> in this example, I actually made a mistake
+and switched the
+branches of the <code>if</code>, which was quickly caught by the compiler
+providing linting to VScode via a custom language extension.</p><div style=text-align:center><p><img src=select_sum_error.png alt="Image of Error"></p></div><h2 id=variables-and-references class=anchor-link><a href=#variables-and-references>Variables and References</a></h2><p>The Caiman Frontend uses immutability as the default, but it also
+provides references and variables that allow mutation. These features
+hide the allocation of temporaries that is made explicit in the Caiman Assembly.</p><p>Variables in Caiman are mutable values, but since they are implemented as
+a location on the stack, a dereference pass is used to insert loads and stores
+to the variable&rsquo;s location on the stack as needed. This is done via
+a dataflow analysis which inserts a load right before the first use of a
+variable since it was last written.</p><p>Using variables,
+we can compute the minimum of two numbers like so:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val min(a: <span style=color:#8be9fd>i64</span>, b: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    returns a <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&lt;</span> b <span style=color:#ff79c6>else</span> b
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>min_impl</span>(a: <span style=color:#8be9fd>i64</span>, b: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span>
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>impls</span> min, time, space
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    var v;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&lt;</span> b {
+</span></span><span style=display:flex><span>        v <span style=color:#ff79c6>=</span> a;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        v <span style=color:#ff79c6>=</span> b;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    v
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The Frontend supports taking references of variables and uses
+C/C++/CUDA syntax, as this is likely what a
+hypothetical Caiman user would be very familiar with:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val main() -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    c :<span style=color:#ff79c6>-</span> <span style=color:#bd93f9>50</span>
+</span></span><span style=display:flex><span>    returns one(c)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>val one(a: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    returns a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>main_func</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> main, time, space  
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    var x <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>50</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>*</span>one_func(<span style=color:#ff79c6>&amp;</span>x)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>one_func</span>(a: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> one, time, space
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// load the value from `a`, add 1,
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// then store it back into `a`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>*</span>a <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// return the reference
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    a
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>One thing to note is that the specification <code>one</code> doesn&rsquo;t know anything
+about the fact that the implementation, <code>one_func</code> is implemented with
+references. We could have written an equally good implementation without
+references. This still type-checks however because <code>&amp;i64</code> <em>refines</em> the <code>i64</code>
+specified in the specification.</p><p>The Caiman type system does not allow a reference to be captured across
+a functioin call. For example, the following implementation would not be allowed:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>{
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> x: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>=</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    bar();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>*</span>x <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Despite that variables are references under the hood, the Caiman Frontend does let
+you do this with variables. To support this, the Frontend will insert loads and
+stores so that a value, not a reference is captured. So under the hood,
+we convert code like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>{
+</span></span><span style=display:flex><span>    var x <span style=color:#ff79c6>=</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    bar();
+</span></span><span style=display:flex><span>    x <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>to</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>{
+</span></span><span style=display:flex><span>    var x <span style=color:#ff79c6>=</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> _x <span style=color:#ff79c6>=</span> x;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// _x is captured across the function call, which is a value
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    bar();
+</span></span><span style=display:flex><span>    var x <span style=color:#ff79c6>=</span> _x;
+</span></span><span style=display:flex><span>    x <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=hir class=anchor-link><a href=#hir>HIR</a></h2><p>As alluded to earlier, one part of this work was designing a new
+higher-level intermediate representation (HIR). This IR served
+as a stepping stone between the frontend abstract syntax tree (AST),
+and the Caiman Assembly.</p><p>I chose a CFG and three-address-code representation, a common design
+where the program is split into <em>basic blocks</em> of instructions,
+each instruction performs a single operation (typically having two arguments
+and a destination, hence the three addresses in three-address-code) and
+any control flow is the last instruction in the block. Control
+flow between basic blocks is represented as edges in a <em>control flow graph</em>.</p><p>Like the Caiman Assembly, this IR makes loads and stores explicit, which
+enables the aforementioned implicit load insertion pass. It also
+is in <em>single-static-assignment</em> (SSA) form, where a variable is only assigned
+once.</p><p>The HIR also includes a generalized dataflow solver, which can be parameterized
+on various dataflow analyses.</p><h2 id=type-inference class=anchor-link><a href=#type-inference>Type Inference</a></h2><p>A major feature that makes writing Caiman programs bearable is type inference.
+So far, all of the examples we&rsquo;ve seen have used type inference to
+avoid writing down the verbose types in Caiman. A type in a Caiman specification
+is just the base type (what most programmers would think of when they hear
+&ldquo;type&rdquo;), but a type in a Caiman implementation includes these components:</p><ul><li>The base type, such as <code>i64</code>, <code>&amp;i32</code>, or <code>bool</code></li><li>Flags that dictate where the memory holding the variable is. For example,
+<code>i64'&lt;storage, map_read></code> denotes an <code>i64</code> that is held on the
+GPU which is mapped for reading from the local device.</li><li>For each of the value, spatial, and timeline specs, a tag consisting of:<ul><li>A quotient, which maps a piece of the implementation back to the spec.
+For example, <code>node(val.x)</code> is the type associating a piece of the
+implementation to variable <code>x</code> in the value specification, while <code>input(tmln.y)</code>
+associates a piece of the implementation to the input variable
+<code>y</code> in the timeline specification.</li><li>A flow, which tracks the status of the associated
+<a href=https://www.cs.cornell.edu/courses/cs4110/2024sp/lectures/lecture30.pdf target=_blank>linear resource</a>.
+For example, <code>usable</code> denotes that a resource can be consumed, while
+<code>dead</code> denotes that the resource is empty.</li></ul></li></ul><p>The tags of a variable can change as it is assigned to or passed between
+basic blocks. Furthermore, a tag is not just applied to variables but is also
+used to &ldquo;type&rdquo; control flow such as <code>if</code> and function calls. For example, here is the <code>min</code> example from earlier with explicit
+type annotations for everything (tags are denoted after the <code>@</code> symbol):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val min(a: <span style=color:#8be9fd>i64</span>, b: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    c: <span style=color:#8be9fd>bool</span> :<span style=color:#ff79c6>-</span> a <span style=color:#ff79c6>&lt;</span> b
+</span></span><span style=display:flex><span>    ret: <span style=color:#8be9fd>i64</span> :<span style=color:#ff79c6>-</span> a <span style=color:#ff79c6>if</span> c <span style=color:#ff79c6>else</span> b
+</span></span><span style=display:flex><span>    returns ret
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>min_impl</span>(
+</span></span><span style=display:flex><span>    a: <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> [input(val.a)<span style=color:#ff79c6>-</span>usable, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>usable], 
+</span></span><span style=display:flex><span>    b: <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> [input(val.b)<span style=color:#ff79c6>-</span>usable, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>usable]) -&gt; 
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> [node(val.out), none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>usable]
+</span></span><span style=display:flex><span>    impls min, time, space
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    var v: <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> [none(val)<span style=color:#ff79c6>-</span>dead, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>saved];
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> c: <span style=color:#8be9fd>bool</span> <span style=color:#ff79c6>@</span> [node(val.c)<span style=color:#ff79c6>-</span>usable, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>usable]
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>=</span> a <span style=color:#ff79c6>&lt;</span> b;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> <span style=color:#ff79c6>@</span> [node(val.ret), none(sptl), none(tmln)] c {
+</span></span><span style=display:flex><span>        v <span style=color:#ff79c6>=</span> a;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>@</span>out { v: [node(val.a)<span style=color:#ff79c6>-</span>usable, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>saved] };
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        v <span style=color:#ff79c6>=</span> b;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>@</span>out { v: [node(val.b)<span style=color:#ff79c6>-</span>usable, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>saved] };
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>@</span><span style=color:#ff79c6>in</span> { v: [node(val.ret)<span style=color:#ff79c6>-</span>usable, none(tmln)<span style=color:#ff79c6>-</span>usable, none(sptl)<span style=color:#ff79c6>-</span>saved] };
+</span></span><span style=display:flex><span>    v
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>You don&rsquo;t have to understand what these types mean, but the key thing
+to note is that it&rsquo;s time-consuming to write by hand and that it&rsquo;s somewhat
+non-trivial: in this example, <code>v</code> changes its quotient and flow 3 times.</p><p>The type inference algorithm I implemented is basically
+<a href="https://www.cs.cornell.edu/courses/cs4120/2023sp/notes.html?id=typeinf" target=_blank>Hindley-Milner</a>.
+My implementation is basically a tree matching over an
+abstract set of type nodes. Like most things in PL, we can think of a type as a tree.
+For example, the type <code>i32</code> could be represented as the tree of order 2 and size 1,
+with a root node for <code>int</code> and a child leaf for the size of the integer.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>int
+</span></span><span style=display:flex><span> |
+</span></span><span style=display:flex><span> |
+</span></span><span style=display:flex><span>i32
+</span></span></code></pre></div><p>The only difference between working with base types and working with quotients is
+the set of vertices. So, by abstracting away this set we can have the same code
+work for both data type
+deduction and quotient deduction. Flows are deduced separately, via a dataflow analysis.
+Certain instructions change the flow predictably, and the new flow stays until a later instruction in the program changes the flow again.</p><p>Deducing quotients is a bit more involved, and since the base type inference
+is a strict subset of the quotient deduction, we&rsquo;ll
+continue our discussion with the quotient deduction.</p><p>Specifically, the implementation of the type inference algorithm is based on
+<a href=https://en.wikipedia.org/wiki/E-graph target=_blank>e-graphs</a>. We have a union-find
+data structure where the canonical representative of an equivalence class
+is mapped to an <em>e-class id</em>, in this case, these IDs will be
+variables in a specification.</p><p>Since tags can change as we write to references or update variables, we first
+convert the program to a reference SSA form, where variables are assigned
+<strong>and</strong> references stored, only once. This gives every value of a
+variable a distinct name we can use to refer to it during type inference.
+Then we scan through each spec building up an e-graph. Next, we scan through
+the implementations and build up a disconnected e-graph. Eventually, something
+will ensure that a part of the implementation matches a part of the spec
+and we&rsquo;ll <em>unify</em> the two graphs.</p><p>Consider the following pseudo-Caiman program:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val foo(x: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    d :<span style=color:#ff79c6>-</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>    left :<span style=color:#ff79c6>-</span> x <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>    right :<span style=color:#ff79c6>-</span> x <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>    ret :<span style=color:#ff79c6>-</span> left <span style=color:#ff79c6>if</span> d <span style=color:#ff79c6>else</span> right
+</span></span><span style=display:flex><span>    returns ret
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo_impl</span>(x: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> d <span style=color:#ff79c6>=</span> x <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> left <span style=color:#ff79c6>=</span> x <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>;
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> _out.<span style=color:#bd93f9>0</span> <span style=color:#ff79c6>=</span> left;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> right <span style=color:#ff79c6>=</span> x <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>2</span>;
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd;font-style:italic>let</span> _out.<span style=color:#bd93f9>1</span> <span style=color:#ff79c6>=</span> right;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// phi nodes are not something a user can use,
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// they exist only in the HIR
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> ret <span style=color:#ff79c6>=</span> phi _out.<span style=color:#bd93f9>0</span> _out.<span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> _out.<span style=color:#bd93f9>2</span> <span style=color:#ff79c6>=</span> ret;
+</span></span><span style=display:flex><span>    _out.<span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Going line by line, if we look at the line <code>d :- x &lt; 0</code> in the spec,
+we know that a spec variable
+<code>$d</code> is going to map to an expression like <code>Lt(x, 0)</code>.
+The dollar sign here denotes the id of an equivalence class, whereas
+a name without a dollar sign just represents a variable. Now we
+also know that <code>$x</code> is the equivalence class id of the
+input variable <code>x</code> in the spec. This gives the following graph,
+depicting two equivalence classes where dotted lines
+represent nodes in the same equivalence class and solid edges connect parent
+nodes in the type expression tree to their children:</p><div style=text-align:center><p><img src=build_graph.svg alt="Building Graph"></p></div><p>Now when we look at the child of <code>Lt(x, 0)</code>, <code>x</code>, we can <em>unify</em> these two
+equivalence classes to produce a graph like so:</p><div style=text-align:center><p><img src=build_graph2.svg alt="Building Graph2"></p></div><p>Now the variable <code>x</code> is equivalent to the node <code>Input(x)</code> with the e-class id
+of <code>$x</code>, so we can represent this as so:</p><div style=text-align:center><p><img src=build_graph3.svg alt="Building Graph3"></p></div><p>Continuing this process for the spec and implementation, we reach the following
+e-graph where the spec is depicted on the left and the implementation on the right and class ids are denoted with
+a &ldquo;$&rdquo; whereas variables are denoted with a &ldquo;%&rdquo;.</p><div style=text-align:center><p><img src=egraph1.svg alt=EGraph1></p></div><p>At this point, we know that the variable <code>%_out.2</code> must be
+equivalent to the spec variable <code>$out</code> since <code>%_out.2</code> is returned from the
+implementation and <code>$out</code> is the spec&rsquo;s return value. So we can unify the two
+classes as shown:</p><div style=text-align:center><p><img src=egraph2.svg alt=EGraph2></p></div><p>But once we do that, we know that the <code>Return</code> type expression of the implementation
+is equivalent to the <code>Return</code> type expression in the implementation
+(depicted with the existence of a path between these two nodes consisting solely
+of dotted edges). So, we can unify the corresponding children of these nodes,
+in this case the <code>Select</code> nodes:</p><div style=text-align:center><p><img src=egraph3.svg alt=EGraph3></p></div><p>We can keep recursively applying this transformation until
+we get the following graph:</p><div style=text-align:center><p><img src=egraph4.svg alt=EGraph4></p></div><p>Now, if we were to look up the class-id of the
+implementation variable <code>%d</code>, we see that it is in an equivalence class with
+the id <code>$d</code>. Thus, the quotient for
+<code>%d</code> must be <code>node(val.d)</code>. Unification can fail if we attempt
+to unify two nodes that do not match, for example, if we try and unify
+<code>Input(x)</code> with <code>Mul(Input(x), 2)</code>. If this happens, we give the user
+an error; otherwise, we continue and use the e-graph to fill in annotations
+in our program. This makes the tags easily accessible for the final lowering pass
+into Caiman Assembly, which doesn&rsquo;t happen when the program is in SSA form.</p><p>Now consider a specification like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val foo() -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    res1, res2 :<span style=color:#ff79c6>-</span> bar()
+</span></span><span style=display:flex><span>    returns res1
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>and imagine an implementation which together with the above spec generates the following e-graph:</p><div style=text-align:center><p><img src=bottom_up1.svg alt=EGraph3></p></div><p>After unifying the return values, we might get something that looks like this:</p><div style=text-align:center><p><img src=bottom_up2.svg alt=EGraph3></p></div><p>Notice that the implementation variable <code>%b</code> doesn&rsquo;t match up to anything in
+the specification. However, we can also observe that the specification contains
+only one subtree of the form <code>Extract(1, bar())</code>, which is in the class with
+id <code>$res2</code>. So, if we come across a matching subtree in the implementation,
+then since there is a unique, isomorphic tree in the specification, we know that
+those subtrees have to match. This would automatically give us that <code>%b</code> is
+equivalent to <code>$res2</code>, by the logic that there is nothing else it could possibly
+be equivalent to.</p><p>This unification strategy is a more bottom-up approach as it
+starts with nodes that must be equivalent and uses that equivalence to
+build up equivalences between larger trees. The earlier approach I described is
+a more top-down unification style as it starts with two trees that must be
+equivalent and uses that to infer equivalences of subtrees.</p><p>The Caiman Frontend does both. It starts with a top-down unification pass,
+after which, it will continually unify subtrees that have unique matches in
+a bottom-up style until every implementation variable either belongs to an
+e-class or has multiple potential matches. This allows an implementation
+of the previous value spec to be done without any annotations.</p><p>A similar process happens for type-checking base types and
+flags except they don&rsquo;t need e-class ids. Moreover, since the base types and
+flags of a variable cannot change, this form of type inference is performed at
+the AST level, before it&rsquo;s lowered down into HIR. Since things like quotient
+deduction and the load insertion pass require knowing information about every
+variable&rsquo;s base type, the data type inference needs to happen sooner. While it
+could be done at the HIR, doing it at the AST level allows stripping away data type
+annotations when lowering the AST to the HIR, simplifying the HIR.</p><h3 id=type-inference-limitations class=anchor-link><a href=#type-inference-limitations>Type Inference Limitations</a></h3><p>There are three notable situations where a user must supply type annotations:</p><ol><li>All base types of the inputs and outputs of a spec or implementation must be
+annotated. All flags of the inputs and outputs of an implementation must be annotated
+if the argument is not located on the local device.</li><li>Quotients and flows must be specified at function boundaries if a spec is
+implemented across multiple functions or if the function call doesn&rsquo;t match up
+to a call in the spec.</li><li>An implementation contains an unconstrained subtree with multiple
+matches in the spec.</li></ol><p>These all boil down to the following general guidelines:</p><ol><li>Types of signatures must be annotated, except for quotients and
+flows when the arguments match the specification and flags when the arguments
+are on the local device.</li><li>Return values from functions must be annotated if the function call
+doesn&rsquo;t match up to a call in the caller&rsquo;s spec.</li><li>Unconstrained code (either because it&rsquo;s dead or because it&rsquo;s only used as an argument to
+a function that doesn&rsquo;t match up to a call in the spec) that isn&rsquo;t uniquely identifiable must be annotated.</li></ol><p>These restrictions prevent type inference from becoming a backtracking
+algorithm that must search through an exponentially large search space.
+Further, they also enable a type inference algorithm
+that won&rsquo;t make arbitrary choices that a user might not desire.
+Other than these situations, a user can get away with letting the
+compiler figure out the types for everything else that&rsquo;s currently
+implemented in the language.</p><p>In regards to a function call which doesn&rsquo;t have a matching call in the spec,
+here&rsquo;s an example of implementing one spec across two implementation functions:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>val foo(x: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    g :<span style=color:#ff79c6>-</span> x <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>10</span>
+</span></span><span style=display:flex><span>    h :<span style=color:#ff79c6>-</span> g <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>    k :<span style=color:#ff79c6>-</span> h <span style=color:#ff79c6>+</span> g 
+</span></span><span style=display:flex><span>    returns k <span style=color:#ff79c6>/</span>  <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo1</span>(z: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> foo, time, space {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// annotation of result of function call required here,
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// note there is no call in the spec of `foo`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> g <span style=color:#ff79c6>@</span> node(val.g), h <span style=color:#ff79c6>@</span> node(val.h) <span style=color:#ff79c6>=</span> foo2(z);
+</span></span><span style=display:flex><span>    (h <span style=color:#ff79c6>+</span> g) <span style=color:#ff79c6>/</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo2</span>(a: <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> node(val)) -&gt; 
+</span></span><span style=display:flex><span>    (<span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> node(val.g), <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> node(val.h)) 
+</span></span><span style=display:flex><span>    impls foo, time, space 
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> g <span style=color:#ff79c6>=</span> a <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>10</span>;
+</span></span><span style=display:flex><span>    (g, g <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>pipeline main { foo1 }
+</span></span></code></pre></div><p>Another form of this is how one could implement a function that uses output
+parmeters:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val main() -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    returns one()
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>val one() -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    returns <span style=color:#bd93f9>10</span>
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>main_func</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> main, time, space  
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    var x;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>*</span>one_func(<span style=color:#ff79c6>&amp;</span>x)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// the spec `one` doesn&#39;t have an argument that `a` corresponds to,
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// thus it&#39;s quotient is `none`. It&#39;s flow is `dead` because there is no
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// value contained within the variable when it&#39;s passed to the function
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>one_func</span>(a: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>@</span> none(val)<span style=color:#ff79c6>-</span>dead) -&gt; <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i64</span> 
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>impls</span> one, time, space
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>*</span>a <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>10</span>;
+</span></span><span style=display:flex><span>    a
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Notice how the call to <code>one_func</code> from <code>main_func</code> doesn&rsquo;t need any annotations,
+despite the fact that we are trying to unify <code>one_func(%x)</code> with
+<code>one()</code>. The classic unification algorithm would fail here, but we support this.
+If a call in the schedule is unifying with a call in the spec that has <code>n</code>
+less arguments, we assume that the first <code>n</code> arguments that are unconstrained
+during the top-down pass are <code>none</code>, and drop them during unification. This may seem
+strange, but note that in the top-down pass, the only way for the arguments to be
+unified before the function call is if they have user-supplied annotations or
+are used in something that was given a type annotation by the user. So this
+system allows a user to precicesly control it by providing type
+annotations.</p><p>Here&rsquo;s an example of a function that has isomorphic unconstrainted
+subtrees:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val foo(x: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    a :<span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    b :<span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    c :<span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    returns x
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo_impl</span>(z: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> foo, time, space {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// no way to tell which `1` we mean, so we need annotations
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// type inference will not make arbitrary choices
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// (except for assuming that inputs and outputs match up with the spec
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// unless otherwise specified)
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> x <span style=color:#ff79c6>@</span> node(val.a) <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> y <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>1</span> <span style=color:#ff79c6>@</span> node(val.b);
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> h <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>1</span> <span style=color:#ff79c6>@</span> node(val.c);
+</span></span><span style=display:flex><span>    z
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=records-and-subtyping class=anchor-link><a href=#records-and-subtyping>Records and Subtyping</a></h3><p>Let&rsquo;s look at a simple program that uses the timeline spec:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>extern</span>(gpu) simple(x : <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#8be9fd>i32</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    dimensions: <span style=color:#bd93f9>3</span>,
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ..
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>extern</span>(gpu) simple2(x : <span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#8be9fd>i32</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    dimensions: <span style=color:#bd93f9>3</span>,
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ..
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>//                            name the output parameter so 
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>//                            we can refer to it in a type annotation
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>//                            v
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>val foo(x: <span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>bool</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#8be9fd>i32</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    y :<span style=color:#ff79c6>-</span> simple<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x)
+</span></span><span style=display:flex><span>    y2 :<span style=color:#ff79c6>-</span> simple2<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x)
+</span></span><span style=display:flex><span>    ret :<span style=color:#ff79c6>-</span> y <span style=color:#ff79c6>if</span> b <span style=color:#ff79c6>else</span> y2
+</span></span><span style=display:flex><span>    returns ret
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>tmln foo_time(e: <span style=color:#50fa7b>Event</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#50fa7b>Event</span> {
+</span></span><span style=display:flex><span>    loc1, rem1 :<span style=color:#ff79c6>-</span> encode_event(e)
+</span></span><span style=display:flex><span>    sub :<span style=color:#ff79c6>-</span> submit_event(rem1)
+</span></span><span style=display:flex><span>    snc :<span style=color:#ff79c6>-</span> sync_event(loc1, sub)
+</span></span><span style=display:flex><span>    returns snc
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>sptl space(bs: <span style=color:#50fa7b>BufferSpace</span>) -&gt; <span style=color:#50fa7b>out</span>: <span style=color:#50fa7b>BufferSpace</span> {
+</span></span><span style=display:flex><span>    returns bs
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo_impl</span>(x: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i32</span>, b: <span style=color:#8be9fd>bool</span>) -&gt; <span style=color:#8be9fd>i32</span> <span style=color:#50fa7b>impls</span> space, foo_time, foo {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> e <span style=color:#ff79c6>=</span> encode<span style=color:#ff79c6>-</span>begin gpu;
+</span></span><span style=display:flex><span>    encode e.copy[x_gpu <span style=color:#ff79c6>&lt;-</span> x];
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> f <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> b {
+</span></span><span style=display:flex><span>        encode e.call[y_gpu <span style=color:#ff79c6>&lt;-</span> simple<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x_gpu)];
+</span></span><span style=display:flex><span>        submit e
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        encode e.call[y_gpu <span style=color:#ff79c6>&lt;-</span> simple2<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x_gpu)];
+</span></span><span style=display:flex><span>        submit e
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    (<span style=color:#ff79c6>await</span> f).y_gpu
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>You might be wondering what the type of <code>f</code> is, or how we know that when
+we synchronize on <code>f</code>, we can read from the variable <code>y_gpu</code>.</p><p>Well, the Caiman Frontend has <a href=https://www.cs.cornell.edu/courses/cs4110/2024sp/lectures/lecture27.pdf target=_blank>record types</a>!
+Although, admittedly, the only way to construct a record is by encoding commands.
+The base type of <code>e</code> is
+actually <code>Encoder'{y_gpu: i32'&lt;storage, map_read>, x_gpu: i32'&lt;storage, copy_dst>}</code>,
+the base type of <code>f</code> is <code>Future'{y_gpu: i32'&lt;storage, map_read>, x_gpu: i32'&lt;storage, copy_dst>}</code>,
+and the type of the await expression is <code>{y_gpu: i32}</code>. Recall the syntax
+<code>Future'R</code> in Caiman is essentially like calling a type &ldquo;function&rdquo; with the type argument <code>R</code> in a
+<a href=https://www.cs.cornell.edu/courses/cs4110/2024sp/lectures/lecture31.pdf target=_blank>higher kinded type system</a>.
+Or in C++ and Java, something like <code>Future&lt;R></code>. Further note that <code>i32'&lt;storage, map_read></code>
+is syntax denoting an <code>i32</code> with the flags <code>storage</code> and <code>map_read</code>. These flags
+control where the memory allocation is placed. For example, the flag
+<code>map_read</code> indicates the buffer is readable by the local device.</p><p>Let&rsquo;s just look at these three statemets for now:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>let</span> e <span style=color:#ff79c6>=</span> encode<span style=color:#ff79c6>-</span>begin gpu;
+</span></span><span style=display:flex><span>encode e.copy[x_gpu <span style=color:#ff79c6>&lt;-</span> x];
+</span></span><span style=display:flex><span><span style=color:#6272a4>// ..
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    encode e.call[y_gpu <span style=color:#ff79c6>&lt;-</span> simple<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x_gpu)];
+</span></span><span style=display:flex><span><span style=color:#6272a4>// ..
+</span></span></span></code></pre></div><p>First observe that records, along with their regular subtype relation ($\preceq$)
+define a <a href=/blog/null-check/#dataflow-analysis>complete lattice</a>. Thus, given two records, $A$ and $B$, we can compute
+their meet, $C = A \sqcap B$, and we know that $C \preceq A$ and $C \preceq B$.
+The meet of $A$ and $B$ will be a new record type that has the fields of
+both $A$ and $B$, provided that any shared field has the same type in both records.
+By the regular subsumption rule, if we can show that an expression, $e$ has type $\tau$,
+and that $\tau \preceq \tau&rsquo;$, then $e$ has type $\tau&rsquo;$.</p><p>So looking at <code>let e = encode-begin gpu;</code>, we start by generating the constraint
+that <code>e</code> has type <code>Encoder'{}</code>. (An encoder of the empty record). Then looking
+at <code>encode e.copy[x_gpu &lt;- x];</code>, we also get the constraint (ignoring flags)
+that <code>e</code> has type <code>Encoder'{x_gpu: i32}</code>. Let&rsquo;s call $\tau_1 = $<code>{}</code> and
+$\tau_2 = $<code>{x_gpu: i32}</code>. Now, the standard unification algorithm would fail
+when unifying $\tau_1$ with $\tau_2$, but our implementation will instead meet
+the two constraints to produce the type <code>Encoder'{x_gpu: i32}</code>. By subsumption,
+if <code>e</code> has type <code>Encoder'{x_gpu: i32}</code>, then it also has type <code>Encoder'{}</code>,
+satisfying all constraints. We can do this again for
+<code>encode e.call[y_gpu &lt;- simple'&lt;1, 1, 1>(x_gpu)];</code> to get that the inferred
+type of <code>e</code> is <code>Encoder'{x_gpu: i32, y_gpu: i32}</code>, ignoring flags.</p><p>Now this game of meeting constraints doesn&rsquo;t work in all situations.
+Consider this function:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>type</span> <span style=color:#50fa7b>R</span> <span style=color:#ff79c6>=</span> { v: <span style=color:#8be9fd>i32</span><span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span>storage, map_read<span style=color:#ff79c6>&gt;</span> };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// records in type signatues must be annotated. Ie, we can&#39;t just say `Encoder`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// furthermore, record fields are passed and returned to/from a function 
+</span></span></span><span style=display:flex><span><span style=color:#6272a4>// in the order they are defined in the type definition.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>bar_impl</span>(e: <span style=color:#50fa7b>Encoder</span><span style=color:#50fa7b>&#39;R</span>) -&gt; <span style=color:#8be9fd>i32</span> <span style=color:#50fa7b>impls</span> bar_time, bar, space 
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> f <span style=color:#ff79c6>=</span> submit e;
+</span></span><span style=display:flex><span>    f.v
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Consider that instead of accessing <code>f.v</code>, we access <code>f.g</code>. This would generate
+the constraint that <code>f</code> has type <code>Future'{g: i32}</code>. Since <code>f</code> is the future
+returned by submitting <code>e</code>, then we also get the constraint that <code>e</code> has type
+<code>Encoder'{g: i32}</code>. Now based on the function signature, we already have the constraint
+that <code>e</code> has type <code>Encoder'{v: i32}</code>, so if we do the meet trick again, we&rsquo;d get
+that <code>e</code> has type <code>Encoder'{v: i32, g: i32}</code>. But since the function signature
+accepts an <code>Encoder'{v: i32}</code>, then a user might not give us an <code>Encoder'{v: i32, g: i32}</code>!</p><p>The problem here is that function arguments are <em>contravariant</em>. In other
+words, the lowest type in the lattice that <code>e</code> could be is <code>Encoder'{v: i32}</code>. Our implementation
+uses a special flag to denote contravariant constraints that cannot be unified to
+a lower type in the lattice.</p><p>This system allows us to pass subtypes to functions and return subtypes
+from functions. For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>type</span> <span style=color:#50fa7b>R</span> <span style=color:#ff79c6>=</span> { foo: <span style=color:#8be9fd>i32</span><span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span>storage, map_read<span style=color:#ff79c6>&gt;</span>, baz: <span style=color:#8be9fd>i32</span><span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span>storage, map_read<span style=color:#ff79c6>&gt;</span> };
+</span></span><span style=display:flex><span><span style=color:#ff79c6>type</span> <span style=color:#50fa7b>T</span> <span style=color:#ff79c6>=</span> { foo: <span style=color:#8be9fd>i32</span> };
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo_impl</span>(x: <span style=color:#ff79c6>&amp;</span><span style=color:#8be9fd>i32</span>) -&gt; <span style=color:#50fa7b>T</span> impls foo_time, foo, space {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> e <span style=color:#ff79c6>=</span> encode<span style=color:#ff79c6>-</span>begin gpu;
+</span></span><span style=display:flex><span>    encode e.copy[x_gpu <span style=color:#ff79c6>&lt;-</span> x];
+</span></span><span style=display:flex><span>    encode e.call[foo <span style=color:#ff79c6>&lt;-</span> simple<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x_gpu)];
+</span></span><span style=display:flex><span>    encode e.call[baz <span style=color:#ff79c6>&lt;-</span> simple<span style=color:#50fa7b>&#39;</span><span style=color:#ff79c6>&lt;</span><span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span>, <span style=color:#bd93f9>1</span><span style=color:#ff79c6>&gt;</span>(x_gpu)];
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ignoring flags, e has type Encoder&#39;{x_gpu: i32, foo: i32, baz: i32}
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// and we can pass it to `bar_impl` which accepts types of
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// Encoder&#39;{foo: i32, baz: i32}
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    combine_impl(<span style=color:#ff79c6>await</span> bar_impl(e))
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>bar_impl</span>(e: <span style=color:#50fa7b>Encoder</span><span style=color:#50fa7b>&#39;R</span>) -&gt; <span style=color:#50fa7b>Future</span><span style=color:#50fa7b>&#39;R</span> impls bar_time, bar, space 
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    submit e
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>combine_impl</span>(r: <span style=color:#50fa7b>R</span>) -&gt; <span style=color:#50fa7b>T</span> impls combine_time, space, combine {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// we get a {foo: i32, baz: i32}
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// and we can use it to return a {foo: i32}
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    r
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>One (perhaps questionable) design is that the flags are only relevant when the
+record type is part of an <code>Encoder</code> or <code>Future</code>. So in <code>combine_impl</code>, there&rsquo;s no
+difference between <code>R</code> and <code>{foo: i32, baz: i32}</code>.</p><p>Speaking of flags, what I described is a slightly simplified model of the real
+implementation. In truth, each <code>Encoder</code> and <code>Future</code> has separate record
+types for defined variables, and each flag. So <code>e</code> would actually have a type
+represented by something like</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Encoder&#39;{
+</span></span><span style=display:flex><span>    defined: {foo: i32, baz: i32, x_gpu: i32},
+</span></span><span style=display:flex><span>    storage: {foo: i32, baz: i32, x_gpu: i32},
+</span></span><span style=display:flex><span>    map_read: {foo: i32, baz: i32},
+</span></span><span style=display:flex><span>    copy_dst: {x_gpu: i32},
+</span></span><span style=display:flex><span>    map_write: {},
+</span></span><span style=display:flex><span>    // ...
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>The algorithm keeps track of a list of <em>side conditions</em> which enforces that
+the <code>defined</code> record of every encoder and future is a subtype of the records
+for all the flags. These side conditions are checked when
+a new constraint is added. This catches errors like reading from a variable
+before it was defined.</p><p>Taking a step back, internally, this system represents the type of a record
+as a set of constraints, and we unify the constraints to produce the most
+general type that satisfies all of them. Without putting too much thought into it,
+it seems that a similar system could potentially work for a language that
+has the look and feel of an untyped language like Python, but provides static
+typing guarantees by inferring the set of constraints on each variable. For
+example, some constraint might be that $\tau$ has the operator
+$+ : \tau \times \tau \rightarrow \tau&rsquo;$ defined on it. Such information
+could probably be useful for a JIT compiler as well.</p><h2 id=evaluation-and-future-ideas class=anchor-link><a href=#evaluation-and-future-ideas>Evaluation and Future Ideas</a></h2><p>Overall, this project has made it possible for a user to actually write
+Caiman programs. This has allowed greater potential for future use and improved test coverage of all parts of the
+compiler, exposing multiple bugs.</p><p>Although the assembly was not designed to be regularly written by hand, the
+following chart compares the lines of code required for a frontend and
+assembly implementation of the same exact test program:</p><p><img src=chart.png alt="LOC Graph"></p><p>While the frontend has come a long way, there are still things that can be done</p><ul><li>Implement holes enabling the interfacing with the explicator.</li><li>Implement the spatial specification, the implementation commands that correspond to it,
+and type inference for spatial tags.</li><li>Unary operators. This should be fairly straightforward to
+implement, I just never got around to them.</li></ul><p>Even more far-off ideas:</p><ul><li>Improved error messages and VScode extension linting.</li><li>The only way for someone to construct a record is by encoding something and
+then synchronizing on the fence. It wouldn&rsquo;t be too hard to add records to the spec
+and allow a user to construct a record locally.</li><li>Loops, which could be lowered as tail-recursive function calls.</li><li>Tuples, right now the frontend has multiple return values,
+which is one specific area where tuples are allowed but it
+would be interesting to have a more generalized tuple type.</li><li>Generics, I&rsquo;d imagine such a system would have to instantiate
+multiple concrete implementations from the
+generic implementation present in the source code, similar to
+C++.</li></ul></div><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

@@ -1,0 +1,76 @@
+digraph G {
+    si [label="Input(x)"]
+    s_lt [label="Lt(Input(x), 0)"];
+    s_left [label="Mul(Input(x), 2)"];
+    s_right [label="Sub(Input(x), 2)"];
+    s_ret [label="Select(Lt(Input(x), 0), Mul(Input(x), 2), \nSub(Input(x), 2))"];
+    s_out [label="Ret(Select(/*...*/))"];
+    
+    fi [label="Input(x)"]
+    f_lt [label="Lt(Input(x), 0)"];
+    f_left [label="Mul(Input(x), 2)"];
+    f_right [label="Sub(Input(x), 2)"];
+    f_ret [label="Select(Lt(Input(x), 0), Mul(Input(x), 2), \nSub(Input(x), 2))"];
+    f_out [label="Ret(Select(/*...*/))"];
+    
+    
+    subgraph R1 {
+        edge [dir="none", style="dotted"];
+        node [style="dashed"];
+        ci [label="$x"];
+        si -> ci;
+        c_lt [label="$d"];
+        s_lt -> c_lt;
+        c_left [label="$left"];
+        s_left -> c_left;
+        c_right [label="$right"];
+        s_right -> c_right;
+        c_ret [label="$ret"];
+        s_ret -> c_ret;
+        c_out [label="$out"];
+        c_out -> s_out;
+        
+        fci [label="%x"];
+        fi -> fci;
+        fc_lt [label="%d"];
+        f_lt -> fc_lt;
+        fc_left [label="%left"];
+        f_left -> fc_left;
+        fc_out0 [label="%_out.0"];
+        f_left -> fc_out0;
+        fc_right [label="%right"];
+        f_right -> fc_right;
+        fc_out1 [label="%_out.0"];
+        f_right -> fc_out1;
+        fc_ret [label="%ret"];
+        f_ret -> fc_ret;
+        fc_out [label="%_out.2"];
+        fc_out -> f_out;
+        fc_out -> c_out;
+        
+        f_out -> s_out;
+        f_ret -> s_ret;
+        f_left -> s_left;
+        f_right -> s_right;
+        f_lt -> s_lt;
+        fi -> si;
+    }
+    subgraph R2 {
+        s_lt -> si;
+        s_left -> si;
+        s_right -> si;
+        s_ret -> s_lt;
+        s_ret -> s_left;
+        s_ret -> s_right;
+        s_out -> s_ret;
+        
+        
+        f_lt -> fi;
+        f_left -> fi;
+        f_right -> fi;
+        f_ret -> f_lt;
+        f_ret -> f_left;
+        f_ret -> f_right;
+        f_out -> f_ret;
+    }
+}

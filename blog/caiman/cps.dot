@@ -1,0 +1,11 @@
+digraph G {
+    node [shape=rectangle];
+    k0 -> k3;
+    k0 -> k4;
+    k3 -> k1;
+    k4 -> k1
+    k1 -> k5;
+    k1 -> k6
+    k5 -> k2;
+    k6 -> k2;
+}

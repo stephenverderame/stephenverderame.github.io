@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Not Now Null Pointers Llvm Null Analysis -</title><meta property="og:title" content="Not Now Null Pointers: LLVM Null Analysis - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/null-check/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/Dataflow.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/FirstLetterBad.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_cex.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_cex2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_ex1.svg"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Not Now Null Pointers Llvm Null Analysis -</title><meta property="og:title" content="Not Now Null Pointers: LLVM Null Analysis - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/null-check/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/Dataflow.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/FirstLetterBad.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_cex.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_cex2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null-check/ia_ex1.svg"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.f6850460613b9030890978fdbf1e620257677cc89df6fcca59d3f538ad85412b.css integrity="sha256-9oUEYGE7kDCJCXj9vx5iAldnfMid9vzKWdP1OK2FQSs=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
 <script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
 <script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
 <span aria-hidden=true></span>
@@ -118,24 +118,24 @@ the meet operator, and then threaded through each instruction of the basic block
 Each $F_n$ represents the transfer function of a particular instruction. At the
 terminator of the basic block, facts are propagated to the basic block&rsquo;s
 successor nodes.</p><p>A dataflow analysis can be solved by an iterative algorithm, which in pseudocode
-is as follows</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span><span style=color:#719e07>for</span> n <span style=color:#719e07>in</span> nodes:
-</span></span><span style=display:flex><span>    out[n] <span style=color:#719e07>=</span> T
+is as follows</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span><span style=color:#ff79c6>for</span> n <span style=color:#ff79c6>in</span> nodes:
+</span></span><span style=display:flex><span>    out[n] <span style=color:#ff79c6>=</span> T
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#719e07>while</span> changing:
-</span></span><span style=display:flex><span>    <span style=color:#719e07>in</span>[n] <span style=color:#719e07>=</span> <span style=color:#719e07>in</span>[n] <span style=color:#719e07>=</span> Meet([out[n_] <span style=color:#719e07>for</span> n_ <span style=color:#719e07>in</span> predecessors(n)])
-</span></span><span style=display:flex><span>    out[n] <span style=color:#719e07>=</span> Fn(<span style=color:#719e07>in</span>[n])
-</span></span></code></pre></div><p>In practice, I tend to implement the <em>worklist algorithm</em> which in pseudocode is</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>W <span style=color:#719e07>=</span> []
-</span></span><span style=display:flex><span><span style=color:#719e07>for</span> n <span style=color:#719e07>in</span> nodes:
-</span></span><span style=display:flex><span>    out[n] <span style=color:#719e07>=</span> T
-</span></span><span style=display:flex><span>    W<span style=color:#719e07>.</span>push(n)
+</span></span><span style=display:flex><span><span style=color:#ff79c6>while</span> changing:
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>in</span>[n] <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>in</span>[n] <span style=color:#ff79c6>=</span> Meet([out[n_] <span style=color:#ff79c6>for</span> n_ <span style=color:#ff79c6>in</span> predecessors(n)])
+</span></span><span style=display:flex><span>    out[n] <span style=color:#ff79c6>=</span> Fn(<span style=color:#ff79c6>in</span>[n])
+</span></span></code></pre></div><p>In practice, I tend to implement the <em>worklist algorithm</em> which in pseudocode is</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>W <span style=color:#ff79c6>=</span> []
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> n <span style=color:#ff79c6>in</span> nodes:
+</span></span><span style=display:flex><span>    out[n] <span style=color:#ff79c6>=</span> T
+</span></span><span style=display:flex><span>    W<span style=color:#ff79c6>.</span>push(n)
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#719e07>while</span> W <span style=color:#719e07>not</span> empty:
-</span></span><span style=display:flex><span>    <span style=color:#719e07>in</span>[n] <span style=color:#719e07>=</span> Meet([out[n_] <span style=color:#719e07>for</span> n_ <span style=color:#719e07>in</span> predecessors(n)])
-</span></span><span style=display:flex><span>    out_n <span style=color:#719e07>=</span> Fn(<span style=color:#719e07>in</span>[n])
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> out_n <span style=color:#719e07>!=</span> out[n]:
-</span></span><span style=display:flex><span>        out[n] <span style=color:#719e07>=</span> out_n
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> s <span style=color:#719e07>in</span> successors(n):
-</span></span><span style=display:flex><span>            W<span style=color:#719e07>.</span>push(s)
+</span></span><span style=display:flex><span><span style=color:#ff79c6>while</span> W <span style=color:#ff79c6>not</span> empty:
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>in</span>[n] <span style=color:#ff79c6>=</span> Meet([out[n_] <span style=color:#ff79c6>for</span> n_ <span style=color:#ff79c6>in</span> predecessors(n)])
+</span></span><span style=display:flex><span>    out_n <span style=color:#ff79c6>=</span> Fn(<span style=color:#ff79c6>in</span>[n])
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> out_n <span style=color:#ff79c6>!=</span> out[n]:
+</span></span><span style=display:flex><span>        out[n] <span style=color:#ff79c6>=</span> out_n
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> s <span style=color:#ff79c6>in</span> successors(n):
+</span></span><span style=display:flex><span>            W<span style=color:#ff79c6>.</span>push(s)
 </span></span></code></pre></div><p>If each transfer function is <em>monotonic</em>
 (informally it either adds stuff or removes stuff but not both) then the algorithm
 will terminate with a solution. Formally, we require that
@@ -187,8 +187,8 @@ while $(\bot, \text{NonNull})$ cannot be compared to $(\text{NonNull}, \bot)$.</
 pointers first, I consider any pointer not added to the abstract
 value mapping yet as implicitly $\top$.</p><p>Our transfer function is going to depend on the instruction type.
 Like Conditional Constant Propagation, the output fact can differ for
-different outgoing edges. Consider the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%5 = <span style=color:#719e07>icmp</span> <span style=color:#719e07>ne</span> ptr %4, <span style=color:#719e07>null</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %5, <span style=color:#dc322f>label</span> %6, <span style=color:#dc322f>label</span> %8
+different outgoing edges. Consider the following:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%5 = <span style=color:#ff79c6>icmp</span> <span style=color:#ff79c6>ne</span> ptr %4, <span style=color:#ff79c6>null</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>br</span> <span style=color:#ff79c6>i1</span> %5, <span style=color:#8be9fd>label</span> %6, <span style=color:#8be9fd>label</span> %8
 </span></span></code></pre></div><p>We&rsquo;re only going to branch to label 6 if <code>%4</code> is non-null. Therefore,
 on the edge going to label <code>%6</code>, we can set <code>%4</code> as <code>NonNull</code>.
 On the other hand, when we branch to label <code>%8</code>, we know that <code>%4</code> <em>is</em> null,
@@ -199,10 +199,10 @@ values are stored in shared pointers to allow for this analysis to work with
 nested pointers and aliases. The way to read this table is, given an instruction
 $x$, to pick the transition $(u, S)$ where $u$ is the most specific matching
 instruction to $x$, and $S$ is $u$&rsquo;s corresponding state change.</p><table><thead><tr><th>Instruction</th><th>State Change</th></tr></thead><tbody><tr><td><code>%1 = alloca ...</code></td><td><code>State[%1] = NonNull</code></td></tr><tr><td><code>%1 = load ptr, ptr %2, ...</code></td><td><code>State[%1] = State[%2]</code></td></tr><tr><td><code>store ptr %2, ptr %1, ...</code></td><td><code>*State[%1] = *State[%2]</code></td></tr><tr><td><code>%1 = call nonnull ... ptr ...</code></td><td><code>State[%1] = NonNull</code></td></tr><tr><td><code>%1 = call ptr ...</code></td><td><code>State[%1] = MaybeNull</code></td></tr><tr><td><code>%1 = phi [%2 ...] [%3 ...] ...</code></td><td><code>State[%1] = State[%2]</code> $\sqcap$ <code>State[%3]</code></td></tr><tr><td><code>%1 = getelementptr ...</code></td><td>?</td></tr><tr><td><code>%1 = ...</code></td><td><code>State[%1] = MaybeNull</code></td></tr></tbody></table><p>There&rsquo;s one more instruction of interest: <code>getelementptr</code>.
-Suppose we are accessing an array, in LLVM this might look like the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%110 = <span style=color:#719e07>load</span> <span style=color:#719e07>i32</span>, ptr %12, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>
-</span></span><span style=display:flex><span>%111 = <span style=color:#719e07>sext</span> <span style=color:#719e07>i32</span> %110 <span style=color:#719e07>to</span> <span style=color:#719e07>i64</span>
-</span></span><span style=display:flex><span>%112 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>513</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i8</span>], ptr %9, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> %111
-</span></span><span style=display:flex><span>%113 = <span style=color:#719e07>load</span> <span style=color:#719e07>i8</span>, ptr %112, <span style=color:#719e07>align</span> <span style=color:#2aa198>1</span>
+Suppose we are accessing an array, in LLVM this might look like the following:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%110 = <span style=color:#ff79c6>load</span> <span style=color:#ff79c6>i32</span>, ptr %12, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>
+</span></span><span style=display:flex><span>%111 = <span style=color:#ff79c6>sext</span> <span style=color:#ff79c6>i32</span> %110 <span style=color:#ff79c6>to</span> <span style=color:#ff79c6>i64</span>
+</span></span><span style=display:flex><span>%112 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>513</span> <span style=color:#ff79c6>x</span> <span style=color:#ff79c6>i8</span>], ptr %9, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> %111
+</span></span><span style=display:flex><span>%113 = <span style=color:#ff79c6>load</span> <span style=color:#ff79c6>i8</span>, ptr %112, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>1</span>
 </span></span></code></pre></div><p>How can we know whether the array access results in a potentially null pointer?
 For that, we&rsquo;re going to need an <em>interval analysis</em>.</p><p>But before we move on, one last thing to note is that we also need to take
 care of function arguments: a pointer argument is <code>NonNull</code> if it has the
@@ -230,16 +230,16 @@ OpInt(V(a), V(b)) \text{ otherwise }
 \end{aligned}
 $$</p><p>Where $V(a)$ means the value of $a$. The operation on an interval ($OpInt$) involves
 constructing the smallest interval that contains the applications of the integer operation
-on all four pairs of upper and lower bounds of the two intervals. For example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>IntRange <span style=color:#719e07>operator</span><span style=color:#719e07>*</span>(<span style=color:#719e07>const</span> IntRange<span style=color:#719e07>&amp;</span> A, <span style=color:#719e07>const</span> IntRange<span style=color:#719e07>&amp;</span> B)
+on all four pairs of upper and lower bounds of the two intervals. For example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>IntRange <span style=color:#ff79c6>operator</span><span style=color:#ff79c6>*</span>(<span style=color:#ff79c6>const</span> IntRange<span style=color:#ff79c6>&amp;</span> A, <span style=color:#ff79c6>const</span> IntRange<span style=color:#ff79c6>&amp;</span> B)
 </span></span><span style=display:flex><span>{
 </span></span><span style=display:flex><span>    IntRange Res;
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> LL <span style=color:#719e07>=</span> A.Lower <span style=color:#719e07>*</span> B.Lower;
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> LU <span style=color:#719e07>=</span> A.Lower <span style=color:#719e07>*</span> B.Upper;
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> UL <span style=color:#719e07>=</span> A.Upper <span style=color:#719e07>*</span> B.Lower;
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> UU <span style=color:#719e07>=</span> A.Upper <span style=color:#719e07>*</span> B.Upper;
-</span></span><span style=display:flex><span>    Res.Lower <span style=color:#719e07>=</span> min({LL, LU, UL, UU});
-</span></span><span style=display:flex><span>    Res.Upper <span style=color:#719e07>=</span> max({LL, LU, UL, UU});
-</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> Res;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> LL <span style=color:#ff79c6>=</span> A.Lower <span style=color:#ff79c6>*</span> B.Lower;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> LU <span style=color:#ff79c6>=</span> A.Lower <span style=color:#ff79c6>*</span> B.Upper;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> UL <span style=color:#ff79c6>=</span> A.Upper <span style=color:#ff79c6>*</span> B.Lower;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> UU <span style=color:#ff79c6>=</span> A.Upper <span style=color:#ff79c6>*</span> B.Upper;
+</span></span><span style=display:flex><span>    Res.Lower <span style=color:#ff79c6>=</span> min({LL, LU, UL, UU});
+</span></span><span style=display:flex><span>    Res.Upper <span style=color:#ff79c6>=</span> max({LL, LU, UL, UU});
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> Res;
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>We need to take all four points into account instead of just applying the integer
 operation to the two lowest and two highest values of each interval
@@ -250,13 +250,13 @@ is 0.</p><p>Like the null analysis, what makes this useful is if we propagate di
 facts along different edges of a branch.</p><p>Consider the following:</p><p><img src=if1.svg alt=If></p><p>What can we be sure of being true? Well, on the true edge, we know that
 $i &lt; len$ and $len > i$. On the false edge, we know that $i \ge len$ and
 $len \le i$.</p><p><img src=if2.svg alt=If2></p><p>To understand how we need to meet bounds, let&rsquo;s walk through an example that will roughly
-correspond to the following code:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#268bd2>assert</span>(len <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>100</span>);
-</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// ..
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
-</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>j) {
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// ..
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+correspond to the following code:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#50fa7b>assert</span>(len <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>100</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> len; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ..
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> j <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; j <span style=color:#ff79c6>&lt;</span> len; <span style=color:#ff79c6>++</span>j) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ..
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
 </span></span></code></pre></div><p>We can imagine that in a real program, these loops might contain accesses
 to an array that has 100 elements. The following is a simplified instruction-level
 CFG of this program.</p><p><img src=ia_ex1.svg alt=Ex></p><p>We will consider unlabelled variables on an edge as being $\top$. We&rsquo;ll start
@@ -326,39 +326,39 @@ iterative solving algorithm. For the first meet operation, as we discussed earli
 this becomes <code>i: [1, 99]</code> and <code>len: [1, 99]</code>. These are the <em>fixed point</em> or steady-state bounds for
 the first loop.</p><p>Turning our attention to the false branch, we will get <code>i: [0, inf]</code> and <code>len: [-inf, 99]</code>. Propagating
 this gives the same results for the first iteration of the first loop.</p><p><img src=ia_ex9.svg alt></p><p>And finally, one more iteration to reach the overall fixed point:</p><p><img src=ia_ex10.svg alt></p><p>The key thing to notice is that, in the loop, we have guaranteed bounds on <code>i</code> and
-<code>j</code>. Consider the very common pattern of code that looks something like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#586e75>// length of arr &gt;= len
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>    <span style=color:#586e75>/* tmp */</span> <span style=color:#719e07>=</span> arr[i];
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// ...
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    arr[i] <span style=color:#719e07>=</span> <span style=color:#586e75>// ...
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+<code>j</code>. Consider the very common pattern of code that looks something like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#6272a4>// length of arr &gt;= len
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> len; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>/* tmp */</span> <span style=color:#ff79c6>=</span> arr[i];
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    arr[i] <span style=color:#ff79c6>=</span> <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>We know that these memory loads and stores are safe at compile time,
 without any runtime checks!</p><p>With this analysis, we can finish the transfer function of <code>getelementptr</code> for
 our null analysis. In
 particular, if we additionally keep track of the known size of the data each
 pointer refers to, then the transfer function of <code>getelementptr</code> looks like
-the following:</p><pre tabindex=0><code>%1 = getelementptr ..., ptr %2, i64 0, i64 %3, ...
-                       |
-                       |
-%1 = NonNull if Bound(%3).lower &gt;=0 &amp;&amp; Bound(%3).upper &lt; Size(%2)
-%1 = MaybeNull otherwise
-</code></pre><h2 id=implementation-details class=anchor-link><a href=#implementation-details>Implementation Details</a></h2><p>So far I haven&rsquo;t considered how to handle logical <code>and</code> or logical <code>or</code>. Due to short-circuiting,
+the following:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>%1 = getelementptr ..., ptr %2, i64 0, i64 %3, ...
+</span></span><span style=display:flex><span>                       |
+</span></span><span style=display:flex><span>                       |
+</span></span><span style=display:flex><span>%1 = NonNull if Bound(%3).lower &gt;=0 &amp;&amp; Bound(%3).upper &lt; Size(%2)
+</span></span><span style=display:flex><span>%1 = MaybeNull otherwise
+</span></span></code></pre></div><h2 id=implementation-details class=anchor-link><a href=#implementation-details>Implementation Details</a></h2><p>So far I haven&rsquo;t considered how to handle logical <code>and</code> or logical <code>or</code>. Due to short-circuiting,
 the Clang frontend implements logical <code>and</code> as a branch and a $\phi$ node where the incoming value
 on the <code>false</code> branch is <code>false</code>. Similarly for logical <code>or</code>, except <code>true</code> for the
-short-circuiting <code>true</code> branch. So <code>&&</code> looks like the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#2aa198>5</span>:                                                <span style=color:#586e75>; preds = %13, %0
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %6 = <span style=color:#719e07>load</span> ptr, ptr %3, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>
-</span></span><span style=display:flex><span>  %7 = <span style=color:#719e07>icmp</span> <span style=color:#719e07>ne</span> ptr %6, <span style=color:#719e07>null</span>
-</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %7, <span style=color:#dc322f>label</span> %8, <span style=color:#dc322f>label</span> %11
+short-circuiting <code>true</code> branch. So <code>&&</code> looks like the following:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#bd93f9>5</span>:                                                <span style=color:#6272a4>; preds = %13, %0
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  %6 = <span style=color:#ff79c6>load</span> ptr, ptr %3, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>8</span>
+</span></span><span style=display:flex><span>  %7 = <span style=color:#ff79c6>icmp</span> <span style=color:#ff79c6>ne</span> ptr %6, <span style=color:#ff79c6>null</span>
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>br</span> <span style=color:#ff79c6>i1</span> %7, <span style=color:#8be9fd>label</span> %8, <span style=color:#8be9fd>label</span> %11
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#2aa198>8</span>:                                                <span style=color:#586e75>; preds = %5
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %9 = <span style=color:#719e07>load</span> <span style=color:#719e07>i8</span>, ptr %2, <span style=color:#719e07>align</span> <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span>  %10 = <span style=color:#719e07>trunc</span> <span style=color:#719e07>i8</span> %9 <span style=color:#719e07>to</span> <span style=color:#719e07>i1</span>
-</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %11
+</span></span><span style=display:flex><span><span style=color:#bd93f9>8</span>:                                                <span style=color:#6272a4>; preds = %5
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  %9 = <span style=color:#ff79c6>load</span> <span style=color:#ff79c6>i8</span>, ptr %2, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>  %10 = <span style=color:#ff79c6>trunc</span> <span style=color:#ff79c6>i8</span> %9 <span style=color:#ff79c6>to</span> <span style=color:#ff79c6>i1</span>
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>br</span> <span style=color:#8be9fd>label</span> %11
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#2aa198>11</span>:                                               <span style=color:#586e75>; preds = %8, %5
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %12 = <span style=color:#719e07>phi</span> <span style=color:#719e07>i1</span> [ <span style=color:#719e07>false</span>, %5 ], [ %10, %8 ]
-</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %12, <span style=color:#dc322f>label</span> %13, <span style=color:#dc322f>label</span> %15
+</span></span><span style=display:flex><span><span style=color:#bd93f9>11</span>:                                               <span style=color:#6272a4>; preds = %8, %5
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  %12 = <span style=color:#ff79c6>phi</span> <span style=color:#ff79c6>i1</span> [ <span style=color:#ff79c6>false</span>, %5 ], [ %10, %8 ]
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>br</span> <span style=color:#ff79c6>i1</span> %12, <span style=color:#8be9fd>label</span> %13, <span style=color:#8be9fd>label</span> %15
 </span></span></code></pre></div><p>To support this, I do something extra to handle branches whose condition is a $\phi$ node
 with two incoming values and one of them is a boolean literal.
 If the boolean literal is <code>false</code> and the
@@ -380,20 +380,20 @@ make copies everywhere because this won&rsquo;t support storing bounds in memory
 Instead, I only keep track of the <em>canonical values</em>. Intuitively, the
 canonical value is like the &ldquo;home&rdquo; location of a particular value (using &ldquo;value&rdquo; in
 the program sense, not the LLVM sense). This is very much like how one
-could implement LVN. One could define the canonical value recursively like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Get the value that is the canonical representative of `V`. The
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * canonical representative is the value that is used to represent `V` in the
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * mapping from values to ranges. For example, if `V` is a load instruction, the
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * canonical representative is the pointer operand of the load instruction.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> getCanonicalValue(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> V)
+could implement LVN. One could define the canonical value recursively like so:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @brief Get the value that is the canonical representative of `V`. The
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * canonical representative is the value that is used to represent `V` in the
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * mapping from values to ranges. For example, if `V` is a load instruction, the
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * canonical representative is the pointer operand of the load instruction.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span> getCanonicalValue(<span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span> V)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Cast <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>CastInst<span style=color:#719e07>&gt;</span>(V); Cast <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>getCanonicalValue</span>(Cast<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>0</span>));
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#268bd2>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Load <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>LoadInst<span style=color:#719e07>&gt;</span>(V); Load <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>getCanonicalValue</span>(Load<span style=color:#719e07>-&gt;</span>getPointerOperand());
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> V;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Cast <span style=color:#ff79c6>=</span> dyn_cast<span style=color:#ff79c6>&lt;</span>CastInst<span style=color:#ff79c6>&gt;</span>(V); Cast <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>getCanonicalValue</span>(Cast<span style=color:#ff79c6>-&gt;</span>getOperand(<span style=color:#bd93f9>0</span>));
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#50fa7b>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Load <span style=color:#ff79c6>=</span> dyn_cast<span style=color:#ff79c6>&lt;</span>LoadInst<span style=color:#ff79c6>&gt;</span>(V); Load <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>getCanonicalValue</span>(Load<span style=color:#ff79c6>-&gt;</span>getPointerOperand());
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> V;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>The last implementation detail to note is that my abstract values are wrapped inside
@@ -401,66 +401,66 @@ a <code>LatticeElem&lt;T></code>. This type is essentially a variant type that
 contains either $\top$, $\bot$, or a value of type <code>T</code>. This allows me to
 factor out basic handling of $\top$ and $\bot$ which single abstract
 values typically need during abstract interpretation.</p><p>For example, <code>LatticeElem&lt;T>::meet</code> allows users to make a specific <code>meet</code> function
-that assumes that the lattice elements being met are not $\top$ nor $\bot$.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Meets two individual lattice elements (greatest lower bound).
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * If either is bottom, returns bottom. If either is top, returns the other.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * Otherwise, returns the function applied to the two facts.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> *
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @tparam Meet callable object to perform the meet of two inhabited facts
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param A The first fact
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param B The second fact
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param M The meet function, which must be callable with two facts and
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * return a new fact or a lattice element.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return a new lattice element that represents the meet of the two lattice
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * elements
-</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>template</span> <span style=color:#719e07>&lt;</span><span style=color:#719e07>typename</span> Meet<span style=color:#719e07>&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>requires</span> std<span style=color:#719e07>::</span>is_invocable_v<span style=color:#719e07>&lt;</span>Meet, <span style=color:#719e07>const</span> T<span style=color:#719e07>&amp;</span>, <span style=color:#719e07>const</span> T<span style=color:#719e07>&amp;&gt;</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>static</span> LatticeElem meet(<span style=color:#719e07>const</span> LatticeElem<span style=color:#719e07>&amp;</span> A, <span style=color:#719e07>const</span> LatticeElem<span style=color:#719e07>&amp;</span> B,
-</span></span><span style=display:flex><span>                        Meet<span style=color:#719e07>&amp;&amp;</span> M)
+that assumes that the lattice elements being met are not $\top$ nor $\bot$.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @brief Meets two individual lattice elements (greatest lower bound).
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * If either is bottom, returns bottom. If either is top, returns the other.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * Otherwise, returns the function applied to the two facts.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> *
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @tparam Meet callable object to perform the meet of two inhabited facts
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param A The first fact
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param B The second fact
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param M The meet function, which must be callable with two facts and
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * return a new fact or a lattice element.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @return a new lattice element that represents the meet of the two lattice
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * elements
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>template</span> <span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>typename</span> Meet<span style=color:#ff79c6>&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>requires</span> std<span style=color:#ff79c6>::</span>is_invocable_v<span style=color:#ff79c6>&lt;</span>Meet, <span style=color:#ff79c6>const</span> T<span style=color:#ff79c6>&amp;</span>, <span style=color:#ff79c6>const</span> T<span style=color:#ff79c6>&amp;&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>static</span> LatticeElem meet(<span style=color:#ff79c6>const</span> LatticeElem<span style=color:#ff79c6>&amp;</span> A, <span style=color:#ff79c6>const</span> LatticeElem<span style=color:#ff79c6>&amp;</span> B,
+</span></span><span style=display:flex><span>                        Meet<span style=color:#ff79c6>&amp;&amp;</span> M)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (A.isBottom() <span style=color:#719e07>||</span> B.isBottom()) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>makeBottom</span>();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (A.isBottom() <span style=color:#ff79c6>||</span> B.isBottom()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>makeBottom</span>();
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (A.isTop()) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> B;
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#268bd2>if</span> (B.isTop()) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> A;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (A.isTop()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> B;
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#50fa7b>if</span> (B.isTop()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> A;
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> <span style=color:#268bd2>constexpr</span> (std<span style=color:#719e07>::</span>is_convertible_v<span style=color:#719e07>&lt;</span><span style=color:#719e07>decltype</span>(M(A.value(), B.value())),
-</span></span><span style=display:flex><span>                                        LatticeElem<span style=color:#719e07>&gt;</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> M(A.value(), B.value());
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#268bd2>LatticeElem</span>(M(A.value(), B.value()));
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> <span style=color:#50fa7b>constexpr</span> (std<span style=color:#ff79c6>::</span>is_convertible_v<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>decltype</span>(M(A.value(), B.value())),
+</span></span><span style=display:flex><span>                                        LatticeElem<span style=color:#ff79c6>&gt;</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> M(A.value(), B.value());
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#50fa7b>LatticeElem</span>(M(A.value(), B.value()));
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><h2 id=evaluation-and-future-ideas class=anchor-link><a href=#evaluation-and-future-ideas>Evaluation and Future Ideas</a></h2><p>Here&rsquo;s a small C program that concatenates the first letter of every
-command line argument.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cassert&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdio&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdlib&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+command line argument.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cassert&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstdio&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstdlib&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>main</span>(<span style=color:#8be9fd>int</span> argc, <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>**</span> argv)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (argc <span style=color:#719e07>&gt;</span> <span style=color:#2aa198>256</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;Too many arguments</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>);
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (argc <span style=color:#ff79c6>&gt;</span> <span style=color:#bd93f9>256</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#50fa7b>printf</span>(<span style=color:#f1fa8c>&#34;Too many arguments</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>1</span>;
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// skip the filename
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#dc322f>int</span> arg_num <span style=color:#719e07>=</span> argc <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> args[<span style=color:#2aa198>257</span>];
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> arg_num; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> arg <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span>        <span style=color:#586e75>// analysis can&#39;t assume anything about `argv`, so we must
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// check for nulls
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>if</span> (arg) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>*</span> word <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>arg;
-</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (word) {
-</span></span><span style=display:flex><span>                args[i] <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>word;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// skip the filename
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd>int</span> arg_num <span style=color:#ff79c6>=</span> argc <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>char</span> args[<span style=color:#bd93f9>257</span>];
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> arg_num; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>**</span> arg <span style=color:#ff79c6>=</span> argv <span style=color:#ff79c6>+</span> i <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// analysis can&#39;t assume anything about `argv`, so we must
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#6272a4>// check for nulls
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#ff79c6>if</span> (arg) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>*</span> word <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>arg;
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (word) {
+</span></span><span style=display:flex><span>                args[i] <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>word;
 </span></span><span style=display:flex><span>            }
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    args[arg_num] <span style=color:#719e07>=</span> <span style=color:#2aa198>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>    args[arg_num] <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;\0&#39;</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;%s</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, args);
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>printf</span>(<span style=color:#f1fa8c>&#34;%s</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>, args);
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>You do have to help the analysis a little bit. In this case, I added the extra checks
 on <code>argc</code> and <code>argv</code>.
@@ -468,44 +468,44 @@ Let&rsquo;s compile this with our analysis, and it should be able to tell us our
 that&rsquo;s because <code>arg_num</code> can be negative. Nothing is stopping someone
 from calling <code>main</code> and passing <code>-10</code> to <code>argc</code>! This oversight is an honest
 mistake I made when testing the analysis pass: I intended to write a passing
-test but soon discovered I overlooked <code>argc</code> being negative.</p><p>Here&rsquo;s a program that sorts the input arguments and honestly does pass:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cassert&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdio&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstdlib&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;cstring&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07></span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+test but soon discovered I overlooked <code>argc</code> being negative.</p><p>Here&rsquo;s a program that sorts the input arguments and honestly does pass:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cassert&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstdio&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstdlib&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;cstring&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>main</span>(<span style=color:#8be9fd>int</span> argc, <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>**</span> argv)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(argc <span style=color:#719e07>==</span> <span style=color:#2aa198>2</span>);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> arg <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(arg <span style=color:#719e07>!=</span> nullptr);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> str <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>arg;
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(str <span style=color:#719e07>!=</span> nullptr);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> len <span style=color:#719e07>=</span> <span style=color:#268bd2>strlen</span>(str);
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>assert</span>(len <span style=color:#719e07>&lt;=</span> <span style=color:#2aa198>512</span>);
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> sorted[<span style=color:#2aa198>513</span>];
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>*</span> c <span style=color:#719e07>=</span> (str <span style=color:#719e07>+</span> i);
-</span></span><span style=display:flex><span>        <span style=color:#268bd2>assert</span>(c <span style=color:#719e07>!=</span> nullptr);
-</span></span><span style=display:flex><span>        sorted[i] <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>c;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>assert</span>(argc <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>2</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>**</span> arg <span style=color:#ff79c6>=</span> argv <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>assert</span>(arg <span style=color:#ff79c6>!=</span> nullptr);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> str <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>arg;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>assert</span>(str <span style=color:#ff79c6>!=</span> nullptr);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> len <span style=color:#ff79c6>=</span> <span style=color:#50fa7b>strlen</span>(str);
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>assert</span>(len <span style=color:#ff79c6>&lt;=</span> <span style=color:#bd93f9>512</span>);
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>char</span> sorted[<span style=color:#bd93f9>513</span>];
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> len; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>*</span> c <span style=color:#ff79c6>=</span> (str <span style=color:#ff79c6>+</span> i);
+</span></span><span style=display:flex><span>        <span style=color:#50fa7b>assert</span>(c <span style=color:#ff79c6>!=</span> nullptr);
+</span></span><span style=display:flex><span>        sorted[i] <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>c;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>        <span style=color:#dc322f>char</span> min <span style=color:#719e07>=</span> sorted[i];
-</span></span><span style=display:flex><span>        <span style=color:#dc322f>int</span> min_idx <span style=color:#719e07>=</span> i;
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>; j <span style=color:#719e07>&lt;</span> len; <span style=color:#719e07>++</span>j) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (sorted[j] <span style=color:#719e07>&lt;</span> min) {
-</span></span><span style=display:flex><span>                min <span style=color:#719e07>=</span> sorted[j];
-</span></span><span style=display:flex><span>                min_idx <span style=color:#719e07>=</span> j;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> len; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>char</span> min <span style=color:#ff79c6>=</span> sorted[i];
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>int</span> min_idx <span style=color:#ff79c6>=</span> i;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> j <span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>; j <span style=color:#ff79c6>&lt;</span> len; <span style=color:#ff79c6>++</span>j) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (sorted[j] <span style=color:#ff79c6>&lt;</span> min) {
+</span></span><span style=display:flex><span>                min <span style=color:#ff79c6>=</span> sorted[j];
+</span></span><span style=display:flex><span>                min_idx <span style=color:#ff79c6>=</span> j;
 </span></span><span style=display:flex><span>            }
 </span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> tmp <span style=color:#719e07>=</span> sorted[i];
-</span></span><span style=display:flex><span>        sorted[i] <span style=color:#719e07>=</span> min;
-</span></span><span style=display:flex><span>        <span style=color:#268bd2>assert</span>(min_idx <span style=color:#719e07>&lt;</span> len);
-</span></span><span style=display:flex><span>        sorted[min_idx] <span style=color:#719e07>=</span> tmp;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> tmp <span style=color:#ff79c6>=</span> sorted[i];
+</span></span><span style=display:flex><span>        sorted[i] <span style=color:#ff79c6>=</span> min;
+</span></span><span style=display:flex><span>        <span style=color:#50fa7b>assert</span>(min_idx <span style=color:#ff79c6>&lt;</span> len);
+</span></span><span style=display:flex><span>        sorted[min_idx] <span style=color:#ff79c6>=</span> tmp;
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    sorted[len] <span style=color:#719e07>=</span> <span style=color:#2aa198>&#39;\0&#39;</span>;
+</span></span><span style=display:flex><span>    sorted[len] <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;\0&#39;</span>;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>printf</span>(<span style=color:#2aa198>&#34;%s</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, sorted);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#50fa7b>printf</span>(<span style=color:#f1fa8c>&#34;%s</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>, sorted);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>0</span>;
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>Again, the analysis requires writing things in a way that helps it out, but overall
 it can figure out a decent amount of stuff on its own!</p><p>But this does reveal a large number of things that aren&rsquo;t currently supported:</p><ol><li>Dynamic intervals. Currently, all intervals are constant, but even if
@@ -522,4 +522,4 @@ internal linkage, so we can analyze internal functions with the specific sets
 of arguments that we pass to them. Likewise, we can analyze the actual return values
 from functions instead of conservatively assuming all return values are $\bot$.</li><li>Handle dynamic arrays. The infrastructure is already in place, but currently
 <code>malloc</code> doesn&rsquo;t set the size of the data a pointer refers to.</li><li>Structs</li><li>For a really big bonus challenge: do something with globals.</li></ol><p>I plan to come back to these improvements in the future.
-But that&rsquo;s all for now, be sure the check out the source if you&rsquo;re interested.</p></div><a href=https://github.com/stephenverderame/cs6120-llvm/tree/main/null-check target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
+But that&rsquo;s all for now, be sure the check out the source if you&rsquo;re interested.</p><hr><p><a href=/blog/null2>Part 2</a></p></div><a href=https://github.com/stephenverderame/cs6120-llvm/tree/main/null-check target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

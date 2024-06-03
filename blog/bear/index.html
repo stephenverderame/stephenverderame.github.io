@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Fuzzing Compilers With Genetic Programming -</title><meta property="og:title" content="Fuzzing Compilers With Genetic Programming - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/bear/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/BearOverview.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/bear_cycle.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/bvec.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/diff_test.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/novelty1.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Fuzzing Compilers With Genetic Programming -</title><meta property="og:title" content="Fuzzing Compilers With Genetic Programming - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/bear/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/BearOverview.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/bear_cycle.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/bvec.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/diff_test.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/bear/novelty1.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.f6850460613b9030890978fdbf1e620257677cc89df6fcca59d3f538ad85412b.css integrity="sha256-9oUEYGE7kDCJCXj9vx5iAldnfMid9vzKWdP1OK2FQSs=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
 <script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
 <script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
 <span aria-hidden=true></span>
@@ -40,7 +40,7 @@ the time to run will provide us with a valid test.</p><p><img src=BearOverview.p
 <a href=https://en.wikipedia.org/wiki/Probabilistic_context-free_grammar target=_blank>probabilistic context-free grammars</a>.
 A PCFG is basically a context-free grammar where every production of a nonterminal
 is assigned a probability. The sum of all the probabilities of a nonterminal sum to
-one.</p><p>Consider the following example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>expr <span style=color:#719e07>::=</span>  expr + expr           .1
+one.</p><p>Consider the following example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>expr <span style=color:#ff79c6>::=</span>  expr + expr           .1
 </span></span><span style=display:flex><span>        | expr - expr           .1
 </span></span><span style=display:flex><span>        | expr * expr           .05
 </span></span><span style=display:flex><span>        | var                   .25
@@ -53,19 +53,19 @@ This might not make sense in all circumstances. For example, we might want our P
 to encode only left associativity, and therefore the probability of the right child of
 an addition generating another addition should be 0.</p><p>To achieve this, we can convert our PCFG to a <em>bigram</em>
 (as opposed to the unigram shown earlier) by making each child nonterminal a
-new nonterminal that has its own set of probabilities.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>expr  <span style=color:#719e07>::=</span>  expr1 + expr2           .1
+new nonterminal that has its own set of probabilities.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>expr  <span style=color:#ff79c6>::=</span>  expr1 + expr2           .1
 </span></span><span style=display:flex><span>         | expr3 - expr4           .1
 </span></span><span style=display:flex><span>         | expr5 * expr6           .05
 </span></span><span style=display:flex><span>         | var                     .25
 </span></span><span style=display:flex><span>         | num                     .5
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>expr1 <span style=color:#719e07>::=</span>  expr1 + expr2           .1
+</span></span><span style=display:flex><span>expr1 <span style=color:#ff79c6>::=</span>  expr1 + expr2           .1
 </span></span><span style=display:flex><span>         | expr3 - expr4           .1
 </span></span><span style=display:flex><span>         | expr5 * expr6           .05
 </span></span><span style=display:flex><span>         | var                     .25
 </span></span><span style=display:flex><span>         | num                     .5
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>expr2 <span style=color:#719e07>::=</span>  expr1 + expr2           0
+</span></span><span style=display:flex><span>expr2 <span style=color:#ff79c6>::=</span>  expr1 + expr2           0
 </span></span><span style=display:flex><span>         | expr3 - expr4           0
 </span></span><span style=display:flex><span>         | expr5 * expr6           0
 </span></span><span style=display:flex><span>         | var                     .33
@@ -101,17 +101,17 @@ in the original generation is simply cloned, as is, into the new generation.
 the next generation. Typically, a subset of the population is selected to
 spawn the next generation based on their fitness. A common method, known as
 roulette selection is to select a subset at random, weighting the probability
-of an individual being chosen based on their fitness.</p><p>In pseudocode, the basic structure of genetic programming has the following form:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>population <span style=color:#719e07>=</span> [random_program() <span style=color:#719e07>for</span> _ <span style=color:#719e07>in</span> <span style=color:#b58900>range</span>(population_size)]
-</span></span><span style=display:flex><span><span style=color:#719e07>while</span> <span style=color:#cb4b16>True</span>:
-</span></span><span style=display:flex><span>    fitnesses <span style=color:#719e07>=</span> [fitness(p) <span style=color:#719e07>for</span> p <span style=color:#719e07>in</span> population]
-</span></span><span style=display:flex><span>    population <span style=color:#719e07>=</span> select(population, fitnesses, population_size)
-</span></span><span style=display:flex><span>    population <span style=color:#719e07>=</span> [reproduce(population) <span style=color:#719e07>for</span> _ <span style=color:#719e07>in</span> <span style=color:#b58900>range</span>(population_size)]
+of an individual being chosen based on their fitness.</p><p>In pseudocode, the basic structure of genetic programming has the following form:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>population <span style=color:#ff79c6>=</span> [random_program() <span style=color:#ff79c6>for</span> _ <span style=color:#ff79c6>in</span> <span style=color:#8be9fd;font-style:italic>range</span>(population_size)]
+</span></span><span style=display:flex><span><span style=color:#ff79c6>while</span> <span style=color:#ff79c6>True</span>:
+</span></span><span style=display:flex><span>    fitnesses <span style=color:#ff79c6>=</span> [fitness(p) <span style=color:#ff79c6>for</span> p <span style=color:#ff79c6>in</span> population]
+</span></span><span style=display:flex><span>    population <span style=color:#ff79c6>=</span> select(population, fitnesses, population_size)
+</span></span><span style=display:flex><span>    population <span style=color:#ff79c6>=</span> [reproduce(population) <span style=color:#ff79c6>for</span> _ <span style=color:#ff79c6>in</span> <span style=color:#8be9fd;font-style:italic>range</span>(population_size)]
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#719e07>def</span> <span style=color:#268bd2>reproduce</span>(population):
-</span></span><span style=display:flex><span>    <span style=color:#719e07>with</span> probability p_mutate:
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> mutate(random<span style=color:#719e07>.</span>choice(population))
-</span></span><span style=display:flex><span>    <span style=color:#719e07>with</span> probability p_crossover:
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> crossover(random<span style=color:#719e07>.</span>choice(population), random<span style=color:#719e07>.</span>choice(population))
+</span></span><span style=display:flex><span><span style=color:#ff79c6>def</span> <span style=color:#50fa7b>reproduce</span>(population):
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>with</span> probability p_mutate:
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> mutate(random<span style=color:#ff79c6>.</span>choice(population))
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>with</span> probability p_crossover:
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> crossover(random<span style=color:#ff79c6>.</span>choice(population), random<span style=color:#ff79c6>.</span>choice(population))
 </span></span></code></pre></div><h2 id=bear-dsl class=anchor-link><a href=#bear-dsl>Bear DSL</a></h2><p>The Bear DSL (referred to as Bare C), is a language designed to stress complex control flow and data dependencies
 in BRIL. It consists of basic arithmetic and boolean operators, conditionals, for, while and do-while loops,
 switches, break, continue, intra-procedural (local) try-catch, throw, print, and return. Values in the DSL can
@@ -123,7 +123,7 @@ that trigger the optimizations we want to test, Bare C has non-terminals for red
 loop-invariant expressions (expressions whose values are constant from one loop iteration to the next), and
 induction variables.</p><p>The DSL also has a dead block which contains only dead code. Dead code does not have any side effects (such
 as prints) nor does it modify any variables that may be necessary for a computation with side effects.</p><p>Below is an excerpt from the Bare C grammar, using regular expressions <code>*</code>, <code>+</code>, and <code>?</code>
-for brevity.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>aexpr <span style=color:#719e07>::=</span> aexpr + aexpr
+for brevity.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-BNF data-lang=BNF><span style=display:flex><span>aexpr <span style=color:#ff79c6>::=</span> aexpr + aexpr
 </span></span><span style=display:flex><span>            | aexpr - aexpr
 </span></span><span style=display:flex><span>            | aexpr / aexpr
 </span></span><span style=display:flex><span>            | aexpr * aexpr
@@ -131,26 +131,26 @@ for brevity.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;backgro
 </span></span><span style=display:flex><span>            | var
 </span></span><span style=display:flex><span>;;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>bexpr <span style=color:#719e07>::=</span> aexpr cmp aexpr 
+</span></span><span style=display:flex><span>bexpr <span style=color:#ff79c6>::=</span> aexpr cmp aexpr 
 </span></span><span style=display:flex><span>        | ...
 </span></span><span style=display:flex><span>;;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>expr <span style=color:#719e07>::=</span> aexpr | bexpr
+</span></span><span style=display:flex><span>expr <span style=color:#ff79c6>::=</span> aexpr | bexpr
 </span></span><span style=display:flex><span>;;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>statement <span style=color:#719e07>::=</span> var := expr
+</span></span><span style=display:flex><span>statement <span style=color:#ff79c6>::=</span> var := expr
 </span></span><span style=display:flex><span>            | return expr?
 </span></span><span style=display:flex><span>            | throw(n) expr?
 </span></span><span style=display:flex><span>            | print expr+
 </span></span><span style=display:flex><span>;;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>loop-statement <span style=color:#719e07>::=</span> statement 
+</span></span><span style=display:flex><span>loop-statement <span style=color:#ff79c6>::=</span> statement 
 </span></span><span style=display:flex><span>                | break(n) 
 </span></span><span style=display:flex><span>                | continue(n) 
 </span></span><span style=display:flex><span>                | step
 </span></span><span style=display:flex><span>;;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>block <span style=color:#719e07>::=</span> statement 
+</span></span><span style=display:flex><span>block <span style=color:#ff79c6>::=</span> statement 
 </span></span><span style=display:flex><span>        | if bexpr1 { block* } else { block* }
 </span></span><span style=display:flex><span>        | do { loop-block* } while var cmp aexpr1
 </span></span><span style=display:flex><span>        | while var cmp aexpr1 { loop-block* }
@@ -161,7 +161,7 @@ for brevity.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;backgro
 </span></span><span style=display:flex><span>            for var in aexpr1 .. aexpr1 by aexpr2 } # Duff&#39;s Device
 </span></span><span style=display:flex><span>        | dead { block* }
 </span></span><span style=display:flex><span>;;
-</span></span><span style=display:flex><span>program <span style=color:#719e07>::=</span> block+
+</span></span><span style=display:flex><span>program <span style=color:#ff79c6>::=</span> block+
 </span></span></code></pre></div><p>One thing to note is that the grammar is neither a unigram nor a bigram
 model. In the above grammar, you can see some repeated productions such as
 <code>loop-statement</code>, <code>loop-block</code>, <code>aexpr1</code>, <code>aexpr2</code>, and <code>bexpr1</code>. However, many things
@@ -180,59 +180,59 @@ the assignment <code>x := 10</code> is generated, we must kill all previous avai
 the analysis facts in a hierarchical context, where each level of the context corresponds to the current level of
 scope nesting the generator is currently at. When we exit a child scope (such as the body of the if), we merge
 the corresponding child contexts with all of its siblings (in this example, the else block of the if-else) and then
-merge this final output with the parent context.</p><p>For example, when generating an if, we perform the following:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Generates an if statement
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// # Arguments
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `pcfg` - The pcfg containing probabilities for generating stmts in a block
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `tp` - The top level pcfg containing probabilities for generating top
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// level blocks
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `distribs` - probability distributions
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `funcs` - List of available functions
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `fuel` - Limit to depth of subtree
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `complexity` - Limits to number of statements in the program and subtree
-</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>pub</span>(<span style=color:#719e07>super</span>) <span style=color:#719e07>fn</span> <span style=color:#268bd2>gen_if</span><span style=color:#719e07>&lt;</span>T: <span style=color:#268bd2>Pretty</span> <span style=color:#719e07>+</span> StatementTy, P: <span style=color:#268bd2>StatementPCFG</span><span style=color:#719e07>&gt;</span>(
-</span></span><span style=display:flex><span>    pcfg: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>BlockPCFG</span><span style=color:#719e07>&lt;</span>P<span style=color:#719e07>&gt;</span>,
-</span></span><span style=display:flex><span>    tp: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>TopPCFG</span>,
-</span></span><span style=display:flex><span>    ctx: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> Context,
-</span></span><span style=display:flex><span>    distribs: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> Distribs,
-</span></span><span style=display:flex><span>    funcs: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> FuncList,
-</span></span><span style=display:flex><span>    fuel: <span style=color:#dc322f>usize</span>,
-</span></span><span style=display:flex><span>    complexity: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>mut</span> Complexity,
-</span></span><span style=display:flex><span>) -&gt; <span style=color:#268bd2>Block</span><span style=color:#719e07>&lt;</span>T<span style=color:#719e07>&gt;</span> {
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// generates random condition for the if guard
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> (cond, _) <span style=color:#719e07>=</span>
-</span></span><span style=display:flex><span>        gen_bexpr(<span style=color:#719e07>&amp;</span>pcfg.if_pcfg.guard, ctx, distribs, funcs, <span style=color:#cb4b16>EXPR_FUEL</span>);
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// Get a context of analysis facts for the child
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> true_frame <span style=color:#719e07>=</span> ctx.child_frame();
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// generate blocks for the true branch
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> then_block <span style=color:#719e07>=</span> gen_blocks(
+merge this final output with the parent context.</p><p>For example, when generating an if, we perform the following:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#f1fa8c>/// Generates an if statement
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// # Arguments
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `pcfg` - The pcfg containing probabilities for generating stmts in a block
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `tp` - The top level pcfg containing probabilities for generating top
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// level blocks
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `distribs` - probability distributions
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `funcs` - List of available functions
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `fuel` - Limit to depth of subtree
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `complexity` - Limits to number of statements in the program and subtree
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span><span style=color:#ff79c6>pub</span>(<span style=color:#ff79c6>super</span>) <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>gen_if</span><span style=color:#ff79c6>&lt;</span>T: <span style=color:#50fa7b>Pretty</span> <span style=color:#ff79c6>+</span> StatementTy, P: <span style=color:#50fa7b>StatementPCFG</span><span style=color:#ff79c6>&gt;</span>(
+</span></span><span style=display:flex><span>    pcfg: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>BlockPCFG</span><span style=color:#ff79c6>&lt;</span>P<span style=color:#ff79c6>&gt;</span>,
+</span></span><span style=display:flex><span>    tp: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>TopPCFG</span>,
+</span></span><span style=display:flex><span>    ctx: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>mut</span> Context,
+</span></span><span style=display:flex><span>    distribs: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>mut</span> Distribs,
+</span></span><span style=display:flex><span>    funcs: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>mut</span> FuncList,
+</span></span><span style=display:flex><span>    fuel: <span style=color:#8be9fd>usize</span>,
+</span></span><span style=display:flex><span>    complexity: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>mut</span> Complexity,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#50fa7b>Block</span><span style=color:#ff79c6>&lt;</span>T<span style=color:#ff79c6>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// generates random condition for the if guard
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> (cond, _) <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>        gen_bexpr(<span style=color:#ff79c6>&amp;</span>pcfg.if_pcfg.guard, ctx, distribs, funcs, EXPR_FUEL);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// Get a context of analysis facts for the child
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> <span style=color:#ff79c6>mut</span> true_frame <span style=color:#ff79c6>=</span> ctx.child_frame();
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// generate blocks for the true branch
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> then_block <span style=color:#ff79c6>=</span> gen_blocks(
 </span></span><span style=display:flex><span>        pcfg,
 </span></span><span style=display:flex><span>        tp,
-</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> true_frame,
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&amp;</span><span style=color:#ff79c6>mut</span> true_frame,
 </span></span><span style=display:flex><span>        distribs,
 </span></span><span style=display:flex><span>        funcs,
-</span></span><span style=display:flex><span>        fuel <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>        fuel <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>,
 </span></span><span style=display:flex><span>        complexity,
 </span></span><span style=display:flex><span>    );
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// get another context storing analysis facts for the right child
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> false_frame <span style=color:#719e07>=</span> ctx.child_frame();
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// generate blocks for the right child
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> else_block <span style=color:#719e07>=</span> gen_blocks(
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// get another context storing analysis facts for the right child
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> <span style=color:#ff79c6>mut</span> false_frame <span style=color:#ff79c6>=</span> ctx.child_frame();
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// generate blocks for the right child
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> else_block <span style=color:#ff79c6>=</span> gen_blocks(
 </span></span><span style=display:flex><span>        pcfg,
 </span></span><span style=display:flex><span>        tp,
-</span></span><span style=display:flex><span>        <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> false_frame,
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>&amp;</span><span style=color:#ff79c6>mut</span> false_frame,
 </span></span><span style=display:flex><span>        distribs,
 </span></span><span style=display:flex><span>        funcs,
-</span></span><span style=display:flex><span>        fuel <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>        fuel <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>,
 </span></span><span style=display:flex><span>        complexity,
 </span></span><span style=display:flex><span>    );
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// meet the analysis facts of the two children
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> sf <span style=color:#719e07>=</span> Context::meet(true_frame, false_frame);
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// update the parent context with any new analysis facts.
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    ctx.update(sf);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// meet the analysis facts of the two children
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> sf <span style=color:#ff79c6>=</span> Context::meet(true_frame, false_frame);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// update the parent context with any new analysis facts.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    ctx.update(sf);
 </span></span><span style=display:flex><span>    Block::If {
-</span></span><span style=display:flex><span>        guard: <span style=color:#268bd2>cond</span>,
-</span></span><span style=display:flex><span>        then: <span style=color:#268bd2>then_block</span>,
-</span></span><span style=display:flex><span>        otherwise: <span style=color:#268bd2>else_block</span>,
+</span></span><span style=display:flex><span>        guard: <span style=color:#50fa7b>cond</span>,
+</span></span><span style=display:flex><span>        then: <span style=color:#50fa7b>then_block</span>,
+</span></span><span style=display:flex><span>        otherwise: <span style=color:#50fa7b>else_block</span>,
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>The incremental analysis also prevents Bear from generating statements after
@@ -315,159 +315,159 @@ $x$ to generation $x + 1$.</p><p>Gen $x$:
 Gen $x + 1$:
 <img src=novelty2.png alt=Novelty2></p><p>Notice that programs with a lower novelty are not saved to the archive but
 programs with a high novelty are.</p><p>In the Bear implementation the overall structure of the novelty search is
-as follows:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#586e75>// Runs the current population and returns the next population.
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> pop_idx <span style=color:#719e07>=</span> params.pop_idx;
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> bvecs <span style=color:#719e07>=</span> vec![];
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (i, pcfg) <span style=color:#719e07>in</span> pop.iter().enumerate() {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> _ <span style=color:#719e07>in</span> <span style=color:#2aa198>0</span><span style=color:#719e07>..</span><span style=color:#cb4b16>TRIALS_PER_PCFG</span> {
-</span></span><span style=display:flex><span>            <span style=color:#586e75>// Generate random cmd line args to run the program with
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>let</span> prog_args <span style=color:#719e07>=</span> gen_main_args(args);
-</span></span><span style=display:flex><span>            <span style=color:#586e75>// Generates a test and runs it
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>let</span> (brc, prog, result) <span style=color:#719e07>=</span>
-</span></span><span style=display:flex><span>                gen_good_test(pcfg, args, test_pipeline, <span style=color:#719e07>&amp;</span>prog_args, pop_idx);
+as follows:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#6272a4>// Runs the current population and returns the next population.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> pop_idx <span style=color:#ff79c6>=</span> params.pop_idx;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> <span style=color:#ff79c6>mut</span> bvecs <span style=color:#ff79c6>=</span> vec![];
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (i, pcfg) <span style=color:#ff79c6>in</span> pop.iter().enumerate() {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> _ <span style=color:#ff79c6>in</span> <span style=color:#bd93f9>0</span><span style=color:#ff79c6>..</span>TRIALS_PER_PCFG {
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// Generate random cmd line args to run the program with
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            <span style=color:#8be9fd;font-style:italic>let</span> prog_args <span style=color:#ff79c6>=</span> gen_main_args(args);
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// Generates a test and runs it
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            <span style=color:#8be9fd;font-style:italic>let</span> (brc, prog, result) <span style=color:#ff79c6>=</span>
+</span></span><span style=display:flex><span>                gen_good_test(pcfg, args, test_pipeline, <span style=color:#ff79c6>&amp;</span>prog_args, pop_idx);
 </span></span><span style=display:flex><span>            bvecs.push((
-</span></span><span style=display:flex><span>                <span style=color:#586e75>// Keep track of which pcfg a behavior vector came from
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                i,
-</span></span><span style=display:flex><span>                <span style=color:#586e75>// Construct a behavior vector from a trace file saved to disk
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                BehaviorVec::new(
-</span></span><span style=display:flex><span>                    <span style=color:#719e07>&amp;</span>format!(<span style=color:#2aa198>&#34;out/rt_</span><span style=color:#2aa198>{pop_idx}</span><span style=color:#2aa198>.trace&#34;</span>),
-</span></span><span style=display:flex><span>                    FailureType::from(<span style=color:#719e07>&amp;</span>result),
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// Keep track of which pcfg a behavior vector came from
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                i,
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// Construct a behavior vector from a trace file saved to disk
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                BehaviorVec::new(
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>&amp;</span>format!(<span style=color:#f1fa8c>&#34;out/rt_</span><span style=color:#f1fa8c>{pop_idx}</span><span style=color:#f1fa8c>.trace&#34;</span>),
+</span></span><span style=display:flex><span>                    FailureType::from(<span style=color:#ff79c6>&amp;</span>result),
 </span></span><span style=display:flex><span>                ),
 </span></span><span style=display:flex><span>            ));
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// Increment number of generations
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    local_stats.gen_count <span style=color:#719e07>+=</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// Select the subset of the population that can reproduce
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> r: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>_<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> select(bvecs, archive, stats, local_stats, params)
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// Increment number of generations
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    local_stats.gen_count <span style=color:#ff79c6>+=</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// Select the subset of the population that can reproduce
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> r: <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>_<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>=</span> select(bvecs, archive, stats, local_stats, params)
 </span></span><span style=display:flex><span>        .iter()
-</span></span><span style=display:flex><span>        .map(<span style=color:#719e07>|</span>(pop_id, _)<span style=color:#719e07>|</span> pop[<span style=color:#719e07>*</span>pop_id].clone())
+</span></span><span style=display:flex><span>        .map(<span style=color:#ff79c6>|</span>(pop_id, _)<span style=color:#ff79c6>|</span> pop[<span style=color:#ff79c6>*</span>pop_id].clone())
 </span></span><span style=display:flex><span>        .collect();
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// Spawn the next generation
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    reproduce(<span style=color:#719e07>&amp;</span>r, params)
-</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Selects `SELECT_SIZE` elements from `gen` probabilistically, weighted by their
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// novelty
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// # Arguments
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// * `gen` - The population to select from. The first element of each tuple is
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// the index of the behavior vec&#39;s pcfg in the population.
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// # Returns
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// A vector of the selected behavior vectors. The first element of each tuple
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// is the index of the behavior vec&#39;s pcfg in the population.
-</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>#[allow(clippy::cast_precision_loss)]</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>fn</span> <span style=color:#268bd2>select</span>(
-</span></span><span style=display:flex><span>    <span style=color:#719e07>mut</span> gen: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span>,
-</span></span><span style=display:flex><span>    archive: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>Arc</span><span style=color:#719e07>&lt;</span>RwLock<span style=color:#719e07>&lt;</span>Archive<span style=color:#719e07>&gt;&gt;</span>,
-</span></span><span style=display:flex><span>    params: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>PopParams</span>,
-</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span> {
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> old_len <span style=color:#719e07>=</span> gen.len();
-</span></span><span style=display:flex><span>    assert!(gen.len() <span style=color:#719e07>%</span> <span style=color:#cb4b16>TRIALS_PER_PCFG</span> <span style=color:#719e07>==</span> <span style=color:#2aa198>0</span>);
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// Gets the behavior vector with the median novelty out of all the trials
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// ran for a given PCFG
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    gen <span style=color:#719e07>=</span> extract_medians(gen, archive);
-</span></span><span style=display:flex><span>    assert!(old_len <span style=color:#719e07>/</span> <span style=color:#cb4b16>TRIALS_PER_PCFG</span> <span style=color:#719e07>==</span> gen.len());
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// ith element of distance is the average distance of the ith element of gen
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> distances <span style=color:#719e07>=</span> vec![];
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> to_save <span style=color:#719e07>=</span> vec![];
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// Spawn the next generation
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    reproduce(<span style=color:#ff79c6>&amp;</span>r, params)
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#f1fa8c>/// Selects `SELECT_SIZE` elements from `gen` probabilistically, weighted by their
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// novelty
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// # Arguments
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// * `gen` - The population to select from. The first element of each tuple is
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// the index of the behavior vec&#39;s pcfg in the population.
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// # Returns
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// A vector of the selected behavior vectors. The first element of each tuple
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// is the index of the behavior vec&#39;s pcfg in the population.
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span><span style=color:#ff79c6>#[allow(clippy::cast_precision_loss)]</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>select</span>(
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>mut</span> gen: <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>(<span style=color:#8be9fd>usize</span>, BehaviorVec)<span style=color:#ff79c6>&gt;</span>,
+</span></span><span style=display:flex><span>    archive: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>Arc</span><span style=color:#ff79c6>&lt;</span>RwLock<span style=color:#ff79c6>&lt;</span>Archive<span style=color:#ff79c6>&gt;&gt;</span>,
+</span></span><span style=display:flex><span>    params: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>PopParams</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>(<span style=color:#8be9fd>usize</span>, BehaviorVec)<span style=color:#ff79c6>&gt;</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> old_len <span style=color:#ff79c6>=</span> gen.len();
+</span></span><span style=display:flex><span>    assert!(gen.len() <span style=color:#ff79c6>%</span> TRIALS_PER_PCFG <span style=color:#ff79c6>==</span> <span style=color:#bd93f9>0</span>);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// Gets the behavior vector with the median novelty out of all the trials
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// ran for a given PCFG
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    gen <span style=color:#ff79c6>=</span> extract_medians(gen, archive);
+</span></span><span style=display:flex><span>    assert!(old_len <span style=color:#ff79c6>/</span> TRIALS_PER_PCFG <span style=color:#ff79c6>==</span> gen.len());
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ith element of distance is the average distance of the ith element of gen
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> <span style=color:#ff79c6>mut</span> distances <span style=color:#ff79c6>=</span> vec![];
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> <span style=color:#ff79c6>mut</span> to_save <span style=color:#ff79c6>=</span> vec![];
 </span></span><span style=display:flex><span>    {
-</span></span><span style=display:flex><span>        <span style=color:#586e75>// Gets the arvhive point cloud and adds the current generation
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// points tp it
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#268bd2>let</span> <span style=color:#719e07>mut</span> cur_gen <span style=color:#719e07>=</span> archive.read().unwrap().clone_point_cloud();
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (_, individual) <span style=color:#719e07>in</span> <span style=color:#719e07>&amp;</span>gen {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// Gets the arvhive point cloud and adds the current generation
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#6272a4>// points tp it
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#8be9fd;font-style:italic>let</span> <span style=color:#ff79c6>mut</span> cur_gen <span style=color:#ff79c6>=</span> archive.read().unwrap().clone_point_cloud();
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (_, individual) <span style=color:#ff79c6>in</span> <span style=color:#ff79c6>&amp;</span>gen {
 </span></span><span style=display:flex><span>            cur_gen.add_point(individual);
 </span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#586e75>// Computes novelty
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>for</span> (pcfg_idx, b) <span style=color:#719e07>in</span> <span style=color:#719e07>&amp;</span>gen {
-</span></span><span style=display:flex><span>            <span style=color:#268bd2>let</span> dist <span style=color:#719e07>=</span> cur_gen
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// Computes novelty
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#ff79c6>for</span> (pcfg_idx, b) <span style=color:#ff79c6>in</span> <span style=color:#ff79c6>&amp;</span>gen {
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd;font-style:italic>let</span> dist <span style=color:#ff79c6>=</span> cur_gen
 </span></span><span style=display:flex><span>                .get_nearest_k(b, K)
 </span></span><span style=display:flex><span>                .iter()
-</span></span><span style=display:flex><span>                .map(<span style=color:#719e07>|</span>(b, _)<span style=color:#719e07>|</span> b)
-</span></span><span style=display:flex><span>                .sum::<span style=color:#719e07>&lt;</span><span style=color:#dc322f>f64</span><span style=color:#719e07>&gt;</span>()
-</span></span><span style=display:flex><span>                <span style=color:#719e07>/</span> K <span style=color:#719e07>as</span> <span style=color:#dc322f>f64</span>;
+</span></span><span style=display:flex><span>                .map(<span style=color:#ff79c6>|</span>(b, _)<span style=color:#ff79c6>|</span> b)
+</span></span><span style=display:flex><span>                .sum::<span style=color:#ff79c6>&lt;</span><span style=color:#8be9fd>f64</span><span style=color:#ff79c6>&gt;</span>()
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>/</span> K <span style=color:#ff79c6>as</span> <span style=color:#8be9fd>f64</span>;
 </span></span><span style=display:flex><span>            distances.push(HeapElem {
 </span></span><span style=display:flex><span>                dist,
-</span></span><span style=display:flex><span>                index: <span style=color:#719e07>*</span>pcfg_idx,
+</span></span><span style=display:flex><span>                index: <span style=color:#ff79c6>*</span>pcfg_idx,
 </span></span><span style=display:flex><span>            });
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>            <span style=color:#586e75>// Saves novel data points to the archive
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#719e07>if</span> dist <span style=color:#719e07>&gt;</span> max_dist <span style=color:#719e07>*</span> <span style=color:#2aa198>0.8</span> <span style=color:#719e07>||</span> dist <span style=color:#719e07>&gt;</span> <span style=color:#cb4b16>NOVELTY_THRESH</span> {
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// Saves novel data points to the archive
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            <span style=color:#ff79c6>if</span> dist <span style=color:#ff79c6>&gt;</span> max_dist <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>0.8</span> <span style=color:#ff79c6>||</span> dist <span style=color:#ff79c6>&gt;</span> NOVELTY_THRESH {
 </span></span><span style=display:flex><span>                to_save.push(b.clone());
 </span></span><span style=display:flex><span>            }
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> e <span style=color:#719e07>in</span> to_save {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> e <span style=color:#ff79c6>in</span> to_save {
 </span></span><span style=display:flex><span>        archive.write().unwrap().add_point(e);
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    gen_select_set(<span style=color:#719e07>&amp;</span>distances, gen, params)
+</span></span><span style=display:flex><span>    gen_select_set(<span style=color:#ff79c6>&amp;</span>distances, gen, params)
 </span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#2aa198>/// Selects `params.select_size` elements from `gen` probabilistically, weighted by their
-</span></span></span><span style=display:flex><span><span style=color:#2aa198>/// novelty (`distances`).
-</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>fn</span> <span style=color:#268bd2>gen_select_set</span>(
-</span></span><span style=display:flex><span>    distances: <span style=color:#719e07>&amp;</span>[HeapElem],
-</span></span><span style=display:flex><span>    gen: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span>,
-</span></span><span style=display:flex><span>    params: <span style=color:#719e07>&amp;</span><span style=color:#268bd2>PopParams</span>,
-</span></span><span style=display:flex><span>) -&gt; <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>(<span style=color:#dc322f>usize</span>, BehaviorVec)<span style=color:#719e07>&gt;</span> {
+</span></span><span style=display:flex><span><span style=color:#f1fa8c>/// Selects `params.select_size` elements from `gen` probabilistically, weighted by their
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c>/// novelty (`distances`).
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>gen_select_set</span>(
+</span></span><span style=display:flex><span>    distances: <span style=color:#ff79c6>&amp;</span>[HeapElem],
+</span></span><span style=display:flex><span>    gen: <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>(<span style=color:#8be9fd>usize</span>, BehaviorVec)<span style=color:#ff79c6>&gt;</span>,
+</span></span><span style=display:flex><span>    params: <span style=color:#ff79c6>&amp;</span><span style=color:#50fa7b>PopParams</span>,
+</span></span><span style=display:flex><span>) -&gt; <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>(<span style=color:#8be9fd>usize</span>, BehaviorVec)<span style=color:#ff79c6>&gt;</span> {
 </span></span><span style=display:flex><span>    assert_eq!(distances.len(), gen.len());
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> sum: <span style=color:#dc322f>f64</span> <span style=color:#719e07>=</span> distances.iter().map(<span style=color:#719e07>|</span>e<span style=color:#719e07>|</span> e.dist).sum();
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> sum <span style=color:#719e07>=</span> sum.max(<span style=color:#dc322f>f64</span>::<span style=color:#cb4b16>EPSILON</span>);
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> sum: <span style=color:#8be9fd>f64</span> <span style=color:#ff79c6>=</span> distances.iter().map(<span style=color:#ff79c6>|</span>e<span style=color:#ff79c6>|</span> e.dist).sum();
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> sum <span style=color:#ff79c6>=</span> sum.max(<span style=color:#8be9fd>f64</span>::EPSILON);
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// Mathces each individual with its normalized novelty
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// The normalized novelty will be the probability that pcfg
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// is chosen to reproduce
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#268bd2>let</span> res: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>_<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> gen
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// Mathces each individual with its normalized novelty
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// The normalized novelty will be the probability that pcfg
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// is chosen to reproduce
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> res: <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>_<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>=</span> gen
 </span></span><span style=display:flex><span>        .into_iter()
-</span></span><span style=display:flex><span>        .zip(distances.iter().map(<span style=color:#719e07>|</span>e<span style=color:#719e07>|</span> e.dist <span style=color:#719e07>/</span> sum))
+</span></span><span style=display:flex><span>        .zip(distances.iter().map(<span style=color:#ff79c6>|</span>e<span style=color:#ff79c6>|</span> e.dist <span style=color:#ff79c6>/</span> sum))
 </span></span><span style=display:flex><span>        .collect();
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#268bd2>let</span> r: <span style=color:#b58900>Vec</span><span style=color:#719e07>&lt;</span>_<span style=color:#719e07>&gt;</span> <span style=color:#719e07>=</span> res
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> r: <span style=color:#8be9fd;font-style:italic>Vec</span><span style=color:#ff79c6>&lt;</span>_<span style=color:#ff79c6>&gt;</span> <span style=color:#ff79c6>=</span> res
 </span></span><span style=display:flex><span>        .choose_multiple_weighted(
-</span></span><span style=display:flex><span>            <span style=color:#719e07>&amp;</span><span style=color:#719e07>mut</span> rnd::get_rng(),
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>&amp;</span><span style=color:#ff79c6>mut</span> rnd::get_rng(),
 </span></span><span style=display:flex><span>            params.global.select_size,
-</span></span><span style=display:flex><span>            <span style=color:#719e07>|</span>e<span style=color:#719e07>|</span> e.<span style=color:#2aa198>1</span>,
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>|</span>e<span style=color:#ff79c6>|</span> e.<span style=color:#bd93f9>1</span>,
 </span></span><span style=display:flex><span>        )
 </span></span><span style=display:flex><span>        .unwrap()
 </span></span><span style=display:flex><span>        .collect();
 </span></span><span style=display:flex><span>    r.into_iter()
-</span></span><span style=display:flex><span>        .map(<span style=color:#719e07>|</span>((pcfg_idx, bv), _)<span style=color:#719e07>|</span> (<span style=color:#719e07>*</span>pcfg_idx, bv.clone()))
+</span></span><span style=display:flex><span>        .map(<span style=color:#ff79c6>|</span>((pcfg_idx, bv), _)<span style=color:#ff79c6>|</span> (<span style=color:#ff79c6>*</span>pcfg_idx, bv.clone()))
 </span></span><span style=display:flex><span>        .collect()
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><p>Behavior vectors are encoded like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#2aa198>/// Classifies the number of instructions into a given class on a log scale.
-</span></span></span><span style=display:flex><span><span style=color:#2aa198></span><span style=color:#719e07>const</span> <span style=color:#719e07>fn</span> <span style=color:#268bd2>icount_class</span>(icount: <span style=color:#dc322f>i64</span>) -&gt; <span style=color:#dc322f>i64</span> {
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>1</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>0</span>
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>10</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>100</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>2</span>
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>1_000</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>3</span>
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>10_000</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>4</span>
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> icount <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>100_000</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>5</span>
-</span></span><span style=display:flex><span>    } <span style=color:#719e07>else</span> {
-</span></span><span style=display:flex><span>        <span style=color:#2aa198>6</span>
+</span></span></code></pre></div><p>Behavior vectors are encoded like so:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#f1fa8c>/// Classifies the number of instructions into a given class on a log scale.
+</span></span></span><span style=display:flex><span><span style=color:#f1fa8c></span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>icount_class</span>(icount: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> icount <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>1</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> icount <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>10</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> icount <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>100</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> icount <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>1_000</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>3</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> icount <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>10_000</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>4</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> icount <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>100_000</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>5</span>
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#bd93f9>6</span>
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#719e07>impl</span> BehaviorVec {
-</span></span><span style=display:flex><span>    <span style=color:#719e07>pub</span> <span style=color:#719e07>const</span> <span style=color:#719e07>fn</span> <span style=color:#268bd2>vectorize</span>(<span style=color:#719e07>&amp;</span><span style=color:#268bd2>self</span>) -&gt; [<span style=color:#dc322f>i64</span>; <span style=color:#2aa198>13</span>] {
-</span></span><span style=display:flex><span>        <span style=color:#586e75>// note, these are all dynamic properties of the execution
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#586e75>// not static properties of the source code
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        [
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.icount),
-</span></span><span style=display:flex><span>            <span style=color:#586e75>// put the most weight on programs which fail differently
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            <span style=color:#268bd2>self</span>.failure_type <span style=color:#719e07>as</span> <span style=color:#dc322f>i64</span> <span style=color:#719e07>*</span> <span style=color:#2aa198>10</span>,
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.arithmetic_ops()),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.control_flow_ops()),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.bool_ops() <span style=color:#719e07>+</span> <span style=color:#268bd2>self</span>.cmp_ops()),
-</span></span><span style=display:flex><span>            <span style=color:#268bd2>self</span>.max_loop_nest,
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.catches),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.duffs_count),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.switch_cases),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.switch_default),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.break_count),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.continue_count),
-</span></span><span style=display:flex><span>            icount_class(<span style=color:#268bd2>self</span>.max_repeat_jmps),
+</span></span><span style=display:flex><span><span style=color:#ff79c6>impl</span> BehaviorVec {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>pub</span> <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>vectorize</span>(<span style=color:#ff79c6>&amp;</span>self) -&gt; [<span style=color:#8be9fd>i64</span>; <span style=color:#bd93f9>13</span>] {
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// note, these are all dynamic properties of the execution
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#6272a4>// not static properties of the source code
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        [
+</span></span><span style=display:flex><span>            icount_class(self.icount),
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// put the most weight on programs which fail differently
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            self.failure_type <span style=color:#ff79c6>as</span> <span style=color:#8be9fd>i64</span> <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>10</span>,
+</span></span><span style=display:flex><span>            icount_class(self.arithmetic_ops()),
+</span></span><span style=display:flex><span>            icount_class(self.control_flow_ops()),
+</span></span><span style=display:flex><span>            icount_class(self.bool_ops() <span style=color:#ff79c6>+</span> self.cmp_ops()),
+</span></span><span style=display:flex><span>            self.max_loop_nest,
+</span></span><span style=display:flex><span>            icount_class(self.catches),
+</span></span><span style=display:flex><span>            icount_class(self.duffs_count),
+</span></span><span style=display:flex><span>            icount_class(self.switch_cases),
+</span></span><span style=display:flex><span>            icount_class(self.switch_default),
+</span></span><span style=display:flex><span>            icount_class(self.break_count),
+</span></span><span style=display:flex><span>            icount_class(self.continue_count),
+</span></span><span style=display:flex><span>            icount_class(self.max_repeat_jmps),
 </span></span><span style=display:flex><span>        ]
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}

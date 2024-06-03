@@ -1,4 +1,4 @@
-<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Z3 Powered Constraint Solving for Static Analysis -</title><meta property="og:title" content="Z3-Powered Constraint Solving for Static Analysis - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/null2/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/dependency.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/g1.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/g2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/gep.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.734596c77140e077b34aed7ac5854ac7d084f3aeff48f8fbf5a926fccfeae3d1.css integrity="sha256-c0WWx3FA4HezSu16xYVKx9CE867/SPj79akm/M/q49E=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Z3 Powered Constraint Solving for Static Analysis -</title><meta property="og:title" content="Z3-Powered Constraint Solving for Static Analysis - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/null2/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/dependency.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/g1.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/g2.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/null2/gep.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.f6850460613b9030890978fdbf1e620257677cc89df6fcca59d3f538ad85412b.css integrity="sha256-9oUEYGE7kDCJCXj9vx5iAldnfMid9vzKWdP1OK2FQSs=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
 <script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
 <script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
 <span aria-hidden=true></span>
@@ -50,9 +50,9 @@ This sounds like an
 <a href=https://en.wikipedia.org/wiki/Integer_programming target=_blank>integer linear programming</a> problem.
 Except, is it always linear?
 Suppose we have an index like so where <code>num_elems</code> and <code>elem_size</code> are function
-arguments:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> num_elems; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> masked; <span style=color:#719e07>++</span>j) {
-</span></span><span style=display:flex><span>        data[i <span style=color:#719e07>*</span> elem_size <span style=color:#719e07>+</span> j] <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+arguments:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> num_elems; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> j <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; j <span style=color:#ff79c6>&lt;</span> masked; <span style=color:#ff79c6>++</span>j) {
+</span></span><span style=display:flex><span>        data[i <span style=color:#ff79c6>*</span> elem_size <span style=color:#ff79c6>+</span> j] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>We essentially want to solve <code>0 &lt;= i * elem_size + j &lt; data_size</code> for variables
@@ -82,25 +82,25 @@ upper bound is set to infinity. Symmetrically if the mutated value&rsquo;s lower
 is less than the other value&rsquo;s lower bound, the new interval&rsquo;s lower bound is set to negative
 infinity. More detail on this and the cases which led to this decision are
 discussed in the <a href=/blog/null-check>previous post</a>.</p><p>So to reuse this code, we need to identify which incoming values of a phi node
-have been &ldquo;mutated&rdquo;. Let&rsquo;s examine a typical example of what I mean by &ldquo;mutated&rdquo;.</p><p>Consider the following loop where <code>i</code> is mutated:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>10</span>; <span style=color:#719e07>++</span>i) {
+have been &ldquo;mutated&rdquo;. Let&rsquo;s examine a typical example of what I mean by &ldquo;mutated&rdquo;.</p><p>Consider the following loop where <code>i</code> is mutated:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>10</span>; <span style=color:#ff79c6>++</span>i) {
 </span></span><span style=display:flex><span>    foo(i);
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>After running <code>mem2reg</code>, this becomes the following LLVM instructions (see <a href=/blog/scheduling_llvm>this post</a>
-for information on how to precisely schedule LLVM passes):</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#2aa198>3</span>:                                                <span style=color:#586e75>; preds = %7, %2
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#268bd2>%.0</span> = <span style=color:#719e07>phi</span> <span style=color:#719e07>i32</span> [ <span style=color:#2aa198>0</span>, %2 ], [ %8, %7 ]
-</span></span><span style=display:flex><span>  %4 = <span style=color:#719e07>icmp</span> <span style=color:#719e07>slt</span> <span style=color:#719e07>i32</span> <span style=color:#268bd2>%.0</span>, <span style=color:#2aa198>10</span>
-</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#719e07>i1</span> %4, <span style=color:#dc322f>label</span> %6, <span style=color:#dc322f>label</span> %5
+for information on how to precisely schedule LLVM passes):</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#bd93f9>3</span>:                                                <span style=color:#6272a4>; preds = %7, %2
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#8be9fd;font-style:italic>%.0</span> = <span style=color:#ff79c6>phi</span> <span style=color:#ff79c6>i32</span> [ <span style=color:#bd93f9>0</span>, %2 ], [ %8, %7 ]
+</span></span><span style=display:flex><span>  %4 = <span style=color:#ff79c6>icmp</span> <span style=color:#ff79c6>slt</span> <span style=color:#ff79c6>i32</span> <span style=color:#8be9fd;font-style:italic>%.0</span>, <span style=color:#bd93f9>10</span>
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>br</span> <span style=color:#ff79c6>i1</span> %4, <span style=color:#8be9fd>label</span> %6, <span style=color:#8be9fd>label</span> %5
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#2aa198>5</span>:                                                <span style=color:#586e75>; preds = %3
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %9
+</span></span><span style=display:flex><span><span style=color:#bd93f9>5</span>:                                                <span style=color:#6272a4>; preds = %3
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#ff79c6>br</span> <span style=color:#8be9fd>label</span> %9
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#2aa198>6</span>:                                                <span style=color:#586e75>; preds = %3
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  <span style=color:#719e07>call</span> <span style=color:#dc322f>void</span> @_Z1fi(<span style=color:#719e07>i32</span> no<span style=color:#719e07>undef</span> <span style=color:#268bd2>%.0</span>)
-</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %7
+</span></span><span style=display:flex><span><span style=color:#bd93f9>6</span>:                                                <span style=color:#6272a4>; preds = %3
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  <span style=color:#ff79c6>call</span> <span style=color:#8be9fd>void</span> <span style=color:#8be9fd;font-style:italic>@_Z1fi</span>(<span style=color:#ff79c6>i32</span> no<span style=color:#ff79c6>undef</span> <span style=color:#8be9fd;font-style:italic>%.0</span>)
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>br</span> <span style=color:#8be9fd>label</span> %7
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#2aa198>7</span>:                                                <span style=color:#586e75>; preds = %6
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>  %8 = <span style=color:#719e07>add</span> <span style=color:#719e07>nsw</span> <span style=color:#719e07>i32</span> <span style=color:#268bd2>%.0</span>, <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span>  <span style=color:#719e07>br</span> <span style=color:#dc322f>label</span> %3, <span style=color:#268bd2>!llvm.loop</span> !5
+</span></span><span style=display:flex><span><span style=color:#bd93f9>7</span>:                                                <span style=color:#6272a4>; preds = %6
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>  %8 = <span style=color:#ff79c6>add</span> <span style=color:#ff79c6>nsw</span> <span style=color:#ff79c6>i32</span> <span style=color:#8be9fd;font-style:italic>%.0</span>, <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>  <span style=color:#ff79c6>br</span> <span style=color:#8be9fd>label</span> %3, <span style=color:#8be9fd;font-style:italic>!llvm.loop</span> !5
 </span></span></code></pre></div><p>The variable <code>i</code> maps to values <code>%.0</code> and <code>%8</code>. We want the transfer function of a phi
 node to essentially be performing a meet of two dataflow facts. So, as we discussed
 in the previous post, the range of <code>%.0</code> before the conditional branch should
@@ -114,63 +114,63 @@ the cycle contains a node that transforms its arguments in some way.</p><p>Const
 that changes the value of its arguments (the add), then we will call incoming
 value <code>%8</code> a &ldquo;mutation&rdquo; for computing the result of the phi node&rsquo;s
 transfer function.</p><p>In code, this looks like the following, which is just a BFS through
-the dependency graph:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * Determines if the instruction produces a new value which is not equivalent
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * to its arguments.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
-</span></span><span style=display:flex><span><span style=color:#dc322f>bool</span> <span style=color:#268bd2>isMutatingInstruction</span>(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>User<span style=color:#719e07>*</span> I)
+the dependency graph:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * Determines if the instruction produces a new value which is not equivalent
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * to its arguments.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>bool</span> <span style=color:#50fa7b>isMutatingInstruction</span>(<span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>User<span style=color:#ff79c6>*</span> I)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> dyn_cast<span style=color:#719e07>&lt;</span>PHINode<span style=color:#719e07>&gt;</span>(I) <span style=color:#719e07>==</span> <span style=color:#719e07>nullptr</span> <span style=color:#719e07>&amp;&amp;</span> dyn_cast<span style=color:#719e07>&lt;</span>CastInst<span style=color:#719e07>&gt;</span>(I) <span style=color:#719e07>==</span> <span style=color:#719e07>nullptr</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> dyn_cast<span style=color:#ff79c6>&lt;</span>PHINode<span style=color:#ff79c6>&gt;</span>(I) <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>nullptr</span> <span style=color:#ff79c6>&amp;&amp;</span> dyn_cast<span style=color:#ff79c6>&lt;</span>CastInst<span style=color:#ff79c6>&gt;</span>(I) <span style=color:#ff79c6>==</span> <span style=color:#ff79c6>nullptr</span>;
 </span></span><span style=display:flex><span>}
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#586e75>/**
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Determines of `V` is dependent on `Other` and the dependency chain
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * between them contains a mutating instruction.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> *
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param V
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Other
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Ret
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return true
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return false
-</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
-</span></span><span style=display:flex><span><span style=color:#dc322f>bool</span> <span style=color:#268bd2>isDependentOn</span>(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> V, <span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span> Other)
+</span></span><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @brief Determines of `V` is dependent on `Other` and the dependency chain
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * between them contains a mutating instruction.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> *
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param V
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param Other
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param Ret
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @return true
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @return false
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>bool</span> <span style=color:#50fa7b>isDependentOn</span>(<span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span> V, <span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span> Other)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// queue of nodes and whether we passed a mutating instruction to produce
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// that node
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    std<span style=color:#719e07>::</span>queue<span style=color:#719e07>&lt;</span>std<span style=color:#719e07>::</span>pair<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, <span style=color:#dc322f>bool</span><span style=color:#719e07>&gt;&gt;</span> Worklist;
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>unordered_set<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*&gt;</span> Visited;
-</span></span><span style=display:flex><span>    Worklist.push(std<span style=color:#719e07>::</span>make_pair(Other, <span style=color:#b58900>false</span>));
-</span></span><span style=display:flex><span>    <span style=color:#719e07>while</span> (<span style=color:#719e07>!</span>Worklist.empty()) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [Curr, CurrIsMut] <span style=color:#719e07>=</span> Worklist.front();
-</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Curr <span style=color:#719e07>==</span> V) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>return</span> CurrIsMut;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// queue of nodes and whether we passed a mutating instruction to produce
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// that node
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    std<span style=color:#ff79c6>::</span>queue<span style=color:#ff79c6>&lt;</span>std<span style=color:#ff79c6>::</span>pair<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span>, <span style=color:#8be9fd>bool</span><span style=color:#ff79c6>&gt;&gt;</span> Worklist;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>unordered_set<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*&gt;</span> Visited;
+</span></span><span style=display:flex><span>    Worklist.push(std<span style=color:#ff79c6>::</span>make_pair(Other, <span style=color:#8be9fd;font-style:italic>false</span>));
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>while</span> (<span style=color:#ff79c6>!</span>Worklist.empty()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> [Curr, CurrIsMut] <span style=color:#ff79c6>=</span> Worklist.front();
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (Curr <span style=color:#ff79c6>==</span> V) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>return</span> CurrIsMut;
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>        Worklist.pop();
 </span></span><span style=display:flex><span>        Visited.emplace(Curr);
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Op : Curr<span style=color:#719e07>-&gt;</span>uses()) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> U <span style=color:#719e07>=</span> Op.getUser();
-</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (Visited.contains(U)) {
-</span></span><span style=display:flex><span>                <span style=color:#719e07>continue</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> <span style=color:#8be9fd;font-style:italic>Op</span> : Curr<span style=color:#ff79c6>-&gt;</span>uses()) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> U <span style=color:#ff79c6>=</span> Op.getUser();
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (Visited.contains(U)) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>continue</span>;
 </span></span><span style=display:flex><span>            }
 </span></span><span style=display:flex><span>            Worklist.push(
-</span></span><span style=display:flex><span>                std<span style=color:#719e07>::</span>make_pair(U, CurrIsMut <span style=color:#719e07>||</span> isMutatingInstruction(U)));
+</span></span><span style=display:flex><span>                std<span style=color:#ff79c6>::</span>make_pair(U, CurrIsMut <span style=color:#ff79c6>||</span> isMutatingInstruction(U)));
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#719e07>return</span> <span style=color:#b58900>false</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>return</span> <span style=color:#8be9fd;font-style:italic>false</span>;
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>Then the transfer function for a phi node just amounts to identifying these
 so-called &ldquo;mutations&rdquo; and performing the meet operator on all incoming
-values:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>    <span style=color:#719e07>auto</span> PhiRange <span style=color:#719e07>=</span> Res.getRange(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(<span style=color:#2aa198>0</span>));
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (PhiRange.hasValue() <span style=color:#719e07>&amp;&amp;</span> isDependentOn(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(<span style=color:#2aa198>0</span>), Phi)) {
-</span></span><span style=display:flex><span>        PhiRange.value().Mutated <span style=color:#719e07>=</span> <span style=color:#b58900>true</span>;
+values:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span>    <span style=color:#ff79c6>auto</span> PhiRange <span style=color:#ff79c6>=</span> Res.getRange(Phi<span style=color:#ff79c6>-&gt;</span>getIncomingValue(<span style=color:#bd93f9>0</span>));
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (PhiRange.hasValue() <span style=color:#ff79c6>&amp;&amp;</span> isDependentOn(Phi<span style=color:#ff79c6>-&gt;</span>getIncomingValue(<span style=color:#bd93f9>0</span>), Phi)) {
+</span></span><span style=display:flex><span>        PhiRange.value().Mutated <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>true</span>;
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>unsigned</span> <span style=color:#dc322f>int</span> Idx <span style=color:#719e07>=</span> <span style=color:#2aa198>1</span>; Idx <span style=color:#719e07>&lt;</span> NumIncoming; <span style=color:#719e07>++</span>Idx) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> IncomingRangeI <span style=color:#719e07>=</span> Res.getRange(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(Idx));
-</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (IncomingRangeI.hasValue() <span style=color:#719e07>&amp;&amp;</span>
-</span></span><span style=display:flex><span>            isDependentOn(Phi<span style=color:#719e07>-&gt;</span>getIncomingValue(Idx), Phi)) {
-</span></span><span style=display:flex><span>            IncomingRangeI.value().Mutated <span style=color:#719e07>=</span> <span style=color:#b58900>true</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>unsigned</span> <span style=color:#8be9fd>int</span> Idx <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>1</span>; Idx <span style=color:#ff79c6>&lt;</span> NumIncoming; <span style=color:#ff79c6>++</span>Idx) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> IncomingRangeI <span style=color:#ff79c6>=</span> Res.getRange(Phi<span style=color:#ff79c6>-&gt;</span>getIncomingValue(Idx));
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (IncomingRangeI.hasValue() <span style=color:#ff79c6>&amp;&amp;</span>
+</span></span><span style=display:flex><span>            isDependentOn(Phi<span style=color:#ff79c6>-&gt;</span>getIncomingValue(Idx), Phi)) {
+</span></span><span style=display:flex><span>            IncomingRangeI.value().Mutated <span style=color:#ff79c6>=</span> <span style=color:#8be9fd;font-style:italic>true</span>;
 </span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        PhiRange <span style=color:#719e07>=</span> SingleFact<span style=color:#719e07>::</span>meet(PhiRange, IncomingRangeI, IntRange<span style=color:#719e07>::</span>meet);
+</span></span><span style=display:flex><span>        PhiRange <span style=color:#ff79c6>=</span> SingleFact<span style=color:#ff79c6>::</span>meet(PhiRange, IncomingRangeI, IntRange<span style=color:#ff79c6>::</span>meet);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>    Res.putRange(Phi, PhiRange);
 </span></span></code></pre></div><h2 id=constraint-collection class=anchor-link><a href=#constraint-collection>Constraint Collection</a></h2><p>We are interested in two kinds of constraints: those imposed by the current
@@ -191,14 +191,14 @@ add the condition they are testing to the aforementioned mapping.</p><p>For the 
 do is simply walk backward through the dependency graph, collecting all nodes
 until we hit a phi node or a memory operation. The constraints of a value
 that is the result of one of these instructions will just be the interval
-we computed with the interval analysis.</p><p>As an example, consider the following pseudocode:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span>y :<span style=color:#719e07>=</span> phi q, w
-</span></span><span style=display:flex><span>x :<span style=color:#719e07>=</span> y <span style=color:#719e07>*</span> y
-</span></span><span style=display:flex><span>a :<span style=color:#719e07>=</span> x <span style=color:#719e07>+</span> y
-</span></span><span style=display:flex><span>k :<span style=color:#719e07>=</span> a <span style=color:#719e07>*</span> a
-</span></span><span style=display:flex><span>i :<span style=color:#719e07>=</span> load <span style=color:#2aa198>0x10</span>
-</span></span><span style=display:flex><span>j :<span style=color:#719e07>=</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span>b :<span style=color:#719e07>=</span> j <span style=color:#719e07>*</span> <span style=color:#2aa198>2</span>
-</span></span><span style=display:flex><span><span style=color:#586e75>// is a &lt; b here?
+we computed with the interval analysis.</p><p>As an example, consider the following pseudocode:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C data-lang=C><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>y</span> :<span style=color:#ff79c6>=</span> phi q, w
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>x</span> :<span style=color:#ff79c6>=</span> y <span style=color:#ff79c6>*</span> y
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>a</span> :<span style=color:#ff79c6>=</span> x <span style=color:#ff79c6>+</span> y
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>k</span> :<span style=color:#ff79c6>=</span> a <span style=color:#ff79c6>*</span> a
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>i</span> :<span style=color:#ff79c6>=</span> load <span style=color:#bd93f9>0x10</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>j</span> :<span style=color:#ff79c6>=</span> i <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>b</span> :<span style=color:#ff79c6>=</span> j <span style=color:#ff79c6>*</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// is a &lt; b here?
 </span></span></span></code></pre></div><p>We want to determine if <code>a &lt; b</code> is always true. Given this expression, we will
 collect all constraints on variables that are used in the expression (<code>a</code> and <code>b</code>).
 Walking backward from <code>a</code>,
@@ -206,76 +206,76 @@ we get the constraints <code>a = x + y</code>, <code>x = y * y</code>, and <code
 by its range of possible values determined by the interval analysis. Doing the same
 for <code>b</code> we get <code>j = i + 1</code> and <code>i</code> will be constrained by its range.</p><p>This has the effect of collecting only the constraints that mention potentially
 relevant values. All other constraints could only serve to slow down Z3 and are
-omitted.</p><p>In code, we have something that looks like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Collects all variables which are dependended on
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * (transitive closure of all operands) for the definition of
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * the given instruction.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> *
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param I The instruction to collect the definitions for
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Intervals The result of the interval analysis
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Vars The map of variables to z3 variables
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Constraints The vector of constraints to add to
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param Ctx The z3 context
-</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
-</span></span><span style=display:flex><span><span style=color:#dc322f>void</span> <span style=color:#268bd2>collectDefinitions</span>(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*</span> I,
-</span></span><span style=display:flex><span>                        <span style=color:#719e07>const</span> DataFlowFacts<span style=color:#719e07>&lt;</span>IntervalAnalysis<span style=color:#719e07>&gt;&amp;</span> Intervals,
-</span></span><span style=display:flex><span>                        std<span style=color:#719e07>::</span>unordered_map<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;&amp;</span> Vars,
-</span></span><span style=display:flex><span>                        std<span style=color:#719e07>::</span>vector<span style=color:#719e07>&lt;</span>z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;&amp;</span> Constraints, z3<span style=color:#719e07>::</span>context<span style=color:#719e07>&amp;</span> Ctx)
+omitted.</p><p>In code, we have something that looks like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @brief Collects all variables which are dependended on
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * (transitive closure of all operands) for the definition of
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * the given instruction.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> *
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param I The instruction to collect the definitions for
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param Intervals The result of the interval analysis
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param Vars The map of variables to z3 variables
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param Constraints The vector of constraints to add to
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param Ctx The z3 context
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span><span style=color:#8be9fd>void</span> <span style=color:#50fa7b>collectDefinitions</span>(<span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Instruction<span style=color:#ff79c6>*</span> I,
+</span></span><span style=display:flex><span>                        <span style=color:#ff79c6>const</span> DataFlowFacts<span style=color:#ff79c6>&lt;</span>IntervalAnalysis<span style=color:#ff79c6>&gt;&amp;</span> Intervals,
+</span></span><span style=display:flex><span>                        std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span>, z3<span style=color:#ff79c6>::</span>expr<span style=color:#ff79c6>&gt;&amp;</span> Vars,
+</span></span><span style=display:flex><span>                        std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>z3<span style=color:#ff79c6>::</span>expr<span style=color:#ff79c6>&gt;&amp;</span> Constraints, z3<span style=color:#ff79c6>::</span>context<span style=color:#ff79c6>&amp;</span> Ctx)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>queue<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*&gt;</span> Worklist;
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>unordered_set<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*&gt;</span> Visited;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>queue<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Instruction<span style=color:#ff79c6>*&gt;</span> Worklist;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>unordered_set<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Instruction<span style=color:#ff79c6>*&gt;</span> Visited;
 </span></span><span style=display:flex><span>    Worklist.push(I);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>while</span> (<span style=color:#719e07>!</span>Worklist.empty()) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Inst <span style=color:#719e07>=</span> Worklist.front();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>while</span> (<span style=color:#ff79c6>!</span>Worklist.empty()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Inst <span style=color:#ff79c6>=</span> Worklist.front();
 </span></span><span style=display:flex><span>        Worklist.pop();
-</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Visited.find(Inst) <span style=color:#719e07>!=</span> Visited.end()) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>continue</span>;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (Visited.find(Inst) <span style=color:#ff79c6>!=</span> Visited.end()) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>continue</span>;
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>        Visited.emplace(Inst);
-</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Inst<span style=color:#719e07>-&gt;</span>getType()<span style=color:#719e07>-&gt;</span>isIntegerTy()) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> BinOp <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>BinaryOperator<span style=color:#719e07>&gt;</span>(Inst);
-</span></span><span style=display:flex><span>                BinOp <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
-</span></span><span style=display:flex><span>                <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Constraint <span style=color:#719e07>=</span> genBopConstraint(
-</span></span><span style=display:flex><span>                        getZ3Var(BinOp<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>0</span>), Vars, Ctx),
-</span></span><span style=display:flex><span>                        getZ3Var(BinOp<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>1</span>), Vars, Ctx),
-</span></span><span style=display:flex><span>                        BinOp<span style=color:#719e07>-&gt;</span>getOpcode());
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (Inst<span style=color:#ff79c6>-&gt;</span>getType()<span style=color:#ff79c6>-&gt;</span>isIntegerTy()) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>*</span> BinOp <span style=color:#ff79c6>=</span> dyn_cast<span style=color:#ff79c6>&lt;</span>llvm<span style=color:#ff79c6>::</span>BinaryOperator<span style=color:#ff79c6>&gt;</span>(Inst);
+</span></span><span style=display:flex><span>                BinOp <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Constraint <span style=color:#ff79c6>=</span> genBopConstraint(
+</span></span><span style=display:flex><span>                        getZ3Var(BinOp<span style=color:#ff79c6>-&gt;</span>getOperand(<span style=color:#bd93f9>0</span>), Vars, Ctx),
+</span></span><span style=display:flex><span>                        getZ3Var(BinOp<span style=color:#ff79c6>-&gt;</span>getOperand(<span style=color:#bd93f9>1</span>), Vars, Ctx),
+</span></span><span style=display:flex><span>                        BinOp<span style=color:#ff79c6>-&gt;</span>getOpcode());
 </span></span><span style=display:flex><span>                    Constraint.has_value()) 
 </span></span><span style=display:flex><span>                {
-</span></span><span style=display:flex><span>                    <span style=color:#586e75>// add constraint that BinOp = 
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                    <span style=color:#586e75>//      BinOp.operand(0) OP BinOp.operand(1)
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                    Constraints.emplace_back(getZ3Var(BinOp, Vars, Ctx) <span style=color:#719e07>==</span>
-</span></span><span style=display:flex><span>                                                 <span style=color:#719e07>*</span>Constraint);
+</span></span><span style=display:flex><span>                    <span style=color:#6272a4>// add constraint that BinOp = 
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                    <span style=color:#6272a4>//      BinOp.operand(0) OP BinOp.operand(1)
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                    Constraints.emplace_back(getZ3Var(BinOp, Vars, Ctx) <span style=color:#ff79c6>==</span>
+</span></span><span style=display:flex><span>                                                 <span style=color:#ff79c6>*</span>Constraint);
 </span></span><span style=display:flex><span>                }
-</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> Uop <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>UnaryOperator<span style=color:#719e07>&gt;</span>(Inst);
-</span></span><span style=display:flex><span>                       Uop <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
-</span></span><span style=display:flex><span>                <span style=color:#586e75>// same idea
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> Cast <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>CastInst<span style=color:#719e07>&gt;</span>(Inst);
-</span></span><span style=display:flex><span>                       Cast <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>            } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>*</span> Uop <span style=color:#ff79c6>=</span> dyn_cast<span style=color:#ff79c6>&lt;</span>llvm<span style=color:#ff79c6>::</span>UnaryOperator<span style=color:#ff79c6>&gt;</span>(Inst);
+</span></span><span style=display:flex><span>                       Uop <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// same idea
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>*</span> Cast <span style=color:#ff79c6>=</span> dyn_cast<span style=color:#ff79c6>&lt;</span>llvm<span style=color:#ff79c6>::</span>CastInst<span style=color:#ff79c6>&gt;</span>(Inst);
+</span></span><span style=display:flex><span>                       Cast <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
 </span></span><span style=display:flex><span>                
-</span></span><span style=display:flex><span>                <span style=color:#586e75>// add constraint that Cast = Cast.operand(0)
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                Constraints.emplace_back(
-</span></span><span style=display:flex><span>                    getZ3Var(Cast, Vars, Ctx) <span style=color:#719e07>==</span>
-</span></span><span style=display:flex><span>                    getZ3Var(Cast<span style=color:#719e07>-&gt;</span>getOperand(<span style=color:#2aa198>0</span>), Vars, Ctx));
-</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> NextInst <span style=color:#719e07>=</span> Inst<span style=color:#719e07>-&gt;</span>getNextNode();
-</span></span><span style=display:flex><span>                       NextInst <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
-</span></span><span style=display:flex><span>                <span style=color:#586e75>// use input facts for the next instruction because
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#586e75>// that will contain the output fact of the current instruction
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Range <span style=color:#719e07>=</span>
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// add constraint that Cast = Cast.operand(0)
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                Constraints.emplace_back(
+</span></span><span style=display:flex><span>                    getZ3Var(Cast, Vars, Ctx) <span style=color:#ff79c6>==</span>
+</span></span><span style=display:flex><span>                    getZ3Var(Cast<span style=color:#ff79c6>-&gt;</span>getOperand(<span style=color:#bd93f9>0</span>), Vars, Ctx));
+</span></span><span style=display:flex><span>            } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>*</span> NextInst <span style=color:#ff79c6>=</span> Inst<span style=color:#ff79c6>-&gt;</span>getNextNode();
+</span></span><span style=display:flex><span>                       NextInst <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// use input facts for the next instruction because
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                <span style=color:#6272a4>// that will contain the output fact of the current instruction
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Range <span style=color:#ff79c6>=</span>
 </span></span><span style=display:flex><span>                    Intervals.InstructionInFacts.at(NextInst).getValRange(Inst);
 </span></span><span style=display:flex><span>                addRangeConstraints(Range, Inst, Vars, Constraints, Ctx,
 </span></span><span style=display:flex><span>                                    DebugConstraints);
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>            } <span style=color:#719e07>else</span> {
-</span></span><span style=display:flex><span>                <span style=color:#586e75>// no terminators produce values
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>                llvm_unreachable(<span style=color:#2aa198>&#34;Instr is terminator&#34;</span>);
+</span></span><span style=display:flex><span>            } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>                <span style=color:#6272a4>// no terminators produce values
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>                llvm_unreachable(<span style=color:#f1fa8c>&#34;Instr is terminator&#34;</span>);
 </span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>            <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Operand : Inst<span style=color:#719e07>-&gt;</span>operands()) {
-</span></span><span style=display:flex><span>                <span style=color:#719e07>if</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>*</span> OpI <span style=color:#719e07>=</span> dyn_cast<span style=color:#719e07>&lt;</span>llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>&gt;</span>(Operand);
-</span></span><span style=display:flex><span>                    OpI <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> <span style=color:#8be9fd;font-style:italic>Operand</span> : Inst<span style=color:#ff79c6>-&gt;</span>operands()) {
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>*</span> OpI <span style=color:#ff79c6>=</span> dyn_cast<span style=color:#ff79c6>&lt;</span>llvm<span style=color:#ff79c6>::</span>Instruction<span style=color:#ff79c6>&gt;</span>(Operand);
+</span></span><span style=display:flex><span>                    OpI <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>) {
 </span></span><span style=display:flex><span>                    Worklist.push(OpI);
-</span></span><span style=display:flex><span>                } <span style=color:#719e07>else</span> <span style=color:#719e07>if</span> (<span style=color:#719e07>auto</span> Range <span style=color:#719e07>=</span> Intervals.InstructionInFacts.at(Inst)
+</span></span><span style=display:flex><span>                } <span style=color:#ff79c6>else</span> <span style=color:#ff79c6>if</span> (<span style=color:#ff79c6>auto</span> Range <span style=color:#ff79c6>=</span> Intervals.InstructionInFacts.at(Inst)
 </span></span><span style=display:flex><span>                                            .getValRange(Operand);
-</span></span><span style=display:flex><span>                           Range.has_value() <span style=color:#719e07>&amp;&amp;</span> <span style=color:#719e07>!</span>Vars.contains(Operand)) {
+</span></span><span style=display:flex><span>                           Range.has_value() <span style=color:#ff79c6>&amp;&amp;</span> <span style=color:#ff79c6>!</span>Vars.contains(Operand)) {
 </span></span><span style=display:flex><span>                    addRangeConstraints(Range, Operand, Vars, Constraints, Ctx,
 </span></span><span style=display:flex><span>                                        DebugConstraints);
 </span></span><span style=display:flex><span>                }
@@ -287,34 +287,34 @@ omitted.</p><p>In code, we have something that looks like this:</p><div class=hi
 I was pleasantly surprised by how simple the C++ API is, it&rsquo;s as straightforward
 as the Python bindings.</p><p>The first thing to do is to install Z3. I just followed the directions
 to build it from <a href=https://github.com/Z3Prover/z3 target=_blank>here</a>. Then I just
-needed to add the following CMake commands to link my pass with the Z3 libraries</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Cmake data-lang=Cmake><span style=display:flex><span><span style=color:#b58900>target_link_directories</span>(<span style=color:#2aa198>NullCheck</span> <span style=color:#2aa198>PUBLIC</span> <span style=color:#2aa198>/usr/lib</span>)
-</span></span><span style=display:flex><span><span style=color:#b58900>target_link_libraries</span>(<span style=color:#2aa198>NullCheck</span> <span style=color:#2aa198>PUBLIC</span> <span style=color:#2aa198>libz3.so</span>)
+needed to add the following CMake commands to link my pass with the Z3 libraries</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Cmake data-lang=Cmake><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>target_link_directories</span>(<span style=color:#f1fa8c>NullCheck</span> <span style=color:#f1fa8c>PUBLIC</span> <span style=color:#f1fa8c>/usr/lib</span>)
+</span></span><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>target_link_libraries</span>(<span style=color:#f1fa8c>NullCheck</span> <span style=color:#f1fa8c>PUBLIC</span> <span style=color:#f1fa8c>libz3.so</span>)
 </span></span></code></pre></div><p>The first command tells CMake to look in <code>/usr/lib</code> (the default location for
 z3 on Linux) for libraries, and the second command tells CMake to link
 with <code>libz3</code>.</p><p>Then, in our code, we just need to construct a <code>z3::conext</code> for creating
 expressions and a solver for solving a set of equations. <code>z3::expr</code> overloads
 standard operators to construct larger expressions.
-Here&rsquo;s a simple example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;z3++.h&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07>#include</span> <span style=color:#719e07>&lt;iostream&gt;</span><span style=color:#719e07>
-</span></span></span><span style=display:flex><span><span style=color:#719e07></span>
-</span></span><span style=display:flex><span>z3<span style=color:#719e07>::</span>context ctx;
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> a <span style=color:#719e07>=</span> ctx.int_const(<span style=color:#2aa198>&#34;a&#34;</span>);
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> b <span style=color:#719e07>=</span> ctx.int_const(<span style=color:#2aa198>&#34;b&#34;</span>);
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> ten <span style=color:#719e07>=</span> ctx.int_val(<span style=color:#2aa198>&#34;10&#34;</span>);
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> e1 <span style=color:#719e07>=</span> a <span style=color:#719e07>==</span> b <span style=color:#719e07>+</span> ten;
+Here&rsquo;s a simple example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;z3++.h&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6>#include</span> <span style=color:#ff79c6>&lt;iostream&gt;</span><span style=color:#ff79c6>
+</span></span></span><span style=display:flex><span><span style=color:#ff79c6></span>
+</span></span><span style=display:flex><span>z3<span style=color:#ff79c6>::</span>context ctx;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> a <span style=color:#ff79c6>=</span> ctx.int_const(<span style=color:#f1fa8c>&#34;a&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> b <span style=color:#ff79c6>=</span> ctx.int_const(<span style=color:#f1fa8c>&#34;b&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ten <span style=color:#ff79c6>=</span> ctx.int_val(<span style=color:#f1fa8c>&#34;10&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> e1 <span style=color:#ff79c6>=</span> a <span style=color:#ff79c6>==</span> b <span style=color:#ff79c6>+</span> ten;
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>z3<span style=color:#719e07>::</span>solver s{ctx};
+</span></span><span style=display:flex><span>z3<span style=color:#ff79c6>::</span>solver s{ctx};
 </span></span><span style=display:flex><span>s.add(e1);
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> ret <span style=color:#719e07>=</span> s.check();
-</span></span><span style=display:flex><span><span style=color:#719e07>if</span> (ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>sat) {
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> m <span style=color:#719e07>=</span> s.model();
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>cout <span style=color:#719e07>&lt;&lt;</span> <span style=color:#2aa198>&#34;a: &#34;</span><span style=color:#719e07>&lt;&lt;</span> m.eval(a).to_string() <span style=color:#719e07>&lt;&lt;</span> std<span style=color:#719e07>::</span>endl;
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>cout <span style=color:#719e07>&lt;&lt;</span> <span style=color:#2aa198>&#34;b: &#34;</span><span style=color:#719e07>&lt;&lt;</span> m.eval(b).to_string() <span style=color:#719e07>&lt;&lt;</span> std<span style=color:#719e07>::</span>endl;
-</span></span><span style=display:flex><span>} <span style=color:#719e07>else</span> <span style=color:#268bd2>if</span> (ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>unknown) {
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// ...
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>} <span style=color:#719e07>else</span> {
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// unsat
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>}
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> ret <span style=color:#ff79c6>=</span> s.check();
+</span></span><span style=display:flex><span><span style=color:#ff79c6>if</span> (ret <span style=color:#ff79c6>==</span> z3<span style=color:#ff79c6>::</span>sat) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> m <span style=color:#ff79c6>=</span> s.model();
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>cout <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#f1fa8c>&#34;a: &#34;</span><span style=color:#ff79c6>&lt;&lt;</span> m.eval(a).to_string() <span style=color:#ff79c6>&lt;&lt;</span> std<span style=color:#ff79c6>::</span>endl;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>cout <span style=color:#ff79c6>&lt;&lt;</span> <span style=color:#f1fa8c>&#34;b: &#34;</span><span style=color:#ff79c6>&lt;&lt;</span> m.eval(b).to_string() <span style=color:#ff79c6>&lt;&lt;</span> std<span style=color:#ff79c6>::</span>endl;
+</span></span><span style=display:flex><span>} <span style=color:#ff79c6>else</span> <span style=color:#50fa7b>if</span> (ret <span style=color:#ff79c6>==</span> z3<span style=color:#ff79c6>::</span>unknown) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>} <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// unsat
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
 </span></span></code></pre></div><p>You can read more about using Z3 <a href=https://www.cs.cornell.edu/~asampson/blog/minisynth.html target=_blank>here (Python bindings)</a>
 or <a href=https://users.cs.utah.edu/~vinu/research/formal/tools/notes/z3-notes.html target=_blank>here (C++ bindings)</a>.
 One thing to note is that internally, Z3 uses exceptions during normal operation.
@@ -327,74 +327,74 @@ all the constraints hold. This isn&rsquo;t quite the question we want to answer,
 want to know if <em>for all</em> values of variables that respect the constraints, is the predicate true.</p><p>But this is equivalent to the question of whether there exists an assignment of variables
 such that the predicate <em>doesn&rsquo;t hold</em>. In other words, if we want to know whether
 $P(a, b)$ is always true, we can add the constraint $\lnot P(a, b)$ and check if
-the set of constraints is unsatisfiable. Z3 solves the <em>contrapositive</em>
-of the question we are asking. Instead of asking Z3 $\forall x, P(x)$ we will ask it
-$\exists x, \lnot P(x)$.</p><p>Concretely, if we want to know whether <code>0 &lt;= LHS &lt; RHS</code>, we will collect all
+the set of constraints is unsatisfiable. Z3 solves the <em>negation</em>
+of the question we are asking. Instead of checking that $\forall x, P(x)$ holds,
+we will check that $\exists x, \lnot P(x)$ doesn&rsquo;t hold.</p><p>Concretely, if we want to know whether <code>0 &lt;= LHS &lt; RHS</code>, we will collect all
 constraints as previously discussed, then add the constraint <code>LHS &lt; 0 || LHS >= RHS</code>.
 If this set of constraints is satisfiable, then this means there is an assignment
 of variables that respect all the constraints where <code>LHS</code> is negative or greater
 than or equal to <code>RHS</code> (ie. <code>LHS</code> is out of bounds).</p><p>If the constraints are satisfiable, Z3 produces a satisfying assignment of variables.
 We can use this as a counterexample to show something <em>can</em> be out of bounds and display
-this information to the user.</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#586e75>/**
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @brief Determines if `LHS &lt; RHS &amp;&amp; LHS &gt;= 0` is always true at the given
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * instruction. If this function returns false, then given the constraints
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * of the values as determined by the definitons and static interval
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * analysis, there exists an assignment of values such that `LHS &lt; RHS` is
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * false.
-</span></span></span><span style=display:flex><span><span style=color:#586e75> *
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param I The instruction where we want to check if the inequality is true
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param LHS The left hand side of the inequality
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @param RHS The right hand side of the inequality
-</span></span></span><span style=display:flex><span><span style=color:#586e75> * @return true if `0 &lt;= LHS &lt; RHS` is always true at `I`
-</span></span></span><span style=display:flex><span><span style=color:#586e75> */</span>
-</span></span><span style=display:flex><span>QueryResult InequalitySolver<span style=color:#719e07>::</span>isAlwaysInRange(<span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Instruction<span style=color:#719e07>*</span> I,
-</span></span><span style=display:flex><span>                                              <span style=color:#719e07>const</span> LinExpr<span style=color:#719e07>&amp;</span> LHS,
-</span></span><span style=display:flex><span>                                              <span style=color:#719e07>const</span> LinExpr<span style=color:#719e07>&amp;</span> RHS) <span style=color:#719e07>const</span>
+this information to the user.</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#6272a4>/**
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @brief Determines if `LHS &lt; RHS &amp;&amp; LHS &gt;= 0` is always true at the given
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * instruction. If this function returns false, then given the constraints
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * of the values as determined by the definitons and static interval
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * analysis, there exists an assignment of values such that `LHS &lt; RHS` is
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * false.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> *
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param I The instruction where we want to check if the inequality is true
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param LHS The left hand side of the inequality
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @param RHS The right hand side of the inequality
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> * @return true if `0 &lt;= LHS &lt; RHS` is always true at `I`
+</span></span></span><span style=display:flex><span><span style=color:#6272a4> */</span>
+</span></span><span style=display:flex><span>QueryResult InequalitySolver<span style=color:#ff79c6>::</span>isAlwaysInRange(<span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Instruction<span style=color:#ff79c6>*</span> I,
+</span></span><span style=display:flex><span>                                              <span style=color:#ff79c6>const</span> LinExpr<span style=color:#ff79c6>&amp;</span> LHS,
+</span></span><span style=display:flex><span>                                              <span style=color:#ff79c6>const</span> LinExpr<span style=color:#ff79c6>&amp;</span> RHS) <span style=color:#ff79c6>const</span>
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    z3<span style=color:#719e07>::</span>context Ctx;
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Relations <span style=color:#719e07>=</span> RelationFacts_.get().InstructionInFacts.at(I);
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>unordered_map<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;</span> Vars;
-</span></span><span style=display:flex><span>    std<span style=color:#719e07>::</span>vector<span style=color:#719e07>&lt;</span>z3<span style=color:#719e07>::</span>expr<span style=color:#719e07>&gt;</span> Constraints;
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// collect all definitions LHS depends on and any constaints pertaining
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#586e75>// to LHS or things it depends on
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    collectLinExprDefinitions(I, LHS, IntervalFacts_, Vars, Constraints, Ctx);
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// collect all definitions RHS depends on
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    collectLinExprDefinitions(I, RHS, IntervalFacts_, Vars, Constraints, Ctx);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [LHSZ3, LHSName] <span style=color:#719e07>=</span> linExprToZ3Var(LHS, Vars, Ctx);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [RHSZ3, RHSName] <span style=color:#719e07>=</span> linExprToZ3Var(RHS, Vars, Ctx);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#719e07>auto</span> [Args, Pred] <span style=color:#719e07>:</span> Relations.getRelations()) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> [LHSArg, RHSArg] <span style=color:#719e07>=</span> Args;
-</span></span><span style=display:flex><span>        <span style=color:#719e07>if</span> (Vars.contains(LHSArg) <span style=color:#719e07>||</span> Vars.contains(RHSArg)) {
-</span></span><span style=display:flex><span>            <span style=color:#586e75>// collects all definitions LHSArg depends on
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            addConstraintsForVal(I, LHSArg, IntervalFacts_, Vars, 
+</span></span><span style=display:flex><span>    z3<span style=color:#ff79c6>::</span>context Ctx;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> Relations <span style=color:#ff79c6>=</span> RelationFacts_.get().InstructionInFacts.at(I);
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span>, z3<span style=color:#ff79c6>::</span>expr<span style=color:#ff79c6>&gt;</span> Vars;
+</span></span><span style=display:flex><span>    std<span style=color:#ff79c6>::</span>vector<span style=color:#ff79c6>&lt;</span>z3<span style=color:#ff79c6>::</span>expr<span style=color:#ff79c6>&gt;</span> Constraints;
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// collect all definitions LHS depends on and any constaints pertaining
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#6272a4>// to LHS or things it depends on
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    collectLinExprDefinitions(I, LHS, IntervalFacts_, Vars, Constraints, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// collect all definitions RHS depends on
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    collectLinExprDefinitions(I, RHS, IntervalFacts_, Vars, Constraints, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> [LHSZ3, LHSName] <span style=color:#ff79c6>=</span> linExprToZ3Var(LHS, Vars, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> [RHSZ3, RHSName] <span style=color:#ff79c6>=</span> linExprToZ3Var(RHS, Vars, Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>auto</span> [Args, Pred] <span style=color:#ff79c6>:</span> Relations.getRelations()) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> [LHSArg, RHSArg] <span style=color:#ff79c6>=</span> Args;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> (Vars.contains(LHSArg) <span style=color:#ff79c6>||</span> Vars.contains(RHSArg)) {
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// collects all definitions LHSArg depends on
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            addConstraintsForVal(I, LHSArg, IntervalFacts_, Vars, 
 </span></span><span style=display:flex><span>                Constraints, Ctx);
-</span></span><span style=display:flex><span>            <span style=color:#586e75>// collects all definitions RHSArg depends on
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>            addConstraintsForVal(I, RHSArg, IntervalFacts_, Vars, 
+</span></span><span style=display:flex><span>            <span style=color:#6272a4>// collects all definitions RHSArg depends on
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>            addConstraintsForVal(I, RHSArg, IntervalFacts_, Vars, 
 </span></span><span style=display:flex><span>                Constraints, Ctx);
 </span></span><span style=display:flex><span>            Constraints.emplace_back(
 </span></span><span style=display:flex><span>                genConstraint(Pred, getZ3Var(LHSArg, Vars, Ctx),
 </span></span><span style=display:flex><span>                              getZ3Var(RHSArg, Vars, Ctx)));
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    z3<span style=color:#719e07>::</span>solver Solver(Ctx);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> Constraint : Constraints) {
+</span></span><span style=display:flex><span>    z3<span style=color:#ff79c6>::</span>solver Solver(Ctx);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> <span style=color:#8be9fd;font-style:italic>Constraint</span> : Constraints) {
 </span></span><span style=display:flex><span>        Solver.add(Constraint);
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// forall A, P(A) &lt;=&gt; exists B, !P(B)
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    Solver.add(LHSZ3 <span style=color:#719e07>&gt;=</span> RHSZ3 <span style=color:#719e07>||</span> LHSZ3 <span style=color:#719e07>&lt;</span> <span style=color:#2aa198>0</span>);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Err <span style=color:#719e07>=</span> Solver.check_error();
-</span></span><span style=display:flex><span>    <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> Ret <span style=color:#719e07>=</span> Solver.check();
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (Ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>sat) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> M <span style=color:#719e07>=</span> Solver.get_model();
-</span></span><span style=display:flex><span>        std<span style=color:#719e07>::</span>unordered_map<span style=color:#719e07>&lt;</span><span style=color:#719e07>const</span> llvm<span style=color:#719e07>::</span>Value<span style=color:#719e07>*</span>, std<span style=color:#719e07>::</span>string<span style=color:#719e07>&gt;</span> Assignments;
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#719e07>const</span> <span style=color:#719e07>auto</span><span style=color:#719e07>&amp;</span> [K, V] <span style=color:#719e07>:</span> Vars) {
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// forall A, P(A) &lt;=&gt; exists B, !P(B)
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    Solver.add(LHSZ3 <span style=color:#ff79c6>&gt;=</span> RHSZ3 <span style=color:#ff79c6>||</span> LHSZ3 <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Err <span style=color:#ff79c6>=</span> Solver.check_error();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> Ret <span style=color:#ff79c6>=</span> Solver.check();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (Ret <span style=color:#ff79c6>==</span> z3<span style=color:#ff79c6>::</span>sat) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> M <span style=color:#ff79c6>=</span> Solver.get_model();
+</span></span><span style=display:flex><span>        std<span style=color:#ff79c6>::</span>unordered_map<span style=color:#ff79c6>&lt;</span><span style=color:#ff79c6>const</span> llvm<span style=color:#ff79c6>::</span>Value<span style=color:#ff79c6>*</span>, std<span style=color:#ff79c6>::</span>string<span style=color:#ff79c6>&gt;</span> Assignments;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span><span style=color:#ff79c6>&amp;</span> [K, V] <span style=color:#ff79c6>:</span> Vars) {
 </span></span><span style=display:flex><span>            Assignments.emplace(K, M.eval(V).to_string());
 </span></span><span style=display:flex><span>        }
-</span></span><span style=display:flex><span>        <span style=color:#586e75>// return not in range, with counterexample
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>        <span style=color:#719e07>return</span> {<span style=color:#b58900>false</span>, Assignments};
+</span></span><span style=display:flex><span>        <span style=color:#6272a4>// return not in range, with counterexample
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        <span style=color:#ff79c6>return</span> {<span style=color:#8be9fd;font-style:italic>false</span>, Assignments};
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#586e75>// in range if Ret is z3::unsat.
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>    <span style=color:#719e07>return</span> {Ret <span style=color:#719e07>==</span> z3<span style=color:#719e07>::</span>unsat, {}};
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// in range if Ret is z3::unsat.
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#ff79c6>return</span> {Ret <span style=color:#ff79c6>==</span> z3<span style=color:#ff79c6>::</span>unsat, {}};
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>Note that we accept queries of whether one <em>linear expression</em>
 is less than another. Linear expressions here are linear in LLVM values,
@@ -418,41 +418,41 @@ it gets slightly more complicated as sometimes these indices indicate
 field numbers of a struct, which can&rsquo;t be computed by just one multiplication.</p><p>The first index is always an index into the pointer itself. In other words,
 the factor the first index is multiplied by when computing the offset is the size of an element
 the pointer refers to. The second index will be an index into an element of the
-pointer. Consider the following example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> nums[<span style=color:#2aa198>10</span>];
-</span></span><span style=display:flex><span>nums[<span style=color:#2aa198>2</span>] <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
-</span></span></code></pre></div><p>which becomes</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
-</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], ptr %3, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>2</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %4, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>, <span style=color:#268bd2>!tbaa</span> !5
+pointer. Consider the following example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#8be9fd>int</span> nums[<span style=color:#bd93f9>10</span>];
+</span></span><span style=display:flex><span>nums[<span style=color:#bd93f9>2</span>] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>10</span>;
+</span></span></code></pre></div><p>which becomes</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#ff79c6>alloca</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#ff79c6>i32</span>], <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>16</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#ff79c6>i32</span>], ptr %3, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>10</span>, ptr %4, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>8</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !5
 </span></span></code></pre></div><p>The first index represents how many chunks of <code>[10 x i32]</code> to offset the
 pointer by. The second index represents how many <code>i32</code> to offset relative to the
 first index. Thus, assuming <code>sizeof(int) == 4</code>, we have that <code>%4 = %3 + 0 * 40 + 2 * 4</code>.
 The following diagram represents this example where the center depicts an area
 of memory divided into 4-byte words and the left side depicts the offsets of the first index and the
 right side depicts the offsets of the second index.</p><p><img src=gep.png alt></p><p>Note that in this example <code>getelementptr %3, 0, 11</code> is the same as
-<code>getelementptr %3, 1, 1</code>.</p><p>Let&rsquo;s consider another example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Bar</span> {
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> a;
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> c;
-</span></span><span style=display:flex><span>    Foo fs[<span style=color:#2aa198>10</span>];
+<code>getelementptr %3, 1, 1</code>.</p><p>Let&rsquo;s consider another example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Bar</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> a;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>char</span> c;
+</span></span><span style=display:flex><span>    Foo fs[<span style=color:#bd93f9>10</span>];
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#586e75>// ...
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>Bar b;
-</span></span><span style=display:flex><span>b.a <span style=color:#719e07>=</span> <span style=color:#2aa198>20</span>;
-</span></span><span style=display:flex><span>b.c <span style=color:#719e07>=</span> <span style=color:#2aa198>&#39;a&#39;</span>;
-</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> <span style=color:#268bd2>%struct.Bar</span>, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>
-</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Bar</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>20</span>, ptr %4, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !5
-</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Bar</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i8</span> <span style=color:#2aa198>97</span>, ptr %5, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !10
+</span></span><span style=display:flex><span><span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>Bar b;
+</span></span><span style=display:flex><span>b.a <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>20</span>;
+</span></span><span style=display:flex><span>b.c <span style=color:#ff79c6>=</span> <span style=color:#f1fa8c>&#39;a&#39;</span>;
+</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#ff79c6>alloca</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>, ptr %3, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>20</span>, ptr %4, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !5
+</span></span><span style=display:flex><span>%5 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>, ptr %3, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i8</span> <span style=color:#bd93f9>97</span>, ptr %5, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !10
 </span></span></code></pre></div><p>Here, the first index is indexing into chunks of <code>sizeof(Bar)</code>, and
 the second index is indexing into the <em>fields</em> of <code>Bar</code>. The 1 in the
-second <code>GEP</code> means <em>field index 1</em> (the second field).</p><p>Now consider this example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> a <span style=color:#719e07>=</span> g();
-</span></span><span style=display:flex><span><span style=color:#dc322f>int</span><span style=color:#719e07>*</span> t <span style=color:#719e07>=</span> g2();
-</span></span><span style=display:flex><span>t[a] <span style=color:#719e07>=</span> <span style=color:#2aa198>2</span>;
-</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>call</span> no<span style=color:#719e07>undef</span> <span style=color:#719e07>i32</span> @_Z1gv()
-</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>call</span> no<span style=color:#719e07>undef</span> ptr @_Z2g2v()
-</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>sext</span> <span style=color:#719e07>i32</span> %3 <span style=color:#719e07>to</span> <span style=color:#719e07>i64</span>
-</span></span><span style=display:flex><span>%6 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#719e07>i32</span>, ptr %4, <span style=color:#719e07>i64</span> %5
+second <code>GEP</code> means <em>field index 1</em> (the second field).</p><p>Now consider this example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#8be9fd>int</span> a <span style=color:#ff79c6>=</span> g();
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span><span style=color:#ff79c6>*</span> t <span style=color:#ff79c6>=</span> g2();
+</span></span><span style=display:flex><span>t[a] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>2</span>;
+</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#ff79c6>call</span> no<span style=color:#ff79c6>undef</span> <span style=color:#ff79c6>i32</span> <span style=color:#8be9fd;font-style:italic>@_Z1gv</span>()
+</span></span><span style=display:flex><span>%4 = <span style=color:#ff79c6>call</span> no<span style=color:#ff79c6>undef</span> ptr <span style=color:#8be9fd;font-style:italic>@_Z2g2v</span>()
+</span></span><span style=display:flex><span>%5 = <span style=color:#ff79c6>sext</span> <span style=color:#ff79c6>i32</span> %3 <span style=color:#ff79c6>to</span> <span style=color:#ff79c6>i64</span>
+</span></span><span style=display:flex><span>%6 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#ff79c6>i32</span>, ptr %4, <span style=color:#ff79c6>i64</span> %5
 </span></span></code></pre></div><p>Note the lack of a second index. In this case, we only offset by the size
 of the data the pointer is directly pointing to (<code>i32</code>s). This represents
 <code>%6 = %4 + 4 * %5</code>.</p><p><code>GEPs</code> can handle more than two indexes, which you can read about
@@ -460,63 +460,63 @@ of the data the pointer is directly pointing to (<code>i32</code>s). This repres
 but at least my version of Clang seems to break large nested
 structures into a series of <code>GEP</code> instructions with one or two indices if I don&rsquo;t
 apply further optimizations. For example
-code like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Baz</span> {
-</span></span><span style=display:flex><span>    <span style=color:#719e07>struct</span> {
-</span></span><span style=display:flex><span>        <span style=color:#dc322f>int</span> j;
-</span></span><span style=display:flex><span>        <span style=color:#719e07>struct</span> {
-</span></span><span style=display:flex><span>            <span style=color:#dc322f>int</span> a;
-</span></span><span style=display:flex><span>            <span style=color:#dc322f>int</span> b;
+code like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Baz</span> {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>struct</span> {
+</span></span><span style=display:flex><span>        <span style=color:#8be9fd>int</span> j;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>struct</span> {
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd>int</span> a;
+</span></span><span style=display:flex><span>            <span style=color:#8be9fd>int</span> b;
 </span></span><span style=display:flex><span>        } c;
 </span></span><span style=display:flex><span>    } d;
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>long</span> p;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>long</span> p;
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#586e75>// ...
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// ...
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
 </span></span><span style=display:flex><span>Baz b;
-</span></span><span style=display:flex><span>b.d.j <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
-</span></span><span style=display:flex><span>b.d.c.a <span style=color:#719e07>=</span> <span style=color:#2aa198>20</span>;
-</span></span></code></pre></div><p>becomes</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> <span style=color:#268bd2>%struct.Baz</span>, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>
-</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Baz</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
-</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.anon</span>, ptr %4, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %5, <span style=color:#719e07>align</span> <span style=color:#2aa198>8</span>, <span style=color:#268bd2>!tbaa</span> !5
-</span></span><span style=display:flex><span>%6 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Baz</span>, ptr %3, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
-</span></span><span style=display:flex><span>%7 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.anon</span>, ptr %6, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span>%8 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.anon.0</span>, ptr %7, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>20</span>, ptr %8, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !13
-</span></span></code></pre></div><p>and code like this:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Foo</span> {
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> a;
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> nums[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span>b.d.j <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>10</span>;
+</span></span><span style=display:flex><span>b.d.c.a <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>20</span>;
+</span></span></code></pre></div><p>becomes</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#ff79c6>alloca</span> <span style=color:#8be9fd;font-style:italic>%struct.Baz</span>, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>8</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.Baz</span>, ptr %3, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>%5 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.anon</span>, ptr %4, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>10</span>, ptr %5, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>8</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !5
+</span></span><span style=display:flex><span>%6 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.Baz</span>, ptr %3, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span>%7 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.anon</span>, ptr %6, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>%8 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.anon.0</span>, ptr %7, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>20</span>, ptr %8, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !13
+</span></span></code></pre></div><p>and code like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Foo</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> a;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> nums[<span style=color:#bd93f9>10</span>];
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#719e07>struct</span> <span style=color:#268bd2>Bar</span> {
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> a;
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> c;
-</span></span><span style=display:flex><span>    Foo fs[<span style=color:#2aa198>10</span>];
+</span></span><span style=display:flex><span><span style=color:#ff79c6>struct</span> <span style=color:#50fa7b>Bar</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> a;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>char</span> c;
+</span></span><span style=display:flex><span>    Foo fs[<span style=color:#bd93f9>10</span>];
 </span></span><span style=display:flex><span>};
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#586e75>// ..
-</span></span></span><span style=display:flex><span><span style=color:#586e75></span>
-</span></span><span style=display:flex><span>Bar bars[<span style=color:#2aa198>10</span>];
-</span></span><span style=display:flex><span>bars[<span style=color:#2aa198>2</span>].fs[<span style=color:#2aa198>3</span>].nums[<span style=color:#2aa198>4</span>] <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
-</span></span></code></pre></div><p>becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Bar</span>], <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
-</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Bar</span>], ptr %3, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>2</span>
-</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Bar</span>, ptr %4, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>2</span>
-</span></span><span style=display:flex><span>%6 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Foo</span>], ptr %5, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>3</span>
-</span></span><span style=display:flex><span>%7 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#268bd2>%struct.Foo</span>, ptr %6, <span style=color:#719e07>i32</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>
-</span></span><span style=display:flex><span>%8 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], ptr %7, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>4</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %8, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !5
-</span></span></code></pre></div><p>but it could also become:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#268bd2>%arrayidx2</span> = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#268bd2>%struct.Bar</span>], ptr <span style=color:#268bd2>%bars</span>, 
-</span></span><span style=display:flex><span>                <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>2</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>2</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>3</span>, <span style=color:#719e07>i32</span> <span style=color:#2aa198>1</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>4</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr <span style=color:#268bd2>%arrayidx2</span>, <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
+</span></span><span style=display:flex><span><span style=color:#6272a4>// ..
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>
+</span></span><span style=display:flex><span>Bar bars[<span style=color:#bd93f9>10</span>];
+</span></span><span style=display:flex><span>bars[<span style=color:#bd93f9>2</span>].fs[<span style=color:#bd93f9>3</span>].nums[<span style=color:#bd93f9>4</span>] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>10</span>;
+</span></span></code></pre></div><p>becomes:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#ff79c6>alloca</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>], <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>16</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>], ptr %3, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>%5 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>, ptr %4, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>2</span>
+</span></span><span style=display:flex><span>%6 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#8be9fd;font-style:italic>%struct.Foo</span>], ptr %5, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>3</span>
+</span></span><span style=display:flex><span>%7 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#8be9fd;font-style:italic>%struct.Foo</span>, ptr %6, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>%8 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#ff79c6>i32</span>], ptr %7, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>4</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>10</span>, ptr %8, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !5
+</span></span></code></pre></div><p>but it could also become:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span><span style=color:#8be9fd;font-style:italic>%arrayidx2</span> = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#8be9fd;font-style:italic>%struct.Bar</span>], ptr <span style=color:#8be9fd;font-style:italic>%bars</span>, 
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>2</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>2</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>3</span>, <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>1</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>4</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>10</span>, ptr <span style=color:#8be9fd;font-style:italic>%arrayidx2</span>, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>16</span>
 </span></span></code></pre></div><p>For simplicity, I schedule my analysis right after <code>mem2reg</code> but before anything
-else to not worry about these nested forms.</p><p>The whole point of telling you this is that suppose we have code like so:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> nums[<span style=color:#2aa198>10</span>];
-</span></span><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#719e07>*</span>k <span style=color:#719e07>=</span> <span style=color:#719e07>&amp;</span>nums[<span style=color:#2aa198>5</span>];
-</span></span><span style=display:flex><span>k[<span style=color:#2aa198>5</span>] <span style=color:#719e07>=</span> <span style=color:#2aa198>10</span>;
-</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#719e07>alloca</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], <span style=color:#719e07>align</span> <span style=color:#2aa198>16</span>
-</span></span><span style=display:flex><span>%4 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> [<span style=color:#2aa198>10</span> <span style=color:#719e07>x</span> <span style=color:#719e07>i32</span>], ptr %3, <span style=color:#719e07>i64</span> <span style=color:#2aa198>0</span>, <span style=color:#719e07>i64</span> <span style=color:#2aa198>5</span>
-</span></span><span style=display:flex><span>%5 = <span style=color:#719e07>getelementptr</span> <span style=color:#719e07>inbounds</span> <span style=color:#719e07>i32</span>, ptr %4, <span style=color:#719e07>i64</span> <span style=color:#2aa198>5</span>
-</span></span><span style=display:flex><span><span style=color:#719e07>store</span> <span style=color:#719e07>i32</span> <span style=color:#2aa198>10</span>, ptr %5, <span style=color:#719e07>align</span> <span style=color:#2aa198>4</span>, <span style=color:#268bd2>!tbaa</span> !5
+else to not worry about these nested forms.</p><p>The whole point of telling you this is that suppose we have code like so:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#8be9fd>int</span> nums[<span style=color:#bd93f9>10</span>];
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#ff79c6>*</span>k <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>&amp;</span>nums[<span style=color:#bd93f9>5</span>];
+</span></span><span style=display:flex><span>k[<span style=color:#bd93f9>5</span>] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>10</span>;
+</span></span></code></pre></div><p>which becomes:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-LLVM data-lang=LLVM><span style=display:flex><span>%3 = <span style=color:#ff79c6>alloca</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#ff79c6>i32</span>], <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>16</span>
+</span></span><span style=display:flex><span>%4 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> [<span style=color:#bd93f9>10</span> <span style=color:#ff79c6>x</span> <span style=color:#ff79c6>i32</span>], ptr %3, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>0</span>, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>5</span>
+</span></span><span style=display:flex><span>%5 = <span style=color:#ff79c6>getelementptr</span> <span style=color:#ff79c6>inbounds</span> <span style=color:#ff79c6>i32</span>, ptr %4, <span style=color:#ff79c6>i64</span> <span style=color:#bd93f9>5</span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>store</span> <span style=color:#ff79c6>i32</span> <span style=color:#bd93f9>10</span>, ptr %5, <span style=color:#ff79c6>align</span> <span style=color:#bd93f9>4</span>, <span style=color:#8be9fd;font-style:italic>!tbaa</span> !5
 </span></span></code></pre></div><p>That store writes to illegal memory! And we can reason about this as follows:</p><ul><li><code>%3</code> is allocated and points to <code>sizeof(i32) * 10 = 40</code> bytes</li><li><code>%4</code> has a size of <code>40 - 0 * 40 - 5 * 4 = 20</code> bytes</li><li><code>%5</code> has a size of <code>20 - 5 *4 = 0</code> bytes</li><li>the store is writing 4 bytes to a pointer with a size of 0 bytes</li></ul><p>For every GEP instruction, we&rsquo;re going to compute the size of the resultant pointer&rsquo;s data
 as the size of the argument pointer&rsquo;s data minus the linear index expression.
 Note by &ldquo;size&rdquo; here I mean how many bytes of memory
@@ -531,53 +531,53 @@ we&rsquo;d have no way to know how many bytes the pointer could refer to.
 This is in contrast to
 the part of the analysis determining just if a <code>nullptr</code> is used, as discussed
 in the previous post.</p><h2 id=conclusion class=anchor-link><a href=#conclusion>Conclusion</a></h2><p>With all this work, we can prove the safety of programs our previous
-version of the analysis could not deduce were safe. For example, this program:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> one <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> two <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> <span style=color:#2aa198>2</span>;
-</span></span><span style=display:flex><span>assert(one <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span> <span style=color:#719e07>&amp;&amp;</span> two <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> elem_size <span style=color:#719e07>=</span> atoi(<span style=color:#719e07>*</span>one);
-</span></span><span style=display:flex><span><span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> num_elems <span style=color:#719e07>=</span> atoi(<span style=color:#719e07>*</span>two);
-</span></span><span style=display:flex><span><span style=color:#719e07>auto</span> data <span style=color:#719e07>=</span> (<span style=color:#dc322f>char</span><span style=color:#719e07>*</span>)malloc(elem_size <span style=color:#719e07>*</span> num_elems);
-</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> num_elems <span style=color:#719e07>*</span> elem_size; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>    data[i] <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+version of the analysis could not deduce were safe. For example, this program:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> one <span style=color:#ff79c6>=</span> argv <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> two <span style=color:#ff79c6>=</span> argv <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>2</span>;
+</span></span><span style=display:flex><span>assert(one <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span> <span style=color:#ff79c6>&amp;&amp;</span> two <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> elem_size <span style=color:#ff79c6>=</span> atoi(<span style=color:#ff79c6>*</span>one);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> num_elems <span style=color:#ff79c6>=</span> atoi(<span style=color:#ff79c6>*</span>two);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>auto</span> data <span style=color:#ff79c6>=</span> (<span style=color:#8be9fd>char</span><span style=color:#ff79c6>*</span>)malloc(elem_size <span style=color:#ff79c6>*</span> num_elems);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> num_elems <span style=color:#ff79c6>*</span> elem_size; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>    data[i] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
 </span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span><span style=color:#dc322f>int</span> masked <span style=color:#719e07>=</span> foo();
-</span></span><span style=display:flex><span>assert(masked <span style=color:#719e07>&lt;=</span> elem_size);
-</span></span><span style=display:flex><span><span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> num_elems; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> masked; <span style=color:#719e07>++</span>j) {
-</span></span><span style=display:flex><span>        data[i <span style=color:#719e07>*</span> elem_size <span style=color:#719e07>+</span> j] <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>;
+</span></span><span style=display:flex><span><span style=color:#8be9fd>int</span> masked <span style=color:#ff79c6>=</span> foo();
+</span></span><span style=display:flex><span>assert(masked <span style=color:#ff79c6>&lt;=</span> elem_size);
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> num_elems; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> j <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; j <span style=color:#ff79c6>&lt;</span> masked; <span style=color:#ff79c6>++</span>j) {
+</span></span><span style=display:flex><span>        data[i <span style=color:#ff79c6>*</span> elem_size <span style=color:#ff79c6>+</span> j] <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>;
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
 </span></span></code></pre></div><p>Furthermore, we can also use Z3 to give more useful error messages when it finds
-a counterexample. This program is not safe:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#719e07>const</span> <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+a counterexample. This program is not safe:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>main</span>(<span style=color:#8be9fd>int</span> argc, <span style=color:#ff79c6>const</span> <span style=color:#8be9fd>char</span><span style=color:#ff79c6>**</span> argv)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span> data_args <span style=color:#719e07>=</span> argc <span style=color:#719e07>-</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>int</span><span style=color:#719e07>*</span> vec <span style=color:#719e07>=</span> (<span style=color:#dc322f>int</span><span style=color:#719e07>*</span>)malloc(<span style=color:#719e07>sizeof</span>(<span style=color:#dc322f>int</span>) <span style=color:#719e07>*</span> data_args);
-</span></span><span style=display:flex><span>    assert(vec <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> data_args; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>auto</span> in_arg <span style=color:#719e07>=</span> argv <span style=color:#719e07>+</span> i <span style=color:#719e07>+</span> <span style=color:#2aa198>1</span>;
-</span></span><span style=display:flex><span>        assert(in_arg <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
-</span></span><span style=display:flex><span>        vec[i] <span style=color:#719e07>=</span> atoi(<span style=color:#719e07>*</span>in_arg);
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span> data_args <span style=color:#ff79c6>=</span> argc <span style=color:#ff79c6>-</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>int</span><span style=color:#ff79c6>*</span> vec <span style=color:#ff79c6>=</span> (<span style=color:#8be9fd>int</span><span style=color:#ff79c6>*</span>)malloc(<span style=color:#ff79c6>sizeof</span>(<span style=color:#8be9fd>int</span>) <span style=color:#ff79c6>*</span> data_args);
+</span></span><span style=display:flex><span>    assert(vec <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> data_args; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>auto</span> in_arg <span style=color:#ff79c6>=</span> argv <span style=color:#ff79c6>+</span> i <span style=color:#ff79c6>+</span> <span style=color:#bd93f9>1</span>;
+</span></span><span style=display:flex><span>        assert(in_arg <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>);
+</span></span><span style=display:flex><span>        vec[i] <span style=color:#ff79c6>=</span> atoi(<span style=color:#ff79c6>*</span>in_arg);
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> argc; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>        printf(<span style=color:#2aa198>&#34;%d</span><span style=color:#cb4b16>\n</span><span style=color:#2aa198>&#34;</span>, vec[i]);
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> argc; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>        printf(<span style=color:#f1fa8c>&#34;%d</span><span style=color:#f1fa8c>\n</span><span style=color:#f1fa8c>&#34;</span>, vec[i]);
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
-</span></span></code></pre></div><details><summary>The error we get is</summary><blockquote><p>Safety Violation: Use of potentially null pointer in load at MakeVecBad.cc:20</p></blockquote><blockquote><p>Because an index could not be proven to be in range, the following counterexample was found:</p></blockquote><blockquote><p>argc = 1</p></blockquote><blockquote><p>data_args = 0</p></blockquote><blockquote><p>i = 1</p></blockquote><p>Line 20 is the <code>printf</code> in the loop bound by <code>argc</code> instead of <code>data_args</code></p></details><p>Here&rsquo;s another example:</p><div class=highlight><pre tabindex=0 style=color:#93a1a1;background-color:#002b36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#dc322f>int</span> <span style=color:#268bd2>main</span>(<span style=color:#dc322f>int</span> argc, <span style=color:#dc322f>char</span><span style=color:#719e07>**</span> argv)
+</span></span></code></pre></div><details><summary>The error we get is</summary><blockquote><p>Safety Violation: Use of potentially null pointer in load at MakeVecBad.cc:20</p></blockquote><blockquote><p>Because an index could not be proven to be in range, the following counterexample was found:</p></blockquote><blockquote><p>argc = 1</p></blockquote><blockquote><p>data_args = 0</p></blockquote><blockquote><p>i = 1</p></blockquote><p>Line 20 is the <code>printf</code> in the loop bound by <code>argc</code> instead of <code>data_args</code></p></details><p>Here&rsquo;s another example:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#8be9fd>int</span> <span style=color:#50fa7b>main</span>(<span style=color:#8be9fd>int</span> argc, <span style=color:#8be9fd>char</span><span style=color:#ff79c6>**</span> argv)
 </span></span><span style=display:flex><span>{
-</span></span><span style=display:flex><span>    <span style=color:#719e07>if</span> (argc <span style=color:#719e07>&gt;=</span> <span style=color:#2aa198>128</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>return</span> <span style=color:#2aa198>1</span>;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>if</span> (argc <span style=color:#ff79c6>&gt;=</span> <span style=color:#bd93f9>128</span>) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>return</span> <span style=color:#bd93f9>1</span>;
 </span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>    <span style=color:#dc322f>char</span> words[<span style=color:#2aa198>128</span>][<span style=color:#2aa198>128</span>];
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd>char</span> words[<span style=color:#bd93f9>128</span>][<span style=color:#bd93f9>128</span>];
 </span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> i <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; i <span style=color:#719e07>&lt;</span> argc; <span style=color:#719e07>++</span>i) {
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> word <span style=color:#719e07>=</span> (argv <span style=color:#719e07>+</span> i);
-</span></span><span style=display:flex><span>        assert(word <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> word_data <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>word;
-</span></span><span style=display:flex><span>        <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> word_len <span style=color:#719e07>=</span> strlen(word_data);
-</span></span><span style=display:flex><span>        <span style=color:#719e07>for</span> (<span style=color:#dc322f>int</span> j <span style=color:#719e07>=</span> <span style=color:#2aa198>0</span>; j <span style=color:#719e07>&lt;</span> word_len; <span style=color:#719e07>++</span>j) {
-</span></span><span style=display:flex><span>            <span style=color:#719e07>const</span> <span style=color:#719e07>auto</span> c <span style=color:#719e07>=</span> word_data <span style=color:#719e07>+</span> j;
-</span></span><span style=display:flex><span>            assert(c <span style=color:#719e07>!=</span> <span style=color:#719e07>nullptr</span>);
-</span></span><span style=display:flex><span>            words[i][j] <span style=color:#719e07>=</span> <span style=color:#719e07>*</span>c;
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> i <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; i <span style=color:#ff79c6>&lt;</span> argc; <span style=color:#ff79c6>++</span>i) {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> word <span style=color:#ff79c6>=</span> (argv <span style=color:#ff79c6>+</span> i);
+</span></span><span style=display:flex><span>        assert(word <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> word_data <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>word;
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> word_len <span style=color:#ff79c6>=</span> strlen(word_data);
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>for</span> (<span style=color:#8be9fd>int</span> j <span style=color:#ff79c6>=</span> <span style=color:#bd93f9>0</span>; j <span style=color:#ff79c6>&lt;</span> word_len; <span style=color:#ff79c6>++</span>j) {
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>const</span> <span style=color:#ff79c6>auto</span> c <span style=color:#ff79c6>=</span> word_data <span style=color:#ff79c6>+</span> j;
+</span></span><span style=display:flex><span>            assert(c <span style=color:#ff79c6>!=</span> <span style=color:#ff79c6>nullptr</span>);
+</span></span><span style=display:flex><span>            words[i][j] <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>*</span>c;
 </span></span><span style=display:flex><span>        }
 </span></span><span style=display:flex><span>    }
 </span></span><span style=display:flex><span>}
