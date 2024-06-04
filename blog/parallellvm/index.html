@@ -1,0 +1,209 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Chordal Graph Register Allocation -</title><meta property="og:title" content="Chordal Graph Register Allocation - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/parallellvm/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/parallellvm/chordal.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/parallellvm/decomp1.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/parallellvm/decomp2.png"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.f6850460613b9030890978fdbf1e620257677cc89df6fcca59d3f538ad85412b.css integrity="sha256-9oUEYGE7kDCJCXj9vx5iAldnfMid9vzKWdP1OK2FQSs=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/parallellvm/>Chordal Graph Register Allocation</a></h2><div class=post-data>Jun 3, 2024
+|
+16 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Chordal%20Graph%20Register%20Allocation%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fparallellvm%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fparallellvm%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fparallellvm%2f&amp;description=Chordal%20Graph%20Register%20Allocation" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/compilers>compilers</a>,
+<a href=/%20/tags/graph-theory>graph-theory</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#background>Background</a></li><li><a href=#chordal-graphs>Chordal Graphs</a></li><li><a href=#ssa-and-interference-graphs>SSA and Interference Graphs</a></li><li><a href=#parallelizing-register-allocation-with-clique-decomposition>Parallelizing Register Allocation with Clique Decomposition</a></li><li><a href=#conclusion>Conclusion</a></li></ol></nav></div><div class="container markdown top-pad"><p>Register allocation is commonly framed as a vertex coloring problem on an interference
+graph, where vertices represent virtual registers and edges connect two virtual
+registers that interfere (belong to the same live-out set of a program point).</p><p>A classic method, due to Chaitin<sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup>, is to do register allocation via
+graph coloring with a set of heuristics to make the problem more easily computable,
+as vertex coloring is an NP-Hard problem.</p><p>This does give good results, but it can be too slow for JIT compilers.
+Furthermore, although I enjoyed implementing Chaitin&rsquo;s algorithm in my compilers class,
+some compilers, like LLVM don&rsquo;t use it. It was also interesting to see that
+Carnegie Mellon (at least in one iteration of their compiler course) doesn&rsquo;t
+teach it, even throwing in this slightly passive-aggressive comment in their
+lecture notes:<sup id=fnref:2><a href=#fn:2 class=footnote-ref role=doc-noteref>2</a></sup></p><blockquote><p>&ldquo;Finally, the algorithms needed for coloring chordal graphs are quite easy to implement compared, for example, to the
+complex algorithm in Appel’s textbook&rdquo;</p></blockquote><h2 id=background class=anchor-link><a href=#background>Background</a></h2><p>I&rsquo;ll quickly review some notation and concepts from graph theory. I&rsquo;ll assume
+a basic knowledge of graph theory, like knowing the terms graphs, subgraphs, vertices,
+walks, paths, etc.</p><ul><li>The <em>order</em> of a graph is the cardinality of the vertex set. The <em>size</em> of a graph
+is the cardinality of the edge set.</li><li>A <em>cycle</em> is a sequence of vertices that starts and ends at the same vertex (a closed walk),
+such that no vertex is in the sequence more than once, except the start vertex.</li><li>Given a graph $G = (V, E)$ with vertex set $V$ and edge set $E$, $V(G)$ denotes
+the vertex set of $G$ ($V$ in this case) and $E(G)$ denotes the edge set of $G$ ($E$ in this case).</li><li>Given a graph $G = (V, E)$, the <em>induced subgraph</em> of the set of vertices $V&rsquo; \subseteq V$
+is the graph $G[V&rsquo;] = G&rsquo; = (V&rsquo;, E&rsquo;)$ where $E&rsquo; \subseteq E$ such that $E&rsquo;$ is the set of edges
+connecting vertices of $V&rsquo;$ in $G$.</li><li>The <em>neighbors</em> of a vertex $v \in V(G)$, $N(v)$ is the set of all vertices adjacent to $v$.</li><li>$C_n$ is the cycle graph of order $n$.</li><li>A <em>clique</em> is a complete subgraph, that is every vertex is adjacent to every other
+vertex.</li><li>For a graph $G = (V, E)$ and vertex set $U$, $G - U$ denotes $G[V \setminus U]$.
+For a vertex $v$, $G - v$ denotes $G - \{v\}$.</li><li>Given a connected graph $G$, A <em>vertex cut</em> or <em>vertex separator</em>, $S$,
+is a set of vertices such that $G - U$ is disconnected.</li><li>For two vertices $x$ and $y$, a vertex cut $S$ <em>separates</em> $x$ and $y$ if $x$
+and $y$ belong to separate connected components in $G - S$.</li><li>A <em>minimal separator</em>, $S$, is a vertex separator such that no proper subset of $S$
+is also a vertex separator.</li><li>The degree of a vertex $v$, $\text{deg}(v)$, is the number of edges incident to $v$. It
+is also the cardinality of the set of neighbors, so $\text{deg}(v) = |N(v)|$.</li></ul><h2 id=chordal-graphs class=anchor-link><a href=#chordal-graphs>Chordal Graphs</a></h2><p><u><strong>Definition</strong></u>: A graph is <em>chordal</em> if every cycle of 4 or more vertices contains a <em>chord</em>,
+an edge connecting two non-adjacent vertices in the cycle. In other words,
+a chordal graph does not have any subset of vertices whose induced subgraph
+is isomorphic to $C_n$ for $n \ge 4$. Here&rsquo;s an example from the CMU lecture notes:</p><div style=text-align:center><p><img src=chordal.png alt=Chordal></p></div><p>In the first and third cases, the cycle $abcd$ does not contain a chord. So,
+the vertex set $V = \{a, b, c, d\}$ induces a subgraph that is isomorphic to $C_4$.</p><p>A <em>chordless cycle</em> is then a cycle of length 4 or more that doesn&rsquo;t contain a chord.</p><p><u><strong>Definition</strong></u>: In a graph $G$, a vertex $v \in V(G)$ is <em>simplicial</em>
+if the subgraph induced by $v \cup N(v)$ is a clique.</p><p>For example, in the second graph shown above, $a$ is simplicial, while $d$ is not
+since its neighbors $a$ and $c$ don&rsquo;t have an edge between them.</p><p><u><strong>Definition</strong></u>: A <em>perfect elimination order</em> (PEO), $\alpha$, of a graph $G$,
+is a permutation of the vertex set $G(V) = \{v_1, &mldr;, v_n\}$ such that
+$v_{\alpha(i)}$ is simplicial in the subgraph induced by $\{v_{\alpha(1)}, &mldr;, v_{\alpha(i)}\}$.
+In other words, a vertex is simplicial in the subgraph induced by itself and all vertices
+that come before it in the ordering.</p><p>We will prove that chordal graphs have a perfect elimination order, but first,
+a helper lemma:</p><p><u><strong>Lemma</strong></u>: Let $G$ be a connected graph. If $G$ is chordal,
+a minimal $x - y$ separator, $S$, will induce a clique.</p><p><em>Proof</em>.</p><p>Let $A_x$ and $A_y$ be the connected components of $x$ and $y$ in $G - S$, respectively.
+We will assume that $S$ contains at least two vertices, for if it only contained
+a single vertex it would already be a clique.
+Take an arbitrary and distinct $u, v$ in $S$. Since $S$ is minimal, it contains no proper
+subset that is also an $x - y$ separator. So $u$ and $v$ must be adjacent to
+vertices in both $A_x$ and $A_y$. Let $x_u$ and $x_v$ be two nodes in $A_x$ that
+are adjacent to
+$u$ and $v$, respectively. Let $y_u$ and $y_v$ be two vertices of $A_y$ adjacent to $u$
+and $v$, respectively.</p><p>Now consider the path $P_x = (u, x_u, &mldr;, x_v, v)$ and $P_y = (u, y_u, &mldr;, y_v, v)$.
+They must exist since $A_x$ and $A_y$ are connected, so there is a path
+between $x_u$ and $x_v$, and $y_u$ and $y_v$.
+Each of these paths has length $\ge 2$ (since $x_u$ and $x_v$ need not be distinct),
+so the cycle formed by $P_x$ followed by $P_y$ has length $\ge 4$.</p><p>Since $G$ is chordal, this cycle must contain a chord. But we know that
+a vertex in $A_x$ cannot be adjacent to a vertex in $A_y$. This implies that
+$\{u, v\}$ must be an edge.</p><p>Since we took an arbitrary $u$ and $v$, this logic applies for all vertices of $S$,
+hence $S$ is a clique.</p><p>$\square$</p><p><u><strong>Theorem</strong></u>: A connected graph $G$ is chordal if and only if it has a perfect elimination order.</p><p><em>Proof</em>.</p><p>We start with the forward direction. We will proceed by induction on
+the vertices of $G$, denoted $n$.</p><p>For our base case, $n = 1$ is trivial.</p><p>For the inductive case, let $G$ be a chordal graph of order $n + 1$. If $G$
+is a clique, any ordering of the vertices will be a PEO, so assume that
+$G$ is not a clique. Then there exist non-adjacent vertices $x$ and $y$.
+Let $S$ be a minimal $x, y$ separator, and let $A_x$ and $A_y$ be connected
+components of $x$ and $y$ in $G - S$. By the earlier lemma, $S$ is a clique.
+By the inductive hypothesis, $A_x$ has
+a perfect elimination order, so there exists a vertex $u \in A_x$ such that
+$u \cup N(u)$ form a clique in $G[A_x]$. The only vertices in $G$ that can be adjacent
+$G[A_x]$ are in $S$, and since $S$ forms a clique, that must mean that $u \cup N(u)$
+forms a clique in $G$.</p><p>By the inductive hypothesis, $G - u$ has a perfect elimination ordering, $\alpha$.
+Adding the mapping $n + 1 \mapsto u$ to $\alpha$ gives us a perfect elimination order
+of $G$.</p><details><summary>The reverse direction is somewhat easy and is left as an exercise for the reader :)</summary><p><em>Hint</em>: By minimum counterexample. Take the smallest chordless cycle and let $u$ be the
+vertex in the cycle that appears last in the elimination order. What can be said
+about the neighbors of $u \cup N(u)$ in the cycle?</p></details><p>$\square$</p><p>So we have that chordal graphs have a perfect elimination order. Let&rsquo;s review
+the algorithm for <em>greedy coloring</em>, a simple method for vertex coloring:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text><span style=display:flex><span>Let V be the vertices of the interfence graph
+</span></span><span style=display:flex><span>C = {}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>for v in ordering(V):
+</span></span><span style=display:flex><span>    c := the &#34;best&#34; color not used by N(v)
+</span></span><span style=display:flex><span>    C[v] = c
+</span></span></code></pre></div><p>It turns out that a perfect elimination order is the optimal ordering for which to
+assign colors, which we&rsquo;ll show.</p><p><em>Proof</em>.</p><p>Let $\alpha = (v_1, &mldr;, v_n)$ be a perfect elimination order, and let $\gamma$ be
+some other ordering.
+Let $P(n)$ be the proposition that at iteration $n$, $\{v_{\alpha(1)}, .. ,v_{\alpha(n)}\}$ uses at most
+as many colors as $\{v_{\gamma(1)}, .., v_{\gamma(n)}\}$.</p><p>We will prove this by induction.
+For the base case $n = 1$, both orderings can do no better or worse than using
+one color.</p><p>Now assume that we are on iteration $n + 1$. Consider vertex $v^* = v_{\alpha(n + 1)}$.
+$v^* $ cannot share any colors with its neighbors that have already been colored.
+Let $c$ be the best available color as selected by the greedy algorithm.
+By the definition of a perfect elimination order, the neighbors of $v^* $ that
+have already been colored (occur earlier in the order), form a clique with $v^*$.
+Therefore, no valid coloring can select $c$ to be a color that is unavailable
+when using the perfect elimination order.</p><p>By the induction hypothesis, $\{v_{\alpha(1)}, .., v_{\alpha(n)}\}$ is minimally colored.
+Since the available colors for $c$ is a superset of the available colors for $c$
+when using any other ordering, we can conclude that
+$\{v_{\alpha(1)}, .., v_{\alpha(n + 1)}\}$ is minimally colored.</p><p>$\square$</p><p><u><strong>Definition</strong></u>: A <em>perfect graph</em>, $G$ is a graph such that the minimum number
+of colors needed to color $G$ (denoted $\chi(G)$) is equal to the order of the largest
+clique in $G$ (denoted $\omega(G)$).</p><p><u><strong>Theorem</strong></u>: If a graph $G$ has a perfect elimination order, then $G$ is perfect.</p><p><em>Proof</em>. By induction on the number of vertices of $G$.</p><p>For the base case, $n = 1$, $G$ has a maximum clique size of 1 and <em>chromatic number</em>,
+or minimum coloring, of 1.</p><p>Now let $G$ be a graph with $n + 1$ vertices. Let $\{v_1, &mldr;, v_{n + 1}\}$ be a
+perfect elimination order of $G$. Observe that $G - v_{n + 1}$ still has a perfect
+elimination order (namely $\{v_1, &mldr;, v_n\}$). So by the induction
+hypothesis, $G - v_{n + 1}$ is perfect. Let $k = \chi(G - v_{n + 1}) = \omega(G - v_{n + 1})$.</p><p>Since $N(v_{n + 1})$ induces a clique in $G - v_{n + 1}$, then it must be that
+$\text{deg}(v_{n + 1}) \le k$. We continue by cases:</p><ul><li>Suppose that $\text{deg}(v_{n + 1}) &lt; k$. Then given a $k$ coloring of $G - v_{n + 1}$, we
+can produce a $k$ coloring of $G$ by choosing a color for $v_{n + 1}$ that isn&rsquo;t used
+by one of its neighbors.</li><li>Suppose that $\text{deg}(v_{n + 1}) = k$. Since $N(v_{n + 1}) \cup v_{n + 1}$ is a clique
+in $G$ and $\omega(G - v_{n + 1}) = k$, then $\omega(G) = k + 1$. Further, we can
+construct a $k + 1$ coloring for $G$ by extending the $k$ coloring of $G - v_{n + 1}$
+and giving $v_{n + 1}$ a fresh, unused color.</li></ul><p>In both cases, we can conclude that $\omega(G) = \chi(G)$, and so $G$ is perfect.</p><p>$\square$</p><p><u><strong>Corollary</strong></u>: Chordal graphs are perfect.</p><p>With these results, we can see that not only is the perfect elimination order
+the optimal ordering for the greedy algorithm, but with this ordering, the
+greedy algorithm produces an optimal coloring! This gives us a linear time
+solution for optimal coloring! It should be noted that we can
+compute a perfect ordering in polynomial time with the <em>maximum cardinality search algorithm</em>.<sup id=fnref:3><a href=#fn:3 class=footnote-ref role=doc-noteref>3</a></sup>
+But the results we&rsquo;ve shown only apply if our graph is chordal&mldr;</p><h2 id=ssa-and-interference-graphs class=anchor-link><a href=#ssa-and-interference-graphs>SSA and Interference Graphs</a></h2><p>Interference graphs that are generated from SSA programs are chordal<sup id=fnref:4><a href=#fn:4 class=footnote-ref role=doc-noteref>4</a></sup>. But,
+even without a program in SSA form, 95% of program interference graphs are chordal<sup id=fnref:5><a href=#fn:5 class=footnote-ref role=doc-noteref>5</a></sup>!</p><p>An informal argument for how all SSA programs have chordal interference graphs can be made as follows:</p><p>Let&rsquo;s suppose that <code>a</code> interferes with <code>b</code>, and <code>b</code> interferes with <code>a</code> and <code>c</code>,
+and <code>c</code> interferes with <code>b</code> and <code>d</code>. This might get us something that looks like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>a :<span style=color:#ff79c6>=</span> foo()
+</span></span><span style=display:flex><span>b :<span style=color:#ff79c6>=</span> bar()
+</span></span><span style=display:flex><span><span style=color:#6272a4>// a and b live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>print a, b
+</span></span><span style=display:flex><span>c :<span style=color:#ff79c6>=</span> baz()
+</span></span><span style=display:flex><span><span style=color:#6272a4>// b and c live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>print b, c
+</span></span><span style=display:flex><span>d :<span style=color:#ff79c6>=</span> foo()
+</span></span><span style=display:flex><span><span style=color:#6272a4>// c and d live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>print c, d
+</span></span></code></pre></div><p>To make a chordless cycle, we&rsquo;d need <code>d</code> to also interfere with <code>a</code>. So we&rsquo;d need to
+do something like this:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>d :<span style=color:#ff79c6>=</span> bar()
+</span></span><span style=display:flex><span><span style=color:#ff79c6>loop</span> {
+</span></span><span style=display:flex><span>    a :<span style=color:#ff79c6>=</span> foo()
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// a and d live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    print a, d
+</span></span><span style=display:flex><span>    b :<span style=color:#ff79c6>=</span> bar()
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// a and b live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    print a, b
+</span></span><span style=display:flex><span>    c :<span style=color:#ff79c6>=</span> baz()
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// b and c live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    print b, c
+</span></span><span style=display:flex><span>    d :<span style=color:#ff79c6>=</span> foo()
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// c and d live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    print c, d
+</span></span><span style=display:flex><span>    <span style=color:#6272a4>// d live out here
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>}
+</span></span></code></pre></div><p>But such a program can&rsquo;t exist in SSA form, the two definitions of <code>d</code> would
+be split up and a $\phi$ node would be introduced!</p><h2 id=parallelizing-register-allocation-with-clique-decomposition class=anchor-link><a href=#parallelizing-register-allocation-with-clique-decomposition>Parallelizing Register Allocation with Clique Decomposition</a></h2><p>We can also use a perfect elimination ordering to decompose an interference
+graph into indivisible <em>atoms</em> that can be colored independently. Actually,
+one doesn&rsquo;t need a PEO to do this. Given a graph $G$, the <em>fill-in</em> is the
+smallest set of edges that when added to $G$ produce a chordal graph, $G&rsquo;$.
+$G&rsquo;$ is also known as the <em>triangulation</em> of $G$. Thus, a chordal graph
+is its triangulation.</p><p>Given a triangulation $H$, of a graph $G$, we can compute a <em>clique decomposition</em>
+of the original graph. The idea behind a clique decomposition is that we identify
+a <em>clique separator</em>, $S$, which is a vertex cut that is also a clique. Thus,
+$G - S$ will contain at least two components, $A$ and $B$. We then duplicate $S$
+into each component and recurse on $G[A \cup S]$ and $G[B \cup S]$. When we get
+to a component that no longer contains any clique separators, we add that component
+to the set of atoms.</p><p>Observe that $A$ and $B$ have no edges between them since
+$S$ is a vertex cut. So $A \cup S$ and $B \cup S$ can be colored independently
+with some special handling for how to color the vertices in $S$.</p><p>For example in the following interference graph:</p><div style=text-align:center><p><img src=decomp1.png alt=Decomp></p></div><p>we can identify the clique separator <code>%8</code> and <code>%19</code> which breaks up the big component
+into two smaller ones:</p><div style=text-align:center><p><img src=decomp2.png alt=Decomp></p></div><p>The triangle <code>%19</code>, <code>%20</code>, <code>%8b</code> cannot be divided further so we can color it.
+We can then continue to decompose the bigger component, following the same procedure,
+and color it. Once we&rsquo;re done coloring, we&rsquo;ll need to merge the results in such a
+way that <code>%8a</code> and <code>%8b</code> are colored the same.</p><p>The decomposition algorithm, due to Tarjan<sup id=fnref:6><a href=#fn:6 class=footnote-ref role=doc-noteref>6</a></sup>, is as follows:</p><ol><li>Given an ordering of vertices, do the following for each $v \in V$ in increasing order</li><li>Compute $C(v)$ which are the neighbors of $v$ that occur earlier in the ordering</li><li>Let $A$ be the vertex set of the connected component containing $v$ in $G[V - C(V)]$
+and let $B = V - (A \cup C(V))$.</li><li>If $C(v)$ is a clique and $B \not = \emptyset$<ol><li>Decompose $G$ into $G&rsquo; = G[A \cup C(v)]$ and $G&rsquo;&rsquo; = G[B \cup C(V)]$.</li><li>$G&rsquo;$ is an atom. Replace $G$ with $G&rsquo;&rsquo;$.</li></ol></li></ol><p>This algorithm is not specific to perfect elimination orders, but if
+our graph is chordal and the ordering we use is a PEO, then we can see that
+the algorithm will decompose the graph if it contains a clique separator
+(as $B$ would be non-empty). We further know that in a chordal graph,
+all minimal separators are clique separators.</p><p>To get better parallelization performance, we can follow the work of
+Gupta et al<sup id=fnref:7><a href=#fn:7 class=footnote-ref role=doc-noteref>7</a></sup> to perform the decomposition from the source code directly without
+constructing the interference graph first, and Makowski and Pollock<sup id=fnref:8><a href=#fn:8 class=footnote-ref role=doc-noteref>8</a></sup> to
+use tree parallelism and a recoloring approach to perform coloring
+independently and in parallel.</p><p>To perform recoloring, let&rsquo;s suppose that we have a clique separator $S$, dividing the graph into two
+components, $A$ and $B$. We first color $A \cup S$ and $B \cup S$ independently.
+Then for a register, $r$ in $S$, we have three cases:</p><ol><li>$r$ is spilled in $B \cup S$. Then $r$ is spilled in the merged coloring.</li><li>$r$ is spilled in $A \cup S$. Then $r$ will be spilled in the result. We then need to recolor all such $r′$ in
+$B$ that were assigned the same color as $r$.</li><li>$r$ is colored in the both $A \cup S$ and $B \cup S$. In this case, we change the color of $r$, and all virtual registers
+that share $r$’s color in $B \cup S$, to match the color of $r$ in $A \cup S$</li></ol><p>After doing this for all registers in the clique, we then need to recolor the rest of the virtual registers in
+$B \cup S$. This is because recoloring vertices to match the colors of $A \cup S$ may have created
+interferences. We define a <em>color class</em> as a set of virtual registers that map to the same physical register. Then
+to perform efficient recoloring, we simply remap the color classes in $B \cup S$ to an available physical
+register, preferring to keep the old mapping if possible. We implement a color class as an equivalence class
+in a union-find data structure with path compression. Thus, a color class can be recolored in asymptotically
+constant time.</p><p>When merging the coloring results for $A \cup S$ and $B \cup S$, we won&rsquo;t need more colors than
+the maximum number of colors used in coloring $A \cup S$ and $B \cup S$.
+This is because there is no inference between vertices of $A$ and $B$ except
+via vertices in $S$. For a perfect graph in particular, one can also prove this
+fact by observing that $A \cup B \cup S$ cannot contain a larger clique than the largest
+clique in $A \cup S$ or $B \cup S$.</p><p>I and two others attempted to use these facts to write a parallel register allocator in LLVM for
+a course project. At least in the time we had, we couldn&rsquo;t get it to perform well
+or scale. So I can&rsquo;t say I strongly recommend it.</p><h2 id=conclusion class=anchor-link><a href=#conclusion>Conclusion</a></h2><p>So does this mean that register allocation is a solved problem, and with
+SSA IR&rsquo;s like LLVM, we can just get perfect results with greedy coloring?</p><p>Unfortunately no, the more complicated thing is determining when to split,
+coalesce or recompute values to avoid spilling. Trying all combinations of these techniques
+to avoid spilling would lead to a very exponential backtracking algorithm.</p><p>But, in LLVM, the standard register allocators for debug and release builds
+are using the greedy approach. Named <code>GreedyAllocator</code>, the release
+build register allocator is the basic greedy algorithm presented here but with
+complicated heuristics to try really hard and avoid spills.</p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>G. J. Chaitin. “Register allocation & spilling via graph coloring”. In: SIGPLAN Not. 17.6 (June 1982),
+pp. 98–101. issn: 0362-1340. doi: 10.1145/872726.806984. url: <a href=https://doi.org/10.1145/872726 target=_blank>https://doi.org/10.1145/872726</a>.
+806984&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:2><p>Pfenning, F., Simmons, R., Platzer, A., & Hoffman, J. Lecture Notes on Register Allocation. 15-411: Compiler Design. Retrieved 2024, from <a href=https://www.cs.cmu.edu/~janh/courses/411/24/lectures/03-regalloc.pdf target=_blank>https://www.cs.cmu.edu/~janh/courses/411/24/lectures/03-regalloc.pdf</a>.&#160;<a href=#fnref:2 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:3><p>Anne Berry, Romain Pogorelcnik, and Genevi`eve Simonet. “An introduction to clique minimal separator
+decomposition”. In: Algorithms 3.2 (May 2010), pp. 197–215. doi: 10.3390/a3020197&#160;<a href=#fnref:3 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:4><p>Hack, S., & Goos, G. (2006). Optimal Register allocation for SSA-form programs in polynomial time. Information Processing Letters, 98(4), 150–155. <a href=https://doi.org/10.1016/j.ipl.2006.01.008 target=_blank>https://doi.org/10.1016/j.ipl.2006.01.008</a>&#160;<a href=#fnref:4 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:5><p>Pereira, F. M., & Palsberg, J. (2005). Register allocation via coloring of chordal graphs. Programming Languages and Systems, 315–329. <a href=https://doi.org/10.1007/11575467_21 target=_blank>https://doi.org/10.1007/11575467_21</a>&#160;<a href=#fnref:5 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:6><p>Robert E. Tarjan. “Decomposition by clique separators”. In: Discrete Mathematics 55.2 (1985), pp. 221–232.
+issn: 0012-365X. doi: <a href=https://doi.org/10.1016/0012-365X%2885%2990051-2 target=_blank>https://doi.org/10.1016/0012-365X(85)90051-2</a>. url: <a href=https://www.sciencedirect.com/science/article/pii/0012365X85900512 target=_blank>https://www.sciencedirect.com/science/article/pii/0012365X85900512</a>&#160;<a href=#fnref:6 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:7><p>R. Gupta, M. L. Soffa, and T. Steele. “Register allocation via clique separators”. In: ACM SIGPLAN
+Notices 24.7 (June 1989), pp. 264–274. doi: 10.1145/74818.74842&#160;<a href=#fnref:7 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li><li id=fn:8><p>Christine Makowski and Lori L. Pollock. “Achieving efficient register allocation via parallelism”. In:
+Proceedings of the 1995 ACM Symposium on Applied Computing. SAC ’95. Nashville, Tennessee, USA:
+Association for Computing Machinery, 1995, pp. 123–129. isbn: 0897916581. doi: 10.1145/315891.315935.
+url: <a href=https://doi.org/10.1145/315891.315935 target=_blank>https://doi.org/10.1145/315891.315935</a>&#160;<a href=#fnref:8 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/llvm-project/tree/parallellvm target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>

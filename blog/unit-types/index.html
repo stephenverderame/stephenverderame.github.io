@@ -919,15 +919,4 @@ instantiated. Furthermore, unless explicit template instantiation is used,
 this can increase compile time.</p><p>Despite this, I think this was an interesting experiment using the type system
 to eliminate a class of programmer errors. This also demonstrates the feasibility
 of achieving this in a common general-purpose programming language with
-nothing more than a header-only library. A relevant paper to this, that I won&rsquo;t
-discuss here, is <a href=https://capra.cs.cornell.edu/research/gator/ target=_blank>Gator</a><sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup>. The
-extremely brief footnotes are that Gator uses a type system that includes
-<em>geometry types</em> to prevent a programmer from mixing up the coordinate scheme,
-reference frame, and geometric object of values that typically would be the
-same type in a language like GLSL. For example, instead of
-<code>vec3 lightDir</code> and <code>vec3 fragPos</code> which have the same
-type but vastly different semantics, we can encode them as
-<code>cart&lt;world>.direction lightDir</code> and <code>hom&lt;model>.point fragPos</code>
-to denote that <code>lightDir</code> is a direction, in cartesian coordinates, in the world
-reference frame and <code>fragPos</code> is a point, in homogenous coordinates, in local
-space.</p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>Dietrich Geisler, Irene Yoon, Aditi Kabra, Horace He, Yinnon Sanders, & Adrian Sampson (2020). Geometry Types for Graphics Programming. In <em>OOPSLA</em>.&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><a href=https://github.com/stephenverderame/SUtilities/blob/master/SUtilities/include/units.hpp target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
+nothing more than a header-only library.</p></div><a href=https://github.com/stephenverderame/SUtilities/blob/master/SUtilities/include/units.hpp target=_blank><div style=text-align:center><i class="fab fab fa-github"></i><br>Source</div></a><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
