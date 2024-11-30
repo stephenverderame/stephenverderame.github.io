@@ -7,7 +7,7 @@
 <a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
 <a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/caiman-holes/>Synthesizing Variable Initializations in CPS Programs</a></h2><div class=post-data>Nov 30, 2024
 |
-39 minutes read</div><div class=blog-share>Share this:
+40 minutes read</div><div class=blog-share>Share this:
 <a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Synthesizing%20Variable%20Initializations%20in%20CPS%20Programs%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman-holes%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
 <span class=hidden>Twitter</span></a>
 <a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman-holes%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
@@ -76,9 +76,9 @@ relation is used to mean strict domination, which would also require $a \not = b
 set of nodes that $v$ dominates, with the analogous notation $\text{dom}_s(v)$ denoting the set of nodes
 that $v$ strictly dominates.</li><li>$a \text{ pdom } b$ if $a$ post-dominates $b$ which holds when all paths from $a$ to $f$ must contain $b$.
 Likewise for strict post-domination.</li><li>Set $A$ <em>collectively dominates</em> set $B$ if $\forall b \in B$ every $r$-$b$ path contains a member of $A$.
-This is often denoted as $A \text{ dom } B$ however I may use $\text{cdom}$.
+This is often denoted as $A \text{ dom } B$.
 An analogous definition is used for <em>collective post-domination</em>.</li><li>A path is a sequence of nodes in the graph denoted $P = (r, &mldr;, e)$ for a path starting
-at $r$ and ending at $e$.</li><li>$a$ <em>precedes</em> $b$ (denoted $a \rightarrow b$) if there exists an $a$-$b$ path.</li><li>$a$ <em>strictly preceds</em> $b$ (denoted $a \rightarrow_s b$) if $a \rightarrow b$ and $a \not = b$.</li><li>$a$ precedes set $B$ (denotes $a \rightarrow B$) if $\forall b \in B. a \rightarrow b$.</li><li>A set $C$ is <em>minimal</em> with respect to some predicate, if every strict subset of $C$ does not satisfy the
+at $r$ and ending at $e$.</li><li>$a$ <em>precedes</em> $b$ (denoted $a \rightarrow b$) if there exists an $a$-$b$ path.</li><li>$a$ <em>strictly precedes</em> $b$ (denoted $a \rightarrow_s b$) if $a \rightarrow b$ and $a \not = b$.</li><li>$a$ precedes set $B$ (denotes $a \rightarrow B$) if $\forall b \in B. a \rightarrow b$.</li><li>A set $C$ is <em>minimal</em> with respect to some predicate, if every strict subset of $C$ does not satisfy the
 predicate, but $C$ itself does.</li></ul><p>The control flow graphs in caiman are graphs of programs in <em>continuation-passing style</em>.
 Graph theoretically, they are what I&rsquo;m defining as <em>dom-postdom</em> graphs.</p><p><u><strong>Def</strong></u>: A connected, directed acyclic graph $G = (V, E)$ is a <em>dom-postdom</em> (DP) graph if</p><ul><li>$G$ has 1 node with in-degree 0</li><li>$G$ has 1 node with out-degree 0</li><li>$\forall v \in V.\ \text{dom}_s(v) = \emptyset \lor (\exists u.\ v \text{ dom}_s\ u \land u \text { pdom } v)$.</li></ul><p><u><strong>Def</strong></u>: A CFG in the Caiman frontend is called a <em>caiman graph</em> (CG) and it is a DP graph with the added condition
 that if a node has more than one immediate successor, it dominates those immediate successors.</p><p>Here&rsquo;s two useful facts about DP graphs:</p><p><u><strong>Lemma</strong></u> (DP 2): $\forall v, u, u_2 \in V(G).\ v \text{ dom } u_1 \land v \text{ dom } u_2 \Rightarrow
@@ -229,12 +229,12 @@ our goal once again.</p><p>$\square$</p><p>A: So you aim to prove an equivalence
 in the algorithm
 and some condition like <code>exists_path_not_containing(init[v], path_src: l, path_dest: f)</code>? I suppose this
 effectively removes the quantification over $use[v]$.</p><p>L: Yes. The need to do this came about as I found two different conditions for the algorithm,
-one of which was very well suited to proving the algorithm correct, and this one which was
+one that was well suited to proving the algorithm correct, and this one which was
 helpful in proving the &ldquo;late as possible&rdquo; claim about the algorithm. The intuition for their
-equivalence is that we defined a postdominator of a use to also be a use. So based on
+equivalence is that we defined a post-dominator of a use to also be a use. So based on
 this and the structure of a graph, if there is an $\ell$-$f$ path not containing
 $init[v]$, and $init[v]$ is an initializing set, then it must be that $f$ is not a use.
-But $f$ postdominates every node, therefore there cannot be any uses.</p><p>L: Formally, we have &mldr;</p><p><u><strong>Lemma</strong></u> (O3): Let $S$ be a minimal initialization set of a variable $v$ (so no use dominates a member of $S$). Then</p><p>$$\forall \ell \in S, \exists P = (\ell, &mldr;, f). P \cap (S \setminus \{\ell\}) = \emptyset \Leftrightarrow \exists u \in use[v], P&rsquo; = (\ell, &mldr;, u). P&rsquo; \cap (S \setminus \{\ell\}) = \emptyset$$</p><p>Proof.</p><p>$\Rightarrow$: Suppose $\exists$ a $\ell$-$f$ path $P$ st $P \cap S \setminus \{\ell\} = \emptyset$.
+But $f$ post-dominates every node, therefore there cannot be any uses.</p><p>L: Formally, we have &mldr;</p><p><u><strong>Lemma</strong></u> (O3): Let $S$ be a minimal initialization set of a variable $v$ (so no use dominates a member of $S$). Then</p><p>$$\forall \ell \in S, \exists P = (\ell, &mldr;, f). P \cap (S \setminus \{\ell\}) = \emptyset \Leftrightarrow \exists u \in use[v], P&rsquo; = (\ell, &mldr;, u). P&rsquo; \cap (S \setminus \{\ell\}) = \emptyset$$</p><p>Proof.</p><p>$\Rightarrow$: Suppose $\exists$ a $\ell$-$f$ path $P$ st $P \cap S \setminus \{\ell\} = \emptyset$.
 By O1, $\exists u \in use[v]$ st $u$ postdom $\ell$. So $P = (\ell, &mldr;, u, &mldr;, f)$. Then we
 take the prefix path of $P$, $P&rsquo; = (\ell, &mldr;, u)$ which is a path to a use such that $P&rsquo; \cap S \setminus \{\ell\} = \emptyset$.</p><p>$\Leftarrow$: For the other direction. Suppose $\exists P = (\ell, &mldr;, u)$ such that $P \cap S \setminus \{\ell\} = \emptyset$.
 Then $\exists P&rsquo; = (\ell, &mldr;, u, &mldr;, f)$ for which $P$ is a prefix since all nodes reach $f$. Consider the suffix path of $P&rsquo;$
@@ -382,7 +382,7 @@ for all $\ell \in mark_m$. Since $x \rightarrow y$ (by this case that $y \in mar
 and some $z \in init$ postdom $y$. Then the path $P = (x, &mldr;, y, &mldr;, z)$ would be a desired path where
 $calc^{mark_x}(P) \not \supset calc^S(P)$ if $y \in mark_m$. If $y \not \in mark_m$, by IH
 $\exists P&rsquo; = (m, &mldr;, z&rsquo;)$ such that $calc^{mark_m}(P&rsquo;) \not \supset calc^{S \cap P&rsquo;}$. Consing
-$x$ onto $P$ yields a path where $calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$.</li><li><code>x = Next(m)</code> and <code>mark_x = mark_m</code>. By assumption $y \not \in mark_m$. So apply
+$x$ onto $P$ yields a path where $calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$.</li><li><code>x = Next(m)</code> and $mark_x = mark_m$. By assumption $y \not \in mark_m$. So apply
 IH and cons $x$ as before.</li><li><code>x = Select(a, b)</code> and $mark_x = mark_a \cup mark_b$. WLOG,
 $y \not \in mark_a$. Then by IH $\exists P&rsquo; = (a, &mldr;, z)$ st
 $calc^{mark_a}(P&rsquo;) \not \supset calc^{S \cap P&rsquo;}(P&rsquo;)$. Consing $x$ onto $P&rsquo;$
@@ -395,7 +395,7 @@ is a $x$-$z$ path where $calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$ since
 any initialization at $x$ or on $P&rsquo;$ is no better than the initialization by $mark_k$.
 Observe that if $\not \exists y&rsquo; \in S$ st $k \rightarrow y&rsquo;$,
 then $P$ is still a desired path as $S$ must then initialize at $x$ or on $P&rsquo;$.</li><li><code>x = Select(a, b)</code> and $mark_x = \{x\}$. By assumption $y \not = x$. We can reduce
-this case to an argument of <code>x = Next(Select(a, b))</code>, reusing the other cases.</li></ul><p>$\square$</p><p>A: I forsee that we may have a slight problem. So far, these facts required
+this case to an argument of <code>x = Next(Select(a, b))</code>, reusing the other cases.</li></ul><p>$\square$</p><p>A: I foresee that we may have a slight problem. So far, these facts required
 using a strict subset. That is, we seem to be working towards a statement
 along the lines of $\exists P$ such that $calc_v^S(P) \not \subset calc_v^{init_f}(P)$,
 which doesn&rsquo;t seem all that useful. It would say there is some path where our solution
@@ -406,15 +406,16 @@ to the calculations of our solution, then we can just assume that the initializa
 set we&rsquo;re examining is not equal to the $init_f$. Again, this is with respect
 to a single variable, so we&rsquo;re still dealing with a &ldquo;local optima&rdquo; instead of a
 global one.</p><p><u><strong>Claim</strong></u> (H2): $\forall \ell_{i + 1} \in init_{i + 1}, \ell_i \in init_i, P = (\ell_{i + 1}, &mldr;, \ell_i).\
-P \cap init_{i + 1} = \{\ell_{i + 1}\}$</p><p>Proof.</p><p>By induction on $i$.</p><p>Base Case: Here $init_0[v]$ is the initialization set produced by the phase 1 algorithm.
+P \cap init_{i + 1} = \{\ell_{i + 1}\}$</p><p>L: The point of this claim is to argue why an initialization set produced
+by the algorithm cannot have two members that can reach each other.</p><p>Proof.</p><p>By induction on $i$.</p><p>Base Case: Here $init_0[v]$ is the initialization set produced by the phase 1 algorithm.
 Let&rsquo;s assume we process this set such that $\forall \ell_1, \ell_2 \in init_0[v].\ \ell_1 \not$ dom $\ell_2$
 and $\ell_2 \not$ dom $\ell_1$. We WTS that $\ell_1 \not \rightarrow \ell_2 \land \ell_2 \not \rightarrow \ell_1$.
 Suppose FSOC, and WLOG there exists path $P_1 = (\ell_1, &mldr;, \ell_2)$ (so $\ell_1 \rightarrow \ell_2$).
 Since $\ell_1 \in init_0[v]$, then there exists $P_2 = (\ell_1, &mldr;, u)$ for $u \in use[v]$ such
 that $P_2 \cap init_0[v] = \{\ell_1\}$. This is true by definition of the algorithm (<code>cond1</code>).
 Consider the last shared node between $P_1$ and $P_2$ (which could be $\ell_1$ itself).
-Let&rsquo;s call this node $w$. If $w$ is a select, then it must have a distinct postdominator,
-and by assumption that $w$ is the last shared node in the paths, this postdominator
+Let&rsquo;s call this node $w$. If $w$ is a select, then it must have a distinct post-dominator,
+and by assumption that $w$ is the last shared node in the paths, this post-dominator
 must succeed $\ell_2$ and $u$. So by scoping, $w$ dom $\ell_2$. This means that
 $\ell_2 \not \in init_0[v]$, reaching our goal.</p><p>Otherwise, if $w$ is not a select, then it must be $u$ itself. So $u \rightarrow \ell_2$.
 By Lemma CG2, $\exists w&rsquo;$ such that $w&rsquo;$ postdom $u$ and $w&rsquo;$ dom $\ell_2$. Therefore,
@@ -453,7 +454,8 @@ and $\ell^* \rightarrow v$. So $w$ dom $\ell^*$ and $w$ dom $\ell&rsquo;$. By as
 $A$ does not dominate $\ell&rsquo;$, then no member of $A$ precedes $\ell&rsquo;$.
 This however, is not possible as in order for $\ell&rsquo;$ to be in $init_{i + 1}$,
 $mark_{\ell&rsquo;}$ must be $\ell&rsquo;$, but in order for $mark_w = A$ and no member of $A$
-to preceded $\ell&rsquo;$, $mark_{\ell&rsquo;} \subseteq A$. So we can ignore this case.</li></ul><p>$\square$</p><p>L: Finally, we have our final result:</p><p><u><strong>Thm</strong></u> (Hoist): $\forall S \not \equiv init_f, v.\ \exists P = (r, &mldr;, f). \ calc_v^S(P) \not \subset calc_v^{init_f}(P)$</p><p>Proof.</p><p>Observe that $\forall \ell \in init_f$, $S$ dom $\ell$ otherwise $\exists P&rsquo; = (r, &mldr;, \ell)$
+to preceded $\ell&rsquo;$, $mark_{\ell&rsquo;} \subseteq A$. So we can ignore this case.</li></ul><p>$\square$</p><p>L: Finally, we have our final result. I&rsquo;m informally defining two initialization sets
+to be equivalent if they result in the same set of recalculations along all paths.</p><p><u><strong>Thm</strong></u> (Hoist): $\forall S \not \equiv init_f, v.\ \exists P = (r, &mldr;, f). \ calc_v^S(P) \not \subset calc_v^{init_f}(P)$</p><p>Proof.</p><p>Observe that $\forall \ell \in init_f$, $S$ dom $\ell$ otherwise $\exists P&rsquo; = (r, &mldr;, \ell)$
 not containing any member of $S$. By Hoist Induct, $\forall S&rsquo; \subseteq S$ such that
 $\ell \rightarrow_s S&rsquo;$, $\exists P&rsquo;&rsquo; = (\ell, &mldr;, f)$ such that
 $calc_v^{S&rsquo;}(P&rsquo;&rsquo;) \not \subset calc_v^{init_f}(P&rsquo;&rsquo;)$. Joining $P&rsquo;$ and $P&rsquo;&rsquo;$, along
@@ -462,10 +464,11 @@ So by H3, $\exists \ell \in init_f, P&rsquo; = (r, &mldr;, \ell)$ such that $cal
 calc_v^{S \cap P&rsquo;}(P&rsquo;)$. By Hoist Induct, there exists $P&rsquo;&rsquo; = (\ell, &mldr;, f)$ such that
 $calc_v^S(P&rsquo;&rsquo;) \not \subset calc_v^{init_f}(P&rsquo;&rsquo;)$. Joining $P&rsquo;$ and $P&rsquo;&rsquo;$ along with the
 assumption that $S \not \equiv init_f$ yields a desired path.</p><p>$\square$</p><p>L: Well that was quite exhausting. I initially started out thinking this problem
-would be at least NP, and starting trying to prove something to that effect.
-Although I did end up realizing that, at least a version based only on CFG
+would be at least NP, and starting trying to prove something to that effect but I couldn&rsquo;t
+make progress.
+Thanks to your help, I did end up realizing that a version based only on CFG
 structure would be exponentially if perfectly optimal. Thanks for helping
-me work through this Agrippa!</p><p><em>Livia and Agrippa exchange goodbyes and Livia walks away</em></p><hr><h2 id=final-remarks class=anchor-link><a href=#final-remarks>Final Remarks</a></h2><p>These two algorithms were implemented in Caiman. My previous approach wasn&rsquo;t
+me work through this Agrippa!</p><p>A: No problem. This was fun.</p><p><em>Livia and Agrippa exchange goodbyes and Livia walks away</em></p><hr><h2 id=final-remarks class=anchor-link><a href=#final-remarks>Final Remarks</a></h2><p>These two algorithms were implemented in Caiman. My previous approach wasn&rsquo;t
 even correct (or rather, <em>complete</em>, as it could fail to find an initialization set when one exists), so already
 this is a big improvement. Admittedly, the condition that a hoist step must always
 improve can easily create situations that prevent the algorithm from reaching
