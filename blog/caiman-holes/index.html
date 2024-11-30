@@ -1,0 +1,517 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="chrome=1"><meta name=HandheldFriendly content="True"><meta name=MobileOptimized content="320"><meta name=viewport content="width=device-width,initial-scale=1"><meta name=referrer content="no-referrer"><title>Synthesizing Variable Initializations in Cps Programs -</title><meta property="og:title" content="Synthesizing Variable Initializations in CPS Programs - "><meta property="og:type" content="website"><meta property="og:description" content><meta property="og:url" content="https://stephenverderame.github.io/blog/caiman-holes/"><meta property="og:site_name" content><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman-holes/cex_hoist.svg"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman-holes/dom_holes.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman-holes/ex1.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman-holes/h2_diag1.png"><meta property="og:image" content="https://stephenverderame.github.io/blog/caiman-holes/scoping.svg"><link rel="shortcut icon" href=/img/favicon.ico><link rel=stylesheet href=/css/main.min.f6850460613b9030890978fdbf1e620257677cc89df6fcca59d3f538ad85412b.css integrity="sha256-9oUEYGE7kDCJCXj9vx5iAldnfMid9vzKWdP1OK2FQSs=" crossorigin=anonymous media=screen><style>@media screen and (max-width:768px){.post-subtitle{text-align:center}}.matrix{position:relative}.matrix:before,.matrix:after{content:"";position:absolute;top:0;border:1px solid #fff;width:6px;height:100%}.matrix:before{left:-6px;border-right:0}.matrix:after{right:-6px;border-left:0}</style><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css><script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js></script>
+<script defer src=https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js onload=renderMathInElement(document.body)></script>
+<script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script></head><body><section id=top class=section><div class="container hero"><h1 class="bold-title is-1">Blog</h1></div><div class=section><div class=container><hr><nav class=navbar role=navigation aria-label="main navigation"><a role=button class=navbar-burger data-target=navMenu aria-label=menu aria-expanded=false><span aria-hidden=true></span>
+<span aria-hidden=true></span>
+<span aria-hidden=true></span></a><div class=navbar-menu id=navMenu><a class=navbar-item href=/>main</a>
+<a class=navbar-item href=https://stephenverderame.github.io/blog/>Back to Blog</a>
+<a class=navbar-item href=https://stephenverderame.github.io/projects/>Projects</a>
+<a class=navbar-item href=/cv>CV</a></div></nav><hr></div><div class=container><h2 class="title is-1 top-pad strong-post-title"><a href=https://stephenverderame.github.io/blog/caiman-holes/>Synthesizing Variable Initializations in CPS Programs</a></h2><div class=post-data>Nov 30, 2024
+|
+39 minutes read</div><div class=blog-share>Share this:
+<a class=twitter-share-button href="https://twitter.com/intent/tweet?text=Synthesizing%20Variable%20Initializations%20in%20CPS%20Programs%20https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman-holes%2f" onclick='return window.open(this.href,"twitter-share","width=550,height=235"),!1'><i class="fab fa-twitter"></i>
+<span class=hidden>Twitter</span></a>
+<a class=icon-facebook href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman-holes%2f" onclick='return window.open(this.href,"facebook-share","width=580,height=296"),!1'><i class="fab fa-facebook-f"></i>
+<span class=hidden>Facebook</span></a>
+<a class=icon-pinterest href="http://pinterest.com/pin/create/button/?url=https%3a%2f%2fstephenverderame.github.io%2fblog%2fcaiman-holes%2f&amp;description=Synthesizing%20Variable%20Initializations%20in%20CPS%20Programs" onclick='return window.open(this.href,"pinterest-share","width=580,height=296"),!1'><i class="fab fa-pinterest-p"></i>
+<span class=hidden>Pinterest</span></a></div><p>Tags:
+<a href=/%20/tags/pl>pl</a>,
+<a href=/%20/tags/projects>projects</a>,
+<a href=/%20/tags/compilers>compilers</a>,
+<a href=/%20/tags/graph-theory>graph-theory</a></p></div><div class="container markdown top-pad"><h2>Contents</h2><nav id=TableOfContents><ol><li><a href=#background>Background</a></li><li><a href=#phase-1-initialization>Phase 1 (Initialization)</a></li><li><a href=#phase-2-hoisting>Phase 2 (Hoisting)</a></li><li><a href=#final-remarks>Final Remarks</a></li></ol></nav></div><div class="container markdown top-pad"><p>I recently added holes in the <a href=../caiman>caiman frontend</a>. These enable a user
+to only write part of a schedule, and have the compiler determine the details,
+using user provided specs. A hole is essentially an expression or statement
+that can stand in for anything the compiler might want to put there. The frontend is responsible for
+performing type deduction, and part of a type in caiman is a linear representation
+of whether the type is &ldquo;usable&rdquo; (initialized and not used) or &ldquo;dead&rdquo;
+(uninitialized or initialized but consumed). So the problem I faced when working on
+this is to determine which hole(s) should initialize a mutable variable if the
+user doesn&rsquo;t do so.</p><p>I&rsquo;ll explain this further in an example. Consider the following excerpt of a schedule in Caiman:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>var x;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole1
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#8be9fd;font-style:italic>let</span> z <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> t <span style=color:#ff79c6>=</span> foo();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>???</span> <span style=color:#6272a4>// hole2
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>} <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> y <span style=color:#ff79c6>=</span> bar();
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>???</span> <span style=color:#6272a4>// hole3
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>};
+</span></span><span style=display:flex><span><span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole4
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span><span style=color:#8be9fd;font-style:italic>let</span> k <span style=color:#ff79c6>=</span> z <span style=color:#ff79c6>+</span> x;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole5
+</span></span></span></code></pre></div><p>Based on what we know so far, it would seem that <code>x</code> has to be usable by the
+addition of <code>x</code> and <code>z</code>. This would rule out initialization at <code>hole5</code>. Also, we
+can immediately know that <code>x</code> must be initialized at some point that is dominated by
+its definition. But which set of holes would be best?</p><p>Suppose we choose <code>hole1</code>. Well, if the value of <code>x</code> depends on the value of <code>z</code>
+(for example if <code>x = z + 1</code>) that means initializing <code>x</code> at <code>hole1</code> requires
+recomputing <code>z</code> since it is not yet available. We could exclude all holes that
+are not dominated by definitions of values that <code>x</code> depends on, but we could
+easily write a schedule that forces something to be recalculated. Continuing with
+the example of <code>x = z + 1</code>, we could put a use of <code>x</code> before <code>z</code> is defined, which
+would mean that we have no choice but to recalculate <code>z</code>.</p><p>So perhaps we should choose <code>hole4</code>, which is &ldquo;as late as possible&rdquo;. But what if
+<code>x</code> depends on <code>t</code> or <code>y</code>, then it would be better for <code>x</code> to be initialized
+at <code>{hole2, hole3}</code> to avoid recalculation.</p><p>But as an added complication, we aren&rsquo;t just dealing with one variable, we
+are dealing with as many as the user puts in their schedule. These values
+potentially have dependencies between them. For example if some variable <code>y</code> must
+be initialized at <code>hole1</code>, and the value of <code>y</code> depends on the value of <code>x</code>, then the value
+of <code>x</code> is already being initialized at <code>hole1</code>, and we might as well assign this value
+to the variable <code>x</code>.</p><p>Note that any value that is recalculated at a hole (due to initialization of
+a variable that depends on it) should be thought of as existing only for that hole.</p><p>For example in the following:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>var x;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole1
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>var z;
+</span></span><span style=display:flex><span><span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole2
+</span></span></span></code></pre></div><p>If the values of <code>x</code> and <code>z</code> both depend on some value <code>y</code>, and we decide to initialize
+<code>z</code> at <code>hole2</code> and <code>x</code> at <code>hole1</code>, then <code>y</code> will be recalculated twice. By recalculation,
+I mean calculation at a hole where it&rsquo;s needed to initialize a variable.</p><p>In the rest of this post, I&rsquo;ll use the term
+&ldquo;[mutable] variable&rdquo; to refer to a location a value is held. This corresponds to the source-level
+concept of a variable. I&rsquo;ll use the term &ldquo;value&rdquo; to refer to the actual value stored
+in the variable. The value is what is described in the value specifications in caiman.
+For simplicity I&rsquo;ll kind of use these two a bit interchangeably when a distinction isn&rsquo;t
+really necessary. But it may be useful to keep in mind that definitions, initializations,
+and locations are properties of a variable while dependencies, recalculations and
+true/usable uses are properties of a value.</p><h2 id=background class=anchor-link><a href=#background>Background</a></h2><p>Let&rsquo;s first define some terms we&rsquo;ll use throughout this post. All of the graphs
+we will consider are instruction-level CFGs, in particular this means they are directed graphs with
+a single start node. All of our CFGs are also normalized to have a single exit node
+as well. In our discussion, let $r$ be the unique starting root node of the CFG and $f$
+the unique final node.</p><ul><li>$a \text{ dom } b$ if $a$ dominates $b$ which holds when all paths from $r$ to $b$ must contain $a$. The $\text{dom}_s$
+relation is used to mean strict domination, which would also require $a \not = b$. The notation $\text{dom}(v)$ denotes
+set of nodes that $v$ dominates, with the analogous notation $\text{dom}_s(v)$ denoting the set of nodes
+that $v$ strictly dominates.</li><li>$a \text{ pdom } b$ if $a$ post-dominates $b$ which holds when all paths from $a$ to $f$ must contain $b$.
+Likewise for strict post-domination.</li><li>Set $A$ <em>collectively dominates</em> set $B$ if $\forall b \in B$ every $r$-$b$ path contains a member of $A$.
+This is often denoted as $A \text{ dom } B$ however I may use $\text{cdom}$.
+An analogous definition is used for <em>collective post-domination</em>.</li><li>A path is a sequence of nodes in the graph denoted $P = (r, &mldr;, e)$ for a path starting
+at $r$ and ending at $e$.</li><li>$a$ <em>precedes</em> $b$ (denoted $a \rightarrow b$) if there exists an $a$-$b$ path.</li><li>$a$ <em>strictly preceds</em> $b$ (denoted $a \rightarrow_s b$) if $a \rightarrow b$ and $a \not = b$.</li><li>$a$ precedes set $B$ (denotes $a \rightarrow B$) if $\forall b \in B. a \rightarrow b$.</li><li>A set $C$ is <em>minimal</em> with respect to some predicate, if every strict subset of $C$ does not satisfy the
+predicate, but $C$ itself does.</li></ul><p>The control flow graphs in caiman are graphs of programs in <em>continuation-passing style</em>.
+Graph theoretically, they are what I&rsquo;m defining as <em>dom-postdom</em> graphs.</p><p><u><strong>Def</strong></u>: A connected, directed acyclic graph $G = (V, E)$ is a <em>dom-postdom</em> (DP) graph if</p><ul><li>$G$ has 1 node with in-degree 0</li><li>$G$ has 1 node with out-degree 0</li><li>$\forall v \in V.\ \text{dom}_s(v) = \emptyset \lor (\exists u.\ v \text{ dom}_s\ u \land u \text { pdom } v)$.</li></ul><p><u><strong>Def</strong></u>: A CFG in the Caiman frontend is called a <em>caiman graph</em> (CG) and it is a DP graph with the added condition
+that if a node has more than one immediate successor, it dominates those immediate successors.</p><p>Here&rsquo;s two useful facts about DP graphs:</p><p><u><strong>Lemma</strong></u> (DP 2): $\forall v, u, u_2 \in V(G).\ v \text{ dom } u_1 \land v \text{ dom } u_2 \Rightarrow
+\exists w.\ v \text{ dom } w \land w \text { pdom } u_1 \land w \text{ pdom } u_2$.</p><p>Proof.</p><p>By the definition of DP, either $\text{dom}_s(v) = \emptyset$ in which case $ v = u_1 = u_2 = w$
+and we&rsquo;re done, or $\exists w&rsquo;.\ w&rsquo; \text{ pdom } v$ and $v \text { dom}_s w&rsquo;$.
+WLOG and FSOC, suppose $w&rsquo; \not \text{pdom } u_1$. Then $\exists P = (u_1, &mldr;, f)$ such that
+$w&rsquo; \not \in P$. Suppose $w&rsquo; \not \text{dom } u_1$. Then, since $v \text { dom } u_1$ there exists a $P&rsquo; = (v, &mldr;, u_1)$
+not containing $w&rsquo;$ so concatenating $P$ and $P&rsquo;$ yields a $v-f$ path not containing $w&rsquo;$.
+This contradicts the definition of post-domination. Otherwise, if $w&rsquo; \text{ dom } u_1$, then
+repeat this process with a post dominator of $w&rsquo;$ chosen as the new $w&rsquo;$.</p><p>$\square$</p><p><u><strong>Lemma</strong></u> (Scoping): $\forall v, w, u$ st $v$ dom $w \land w$ postdom $v \land
+v \rightarrow u \land u \rightarrow w \Rightarrow v$ dom $u \land w$ postdom $u$.</p><p>Basically, this says the nodes &ldquo;in-between&rdquo; $v$ and $w$ are dominated by $v$ and
+post dominated by $u$.</p><p><img src=scoping.svg alt=Scoping></p><p>The way I think of this is that these graphs have &ldquo;scopes&rdquo; in which every node within
+the scope (depicted as the gray box with &ldquo;&mldr;&rdquo; here) has a shared dominator and shared post-dominator.</p><p>Proof.</p><p>Take an arbitrary $v, w, u$ such that the hypothesis holds. Since $v$ dom $w$,
+then every $r$-$w$ path must pass through $v$. As $v \rightarrow u$ and the
+graph is acyclic, then $u \not \rightarrow v$. But since $u \rightarrow w$, then
+it must be that every $r$-$u$ path must contain $v$, otherwise there would be a $r$-$w$
+path not containing $v$. So $v$ dom $u$. Now, since $w$ postdom $v$, every
+$v$-$f$ path must contain $f$. We again know that $w \not \rightarrow u$, so in order
+for $w$ to be a post dominator, every $u$-$f$ path must contain $w$ since $v \rightarrow w$.
+Thus $w$ postdom $u$.</p><p>$\square$</p><p>For the graphs in Caiman, we also can say a little more.</p><p><u><strong>Observation</strong></u> (CG1): $\forall v,w.\ vw \in E(G) \Rightarrow v$ dom $w$ or $w$ postdom $v$.</p><p>Proof. If the only successor of $v$ is $w$, then $w$ postdom $v$. If $v$ has more successors besides $w$, then
+by definition $v$ dom $w$. $\square$</p><p><u><strong>Lemma</strong></u> (CG2): $\forall u, v.\ u \rightarrow v \Rightarrow \exists w. \ w$ pdom $u$ and $w$ dom $v$.</p><p>Proof.</p><p>By structural induction on $u$:</p><ul><li>$u$ has no children. We will denote this as <code>u = None()</code>. Then here $u = v = w$.</li><li>$u$ has one child, $s$. We will denote this as <code>u = Next(s)</code>. If $s = v$ or $v = u$ then let $w = u$.
+Otherwise, by the IH, there exists a $w&rsquo;$ such that $w&rsquo;$ postdom $s$ and $w&rsquo;$ dom $v$. Since
+$s$ postdom $u$ then let $w = w&rsquo;$.</li><li>$u$ has more than one child. We will denote this as <code>u = Select(a, b)</code>, focusing on
+the two-child case which is all we need. However, this generalizes to an arbitrary number
+of children. If $v = u$, $v = a$, or $v = b$, then let $w = u$. Otherwise let $z$ be a node
+such that $u$ dom $z$ and $z$ postdom $u$ which exists by definition of DP graphs.
+Suppose $v \rightarrow z$. Then by scoping, $u$ dom $v$. Thus, let $w = u$. Otherwise,
+$z \rightarrow v$. By the IH, $\exists w&rsquo;$ such that $w&rsquo;$ postdom $z$ and $w&rsquo;$ dom $v$.
+As $z$ pdom $u$, then $w&rsquo;$ pdom $u$ so let $w = w&rsquo;$.</li></ul><p>$\square$</p><p>Lets&rsquo; also define some other terms and notation we&rsquo;ll use throughout this post:</p><ul><li>Let $G$ be the schedule CFG and $G_h$ be the CFG of holes st $V(G_h) \subseteq V(G)$.</li><li>Let $L$ be the set of hole locations in the CFG such that $L \subseteq V(G)$. We
+will assume that the set of holes are distinct from the set of uses. The idea here
+is that the uses are caused by &ldquo;regular instructions&rdquo;.</li><li>Define an <em>initializing set</em>, $S$ of variable $v$ to be such that ${def(v)}$ dom $S$
+and $S$ dom $use[v]$.</li><li>Define $use[v]$ as the set of true uses of the variable $v$. Note that once a variable
+is initialized, it will not be reinitialized. This is because we consider an SSA
+form of the program where &ldquo;re-initialization&rdquo; would result in a new variable being used.
+We will consider that a node which post-dominates a use is also a use.</li></ul><hr><p>In the next sections, we&rsquo;re going to do something weird. I&rsquo;m going to style most
+of the rest of the post as a dialogue. It seems to work well for philosophy,
+although admittedly I haven&rsquo;t read enough philosophical dialogues to claim I know what I&rsquo;m doing here.
+The dialogue will
+be between Livia Drusilla (whom I will abbreviate as L) and Marcus Aggripa
+(whom I will abbreviate as A), since I&rsquo;m sure this is what dead Romans
+would be doing if there is some kind of afterlife. The goal here is to
+try and provide a more natural development of ideas, rather than just presenting them to you.
+Of course,
+even this dialogue is cleaned up and reordered quite a bit compared to how the ideas actually evolved.</p><p>The algorithm will proceed in two phases, one phase which places initializations of
+variables &ldquo;as late as possible&rdquo;, and another hoist phase which tries to find
+earlier, more optimal initialization points. So let&rsquo;s see how this goes&mldr;</p><h2 id=phase-1-initialization class=anchor-link><a href=#phase-1-initialization>Phase 1 (Initialization)</a></h2><p><em>Livia excitedly walks into the Roman forum, where she spots Agrippa, drinking espresso
+and admiring the ruins</em></p><p>L: Agrippa! I think I have an optimal, polynomial time solution to the initialization problem.</p><p>A: Optimal and polynomial time you say? Well I&rsquo;d sure like to hear it.</p><p><em>Livia writes down the following on a nearby wall in chalk</em></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>init[v] <span style=color:#ff79c6>=</span> {}
+</span></span><span style=display:flex><span>use[v] <span style=color:#ff79c6>=</span> { locations of uses of variable v }
+</span></span><span style=display:flex><span>I <span style=color:#ff79c6>=</span> { mutables } <span style=color:#ff79c6>-</span> { mutables <span style=color:#ff79c6>with</span> a value returned dead }
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> l <span style=color:#ff79c6>in</span> topo_order(L)<span style=color:#ff79c6>.</span>rev():
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> v <span style=color:#ff79c6>in</span> I:
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> use[v]<span style=color:#ff79c6>.</span>all(<span style=color:#ff79c6>lambda</span> u: u <span style=color:#ff79c6>not</span> dom l <span style=color:#ff79c6>and</span> 
+</span></span><span style=display:flex><span>                exists_path_not_containing(init[v], path_src: l, path_dest: u)) 
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>and</span> def(v) dom l: <span style=color:#6272a4>#cond1</span>
+</span></span><span style=display:flex><span>            init[v] <span style=color:#ff79c6>=</span> init[v] <span style=color:#ff79c6>+</span> {l}
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> init[v] dom use[v]: <span style=color:#6272a4>#cond2</span>
+</span></span><span style=display:flex><span>            I<span style=color:#ff79c6>.</span>remove(v)
+</span></span></code></pre></div><p>A: So your algorithm looks at all holes going up from the final CFG node,
+&ldquo;marking&rdquo; holes which are not dominated by a use and stopping once you reach
+an initialization set?</p><p>L: Yes! It basically initializes the variables &ldquo;as late as possible&rdquo; since the
+only thing initializing them earlier can do is make it so we need
+to recalculate something that&rsquo;s available later.</p><p>A: I see. Then I think your optimality claim assumes that once a variable is
+initialized or defined, it stays live until the end of the program. But this isn&rsquo;t
+true, implicitly initialized values are live only for the hole they are recalculated
+at, and variables can be consumed or go out of scope. For example, suppose we have
+a CFG like so, where $u$ is a use and $h_n$ are holes:</p><div style=text-align:center><img src=ex1.png style=all:unset;height:40vh;max-width:100%;border-radius:10%></div><p>A: Then we could have a situation where the best initializing set is $\{h_1\}$, but your
+algorithm will choose $\{h_2, h_3\}$. I can construct a program matching this situation like so:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span>val spec() -&gt; <span style=color:#8be9fd>i64</span> {
+</span></span><span style=display:flex><span>    y :<span style=color:#ff79c6>-</span> foo() <span style=color:#ff79c6>+</span> foo()
+</span></span><span style=display:flex><span>    v :<span style=color:#ff79c6>-</span> y <span style=color:#ff79c6>*</span> y
+</span></span><span style=display:flex><span>    z :<span style=color:#ff79c6>-</span> y <span style=color:#ff79c6>+</span> y
+</span></span><span style=display:flex><span>    r :<span style=color:#ff79c6>-</span> <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>if</span> z <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> <span style=color:#ff79c6>else</span> <span style=color:#bd93f9>1</span>
+</span></span><span style=display:flex><span>    returns r <span style=color:#ff79c6>*</span> v
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>sched</span>() -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> spec {
+</span></span><span style=display:flex><span>    var v;
+</span></span><span style=display:flex><span>    <span style=color:#8be9fd;font-style:italic>let</span> r <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> <span style=color:#ff79c6>???</span> <span style=color:#6272a4>/*hole1*/</span> <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>???</span> <span style=color:#6272a4>// hole2
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>???</span> <span style=color:#6272a4>// hole3
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    };
+</span></span><span style=display:flex><span>    r <span style=color:#ff79c6>*</span> v
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>A: Here, it would be best to initialize <code>v</code> at <code>hole1</code> since <code>hole1</code> must initialize
+<code>z</code>, and <code>z</code> and <code>v</code> both depend on <code>y</code>. So <code>hole1</code> must initialize <code>y</code> and since
+the user didn&rsquo;t create a variable for it, the value will not persist after the hole.
+The algorithm will
+initialize <code>v</code> at <code>hole2</code> and <code>hole3</code>, which will cause the recalculation of <code>y</code> twice along
+any given path instead of once.</p><p>A: We could avoid this problem by allowing ourselves to change the program
+and create variables to store these intermediate results to reuse them in later
+holes. But I don&rsquo;t know if this will work in general, and regardless, part of Caiman
+is allowing the user to discover the cost of tradeoffs such as recalculation vs
+caching, so always caching results might be a problem if the user really wanted
+to recalculate them.</p><p>L: Minerva&rsquo;s owl! You&rsquo;re right. And considering this, I think an optimal solution
+must be exponential if it&rsquo;s based only on the structure of the graph of holes. Take an arbitrary
+$S \subseteq L$ such that $S$ is a valid initializing set of $v$. Then take the spec,
+and arbitrarily add $m$, for some very large $m$,
+dependencies to the value of $v$ which are never used anywhere
+else in the program. Then for each $s \in S$, we create variables right before $s$
+initializing each of the $m$ values and consume them right after $s$. We therefore
+create conditions such that the optimal initialization set is $S$ exactly, and so
+we&rsquo;d miss it if we didn&rsquo;t check the subset $S$. Thus, an optimal solution must examine
+all subsets, which is exponential in the number of holes in the graph.</p><p>L: In any case, I think I still have a proof of correctness&mldr;</p><p><u><strong>Thm</strong></u>: If there exists an initializing set of $v$, $init[v]$ will be an initializing set.</p><p>Proof.</p><p>By contrapositive, assume $init[v]$ is not an initializing set.
+Then let $P = (r = p_0, &mldr;, p_k = u)$ be a
+path from $r$ to a $u \in use[v]$ such that $P \cap init[v] = \emptyset$ and $P \cap use[v] = \{u\}$.
+Then $init[v] \not \text{dom } use[v]$; so all locations are considered by
+the algorithm as <code>cond2</code> is always false. Since $(p_0, &mldr;, p_{k - 1}) \cap use[v] = \emptyset$ then no
+use dominates any $p_0, &mldr;, p_{k - 1}$. Note that for each $p_i$ for $i \le k - 1$,
+there is a path to a use, namely $(p_i, &mldr;, p_k = u)$. Thus it must be that if any
+$p_0, &mldr;, p_{k - 1}$ were in $L$, the algorithm would select them in $init[v]$
+as <code>cond1</code> would hold. But by assumption, $init[v]$ is not an initializing set
+even though it contains every hole on any path from $r$ to a &ldquo;first use&rdquo;. So
+we must conclude that there is no valid initializing set.</p><p>$\square$</p><p>A: I think I can buy that. I wonder, if this algorithm really does initialize the
+variables as late as possible, then perhaps we could follow it up with something
+like partial redundancy elimination to hoist the initializations to locations
+that reduce the dependencies that need to be recalculated.</p><p>L: I used the &ldquo;as late as possible&rdquo; fact in my bogus proof of optimality, so I&rsquo;ll
+give you the proof. Starting with a helper lemma.</p><p><u><strong>Lemma</strong></u> (O1): $\forall v. \ell \in init[v] \Rightarrow \exists u \in use[v]$
+st $u$ postdom $\ell$.</p><p>Proof.</p><p>Since $\ell \in init[v]$, $use[v] \not = \emptyset$ and $\forall u \in use[v]$
+$u \not \text{dom } \ell$ by the algorithm. Since $v$ dom $\ell$ and
+$v$ dominates all uses, then if we take an arbitrary $u \in use[v]$ we&rsquo;d have
+that $v$ dom $u$, and $v$ dom $\ell$. So by DP2, $\exists w$ st $w$ postdom
+$\ell$ and $w$ postdom $u$. Thus $w \in use[v]$ by construction of the use set
+and thus we reached out goal.</p><p>$\square$.</p><p>L: And this is used in the proof of the next lemma&mldr;</p><p><u><strong>Lemma</strong></u> (O2): $\forall v, S \subseteq L. \exists u \in use[v]. \ell \in init[v] \land (init[v] \setminus \{\ell\}) \not \text{dom } \{\ell\}
+\land \ell \rightarrow_s S
+\Rightarrow \exists P = (\ell, &mldr;, u)$ st $P \cap S = \emptyset$.</p><p>L: This lemma basically states that for a location $\ell$ in an initializing set produced by the algorithm,
+any initializing set consisting only of locations that strongly succeed $\ell$ will not
+suffice; there will be a path from $\ell$ to some use not containing any element of $S$.</p><p>Proof.</p><p>Suppose the contrapositive and that there exists a minimal initializing set $S \subseteq L$
+st every path
+from $\ell$ to a use contains an element of $S$. By the contrapositive of O1,
+there must be a use $u$ such that $u$ postdom $\ell$, as otherwise, $\ell \not \in init[v]$.
+So every $\ell$-$f$ path must contain $u$. By assumption that $S$ is an initializing set,
+every $\ell$-$u$ path contains a member of $S$. By the algorithm, since $\ell \rightarrow_s S$,
+every member of $S$ will be considered before $\ell$. So consider an arbitrary $s \in S$. Then we
+have the following cases based on the conditions of how an element is added to $init[v]$ in the algorithm:</p><ol><li>$s \not \in init[v]$. Then based on <code>cond1</code>, there are three ways this could occur:<ol><li>Every $s$-$f$ path contains an element of $init[v]$. Let $S&rsquo;$ be the minimal set of elements
+such that every $s$-$f$ path contains an element of $S&rsquo;$. It follows then that $s \rightarrow S&rsquo;$,
+which implies that $\ell \rightarrow_s S&rsquo;$. So we can repeat the lemma with
+$S = S \cup S&rsquo; \setminus \{s\}$.</li><li>There is a use, $u$ that dominates $s$. Since there is a $\ell$-$s$ path not containing
+a use (by assumption of minimality of $S$), then we can conclude that $u$ dom $\ell$. But,
+by definition of an initializing set $init[v]$ dom $\{u\}$ which implies that $init[v]$
+dom $\{\ell\}$ reaching our goal by showing $\ell \not \in init[v]$.</li><li>At the time $s$ is considered by the algorithm, $init[v]$ dom $use[v]$. Since
+$\ell \rightarrow_s s$, then $s$ follows $\ell$ in topological order. Thus the algorithm
+would never consider $\ell$ for $init[v]$ since it would have stopped at $s$. This
+again reaches our goal by showing $\ell \not \in init[v]$.</li></ol></li><li>$s \in init[v]$. Note that if $s = f$ and case 1b isn&rsquo;t satisfied this necessarily implies $s \in init[v]$.</li></ol><p>So the only case we have left to consider is case 2. So assume $S \subseteq init[v]$.
+So every $\ell$-$f$ path contains a member of $init[v]$ at the time $\ell$ is considered.
+Thus $\ell \not \in init[v]$ reaching our goal.I claim, by
+a lemma I haven&rsquo;t defined yet but will call O3, that this means that $\ell \not \in init[v]$, reaching
+our goal once again.</p><p>$\square$</p><p>A: So you aim to prove an equivalence between $\forall u$ <code>exists_path_not_containing(init[v], path_src: l, path_dest: u)</code>
+in the algorithm
+and some condition like <code>exists_path_not_containing(init[v], path_src: l, path_dest: f)</code>? I suppose this
+effectively removes the quantification over $use[v]$.</p><p>L: Yes. The need to do this came about as I found two different conditions for the algorithm,
+one of which was very well suited to proving the algorithm correct, and this one which was
+helpful in proving the &ldquo;late as possible&rdquo; claim about the algorithm. The intuition for their
+equivalence is that we defined a postdominator of a use to also be a use. So based on
+this and the structure of a graph, if there is an $\ell$-$f$ path not containing
+$init[v]$, and $init[v]$ is an initializing set, then it must be that $f$ is not a use.
+But $f$ postdominates every node, therefore there cannot be any uses.</p><p>L: Formally, we have &mldr;</p><p><u><strong>Lemma</strong></u> (O3): Let $S$ be a minimal initialization set of a variable $v$ (so no use dominates a member of $S$). Then</p><p>$$\forall \ell \in S, \exists P = (\ell, &mldr;, f). P \cap (S \setminus \{\ell\}) = \emptyset \Leftrightarrow \exists u \in use[v], P&rsquo; = (\ell, &mldr;, u). P&rsquo; \cap (S \setminus \{\ell\}) = \emptyset$$</p><p>Proof.</p><p>$\Rightarrow$: Suppose $\exists$ a $\ell$-$f$ path $P$ st $P \cap S \setminus \{\ell\} = \emptyset$.
+By O1, $\exists u \in use[v]$ st $u$ postdom $\ell$. So $P = (\ell, &mldr;, u, &mldr;, f)$. Then we
+take the prefix path of $P$, $P&rsquo; = (\ell, &mldr;, u)$ which is a path to a use such that $P&rsquo; \cap S \setminus \{\ell\} = \emptyset$.</p><p>$\Leftarrow$: For the other direction. Suppose $\exists P = (\ell, &mldr;, u)$ such that $P \cap S \setminus \{\ell\} = \emptyset$.
+Then $\exists P&rsquo; = (\ell, &mldr;, u, &mldr;, f)$ for which $P$ is a prefix since all nodes reach $f$. Consider the suffix path of $P&rsquo;$
+$P&rsquo;&rsquo; = (u = p_0, &mldr;, p_k = f)$. We will induct on $P&rsquo;&rsquo;$ to show every $n \in P&rsquo;&rsquo;$ is a use, dominated by a use, or not dominated by $v$.</p><p>Base Case: $p_0 = u$ which is a use.</p><p>IC: Assume the inductive hypothesis so $p_i$ is a use, dominated by a use, or not dominated by $v$.
+Then we have the following cases:</p><ul><li>$p_i$ is a use. Then since $p_ip_{i + 1} \in E(G)$, $p_{i + 1}$ postdom $p_i$ or $p_i$ dom $p_{i + 1}$ by CG1.</li><li>$p_i \not \in dom_s(v)$. Then $p_{i + 1} \not \in dom_s(v)$.</li><li>$p_i$ is dominated by a use and $p_i$ dom $p_{i + 1}$. Then $p_{i + 1}$ is dominated by a use.</li><li>$p_i$ is dominated by a use and $p_i \not \text{dom } p_{i + 1}$. Then it must be that $p_{i + 1}$ postdom $p_i$.
+Let $u$ be the last use in topological order that dominates $p_i$. Consider a $u$-$f$ path containing $p_i$. Note that
+since $u$ dom strict $p_i$, then $\exists x \in dom_s(u)$ such that $x$ postdom $u$.
+Observe $x \not \rightarrow p_i$. If this were the case, then $x$ would be a use later in topological order
+than $u$, and since $u$ dom $p_i$ and $x$ postdom $u$, then $x$ dom $p_i$ violating our choice of $u$. We
+further know that $x \not = p_i$, otherwise $p_i$ would be a use, which is covered in another case.
+Thus we have 2 options. $x = p_{i + 1}$, in which case $p_{i + 1}$ is a use, as desired. Or
+$p_{i + 1} \rightarrow x$, in which case $u$ dom $p_{i + 1}$ by Scoping.</li></ul><p>Finally we conclude by noting that we constructed a $u$-$f$ path such that every node in it is a use,
+dominated by a use, or not dominated by $v$. The latter two cases show the node cannot be in
+$init[v]$ by violation of <code>cond1</code>. The first condition shows the node cannot be in
+$init[v]$ by the assumption that our use set and hole set are distinct. So this
+path contains no elements of $init[v]$, reaching our goal.</p><p>$\square$</p><p><em>Livia sits down at the table with Agrippa, visibly distressed</em></p><p>L: This is all well and good, but I can&rsquo;t believe I spent all this time thinking
+I was proving something useful when I didn&rsquo;t realize I was making a terrible
+assumption about value persistence.</p><h2 id=phase-2-hoisting class=anchor-link><a href=#phase-2-hoisting>Phase 2 (Hoisting)</a></h2><p>A: Well, I may have an idea. We could start by using this first algorithm
+to create a &ldquo;baseline&rdquo; initialization set. Then, for each variable, we could
+try and hoist the initializations earlier so long as we put them at a strictly better
+location. This won&rsquo;t be perfect; as a counterexample we can construct the following:</p><p><img src=cex_hoist.svg alt=Cex></p><p>A: Suppose that <code>x</code> and <code>z</code> depend on <code>t, h, k</code>. The algorithm will initialize <code>x</code> and
+<code>z</code> at the holes right before <code>x + z</code> and <code>x * k</code>. But the globally optimal position
+would be at the hole right before <code>bar(t)</code>. The hoist idea I have won&rsquo;t be able
+to hoist <code>x</code> because doing so would temporarily make things not better<sup id=fnref:1><a href=#fn:1 class=footnote-ref role=doc-noteref>1</a></sup>. We&rsquo;d have to recalculate
+<code>h</code> and <code>k</code> now even though we save <code>t</code>. Likewise for <code>z</code>. Now if we hoisted <code>z</code> and <code>x</code> &ldquo;at the same time&rdquo;,
+this would avoid this issue but require exponential time as a general solution that does this
+would need to look at every subset.</p><p>A: I further don&rsquo;t think it&rsquo;s a good
+idea to arbitrarily decide that certain values are more or less worth it to recalculate.
+For example, I don&rsquo;t think we should make choices that would save 100 recalculations
+but cost an extra recalculation of some value. It could be that one extra recalculation
+has a bigger impact on runtime than the saving of the 100 other recalculations.</p><p><em>Livia, regaining some of her optimism, stands up and paces around for a bit.</em>
+<em>Eventually, she gets an idea and writes the following on a wall</em></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Python data-lang=Python><span style=display:flex><span>mark <span style=color:#ff79c6>=</span> {} <span style=color:#6272a4># The set of &#34;last best&#34; locations</span>
+</span></span><span style=display:flex><span>init[v] <span style=color:#ff79c6>=</span> old_init[v]
+</span></span><span style=display:flex><span><span style=color:#ff79c6>for</span> v <span style=color:#ff79c6>in</span> mutables:
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>for</span> l <span style=color:#ff79c6>in</span> topo_order(L)<span style=color:#ff79c6>.</span>rev():
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> l <span style=color:#ff79c6>in</span> old_init[v]:
+</span></span><span style=display:flex><span>            mark[l] <span style=color:#ff79c6>=</span> {l}
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>if</span> old_init[v] pdom {l} <span style=color:#ff79c6>and</span> def(v) dom l:
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>match</span> l:
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>case</span> Next(lp): 
+</span></span><span style=display:flex><span>                    mark[l] <span style=color:#ff79c6>=</span> mark[lp],
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>case</span> <span style=color:#ff79c6>None</span>:
+</span></span><span style=display:flex><span>                    mark[l] <span style=color:#ff79c6>=</span> {},
+</span></span><span style=display:flex><span>                <span style=color:#ff79c6>case</span> Select(a, b):
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>if</span> mark[a]<span style=color:#ff79c6>.</span>empty() <span style=color:#ff79c6>or</span> mark[b]<span style=color:#ff79c6>.</span>empty():
+</span></span><span style=display:flex><span>                        mark[l] <span style=color:#ff79c6>=</span> {}
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>elif</span> mark[a] pdom mark[b]:
+</span></span><span style=display:flex><span>                        mark[l] <span style=color:#ff79c6>=</span> mark[a]
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>elif</span> mark[b] pdom mark[a]:
+</span></span><span style=display:flex><span>                        mark[l] <span style=color:#ff79c6>=</span> mark[b]
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>else</span>
+</span></span><span style=display:flex><span>                        mark[l] <span style=color:#ff79c6>=</span> mark[a] <span style=color:#ff79c6>+</span> mark[b]
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> calc(v, l) <span style=color:#ff79c6>&lt;</span> intersection([calc(v, lp) <span style=color:#ff79c6>for</span> lp <span style=color:#ff79c6>in</span> mark[l]]):
+</span></span><span style=display:flex><span>                mark[l] <span style=color:#ff79c6>=</span> {l}
+</span></span><span style=display:flex><span>            <span style=color:#ff79c6>if</span> init[v]<span style=color:#ff79c6>.</span>any(<span style=color:#ff79c6>lambda</span> x: mark[l] dom {x}):
+</span></span><span style=display:flex><span>                init[v] <span style=color:#ff79c6>=</span> mark[l] <span style=color:#ff79c6>+</span> init[v] 
+</span></span><span style=display:flex><span>                    <span style=color:#ff79c6>-</span> [x <span style=color:#ff79c6>for</span> x <span style=color:#ff79c6>in</span> init[v]<span style=color:#ff79c6>.</span>filter(<span style=color:#ff79c6>lambda</span> y: mark[l] dom y)]
+</span></span></code></pre></div><p>L: Here, <code>calc(v, l)</code> is a multiset of nodes that would need to be recalculated
+given that <code>v</code> is initialized at <code>l</code>. <code>old_init[v] pdom {l}</code> is true if every path
+from <code>l</code> to the final node passes through an element of <code>old_init[v]</code>.
+This is somewhat analogous to saying an initialization of <code>v</code> is <em>anticipated</em>
+at <code>l</code> (in reference to anticipated expressions of regular partial redundancy elimination).
+So basically, the algorithm
+starts at the previous initialization set, and then walks up the CFG towards
+the root. If it encounters any locations such that initializing <code>v</code> at that
+location results in less recalculations than the intersection of the previous
+&ldquo;best&rdquo;, we mark it. If at any point the mark set dominates some subset
+of the current initialization set, we add the mark set to the initialization set
+and remove the dominated subset.</p><p>A: Isn&rsquo;t it possible that hoisting a variable opens up opportunities for
+other variables to be hoisted? For example, if we hoist a value, it might become
+attractive to hoist the values it depends on and values that depend on it. So perhaps
+we could iterate this procedure until convergence? If we do that, and there are $m$
+variables and $n$ nodes in the CFG, we get a rough complexity of $O(m^2n^3 \log n)$,
+because iterating until convergence can be at most $O(mn \log n)$ since we can only hoist a variable
+$n \log n$ times. This also assumes we can check <code>calc(v, l)</code> in linear time wrt $n$.
+This isn&rsquo;t super stellar, but it is still pseudo-polynomial.</p><p>L: You&rsquo;re right, then we can think of <code>old_init[v]</code> as <code>init[i-1][v]</code> and the current
+init as <code>init[i][v]</code>. I think the statement of &ldquo;optimality&rdquo; we can try and prove is
+$\forall S, v, \exists P = (r, &mldr;, f).\ {calc}_v^S(P) \not \subseteq {calc}_v^{{init}_f}$.
+Where ${init}_f$ is the last initializing set we compute. This would say that for
+a given variable. We&rsquo;re going to assume for the rest of this that the initializing set
+$S$ is not equivalent to $init_f$. By that I mean that there exists a path $P&rsquo;$ where
+$calc_v^S(P&rsquo;) \not = calc_v^{init_f}(P&rsquo;)$. So what this statement of &ldquo;optimality&rdquo; is
+saying is that when examining the values we must recalculate for a given variable,
+any other initializing set that is not equivalent to $init_f$ will contain a path
+where it is potentially worse. This statement gives us &ldquo;true&rdquo;/&ldquo;global&rdquo; &ldquo;optimality&rdquo;
+when a schedule contains only one mutable variable.</p><p>L: Since the algorithm looks at one variable at a time, another way of thinking
+about this is our algorithm starts with a &ldquo;baseline&rdquo; and monotonically improves
+it until it reaches a point where it can no longer get better.</p><p>A: Maybe we can try and prove this by induction. If we say at each step, there
+isn&rsquo;t a better choice of initialization points from subsets of $L$ that succeed
+the current initialization set, then at the final iteration all we&rsquo;d need to show
+is that the algorithm considered initializations that precede the current init set.</p><p><u><strong>Thm</strong></u> (Hoist Induct): $\forall v, S.\ \ell \in init_i[v] \land \ell \rightarrow_s S
+\Rightarrow \exists P = (\ell, &mldr;, f). \ calc_v^S(P) \not \subset calc_v^{init_f}(P)$</p><p>Proof.</p><p>By induction on $i$, the number of iterations of computing $init_i$.</p><p>Base Case: The initial initializing set is the result of the previous algorithm. By the
+&ldquo;push-down&rdquo; lemma (O2) this is true since any $S$ such that $\ell \rightarrow_s S$
+must not be an initializing set.</p><p>IC: Consider $\ell_i \in init_i[v]$ and $\ell_{i + 1} \in init_{i + 1}[v]$ such that
+there is a $\ell_{i + 1}$ dom $\ell_i$. Such an $\ell_{i + 1}$ and $\ell_i$ exist
+as its a condition for adding any new elements to the initializing set. Assume
+$\ell_i \not = \ell_{i + 1}$ as if it did, we&rsquo;d be done by our inductive hypothesis.
+Let $P = (\ell_{i + 1} = p_0, &mldr;, p_n = \ell_i)$ be a $\ell_{i + 1}$-$\ell_i$ path.
+Observe that $P \cap S \not = \emptyset$, otherwise we know by the hypothesis there
+exists a $P&rsquo; = (\ell_i, &mldr;, f)$ such that $calc_v^S(P&rsquo;) \not \subset calc_v^{init_f}(P&rsquo;)$. Joining $P$
+and $P&rsquo;$ yields us an $\ell_{i + 1}$-$f$ path such that our goal holds since by the algorithm,
+and that $\ell_{i + 1}$ dom $\ell_i$, $calc_v(\ell_{i + 1}) &lt; calc_v(\ell_i)$.</p><p>Observe $mark^{i + 1}(\ell_{i + 1})$
+does not contain $s$, since $\ell_{i + 1}$ was added to the initializing set, this means that
+$mark^{i + 1}(\ell_{i + 1}) = \{\ell_{i + 1}\}$. Since $init_i[v]$ postdom $\{\ell_{i + 1}\}$
+and S, I claim (and will refer to this as H3) that there exists a $z \in init_i[v]$ so that for $P&rsquo; = (\ell_{i + 1}, &mldr;, z),
+calc_v^S(P&rsquo;) \not \subset calc_v^{mark_{\ell_{i + 1}}}(P&rsquo;)$. I claim, (and will refer to this a H2)
+that $P&rsquo; \cap init_{i + 1}[v] = \{\ell_{i + 1}\}$. This claim is basically asserting that there
+is no path between any two locations in an initializing set.
+These two facts together give us $calc_v^S(P&rsquo;) \not \subset calc_v^{init_{i + 1}}(P&rsquo;)$.</p><ul><li>First suppose that $z \not \in S$. Since we established, $z \not \in init_{i + 1}[v]$,
+then we apply the IH to obtain a path $P&rsquo;&rsquo; = (z, &mldr;, f)$
+such that $calc_v^{S \cap P&rsquo;&rsquo;}(P&rsquo;&rsquo;) \not \subset calc_v^{init_i}(P&rsquo;&rsquo;) \not \subset calc_v^{init_{i + 1}}(P&rsquo;&rsquo;)$. Joining $P&rsquo;$ and
+$P&rsquo;&rsquo;$ yields a path $P = (\ell_{i + 1}, &mldr;, f) = (P&rsquo;, P&rsquo;&rsquo;)$ where
+$calc_v^S(P) \not \subset calc_v^{init_{i + 1}}(P)$ since $calc_v^S(P&rsquo;) \not \subset calc_v^{init_{i + 1}}(P&rsquo;)$
+and $calc_v^{S \cap P&rsquo;&rsquo;}(P&rsquo;&rsquo;) \not \subset calc_v^{init_{i + 1}}(P&rsquo;&rsquo;)$. So $calc_v^S(P&rsquo; \sqcup P&rsquo;&rsquo; = P) \not \subset
+calc_v^{init_{i + 1}}(P&rsquo; \sqcup P&rsquo;&rsquo; = P)$.</li><li>In the case that $z \in S$. Then there is a $P&rsquo;&rsquo; = (z, &mldr;, f)$ such that $calc_v^{S \cap P&rsquo;&rsquo;}(P&rsquo;&rsquo;)
+= calc_v^{init_i}(P&rsquo;&rsquo;)$, because recall that $z \in init_i[v]$. But then joining $P&rsquo;$ and
+$P&rsquo;&rsquo;$ yields a path $P = (\ell_{i + 1}, &mldr;, f) = (P&rsquo;, P&rsquo;&rsquo;)$ where
+$calc_v^S(P) \not \subset calc_v^{init_{i + 1}}(P)$ since $calc_v^S(P&rsquo;) \not \subset calc_v^{init_{i + 1}}(P&rsquo;)$
+and $calc_v^{S \cap P&rsquo;&rsquo;}(P&rsquo;&rsquo;) = calc_v^{init_{i + 1}}(P&rsquo;&rsquo;)$. So $calc_v^S(P) \not \subset
+calc_v^{init_{i + 1}}(P)$.</li></ul><p>$\square$</p><p>A: Wait, your H2 claim doesn&rsquo;t work for the first inductive case ($i = 0$). That is, our phase 1 algorithm doesn&rsquo;t guarantee
+that there isn&rsquo;t a path from a location in $init_0[v]$ to another location in $init_0[v]$.
+For example, suppose that we have a graph like this:</p><div style=text-align:center><img src=dom_holes.png style=all:unset;height:40vh;max-width:100%;border-radius:10%></div><p>A: Here, holes $h_1$ and $h_2$ would get selected in the initializing set. First
+$h_1$ would get chosen since no uses dominate it, and there exists a path from it
+to a use with no selected holes. But since $h_1$ alone does not dominate all uses,
+the algorithm will continue, eventually selecting $h_2$ since no uses dominate it
+and there exists a path from it to a use that doesn&rsquo;t contain any selected holes.</p><p>L: Hmm. You&rsquo;re right. It could be that we add a location to the initialization set,
+but then need to add a location that dominates it in order to cover a different use.
+I think we can fix this by removing all elements of the initialization set
+which are collectively dominated by other elements of the initialization set.
+In other words, before moving onto phase 2, we can just remove elements from
+the initialization set until it becomes minimal.</p><p>L: So now, we have two holes we have left to fill. Before doing that, let me give
+you one more helper lemma.</p><p><u><strong>Lemma</strong></u> (H1): $\forall n \in V(G).\ mark_n = mark_k \land k$ postdom
+$n \Rightarrow \exists P = (n, &mldr;, k), \forall s \in P. \ calc_v(s) \not \subset mark_k$.</p><p>Proof.</p><p>By structural induction on a Caiman CFG.</p><ul><li><code>n = None()</code>: Here $mark_n = \emptyset$ and $calc_v(n) \not \subset \emptyset$</li><li><code>n = Next(m)</code>: Suppose $mark_n = mark_m$. Then $calc_v(n) \not \subset mark_m$.
+By IH if $mark_m = mark_k$ where $k$ postdom $m$, then $\exists P = (m, &mldr;, k)$
+such that $\forall s \in P.\ calc_v(s) \not \subset mark_k$. By appending $n$
+to the front of the path, we get a desired $n$-$k$ path since $m$ postdom $n$. Otherwise,
+$m = k$.</li><li><code>n = Select(a, b)</code>: Suppose $mark_n = mark_a \cup mark_b$. Then we reached our goal
+vacuously by assumption that $mark_b \not \text{pdom } mark_a$ and vice versa.
+Now suppose. WLOG that $mark_n = mark_a$. Then $mark_a = mark_k$. Here we finish the case
+by following the same logic as in the <code>Next(m)</code> case.</li></ul><p>$\square$</p><p><u><strong>Claim</strong></u> (H3): $\forall init, x, S, y \in S, x \rightarrow y \land y \not \in mark_x
+\Rightarrow \exists z \in init, P = (x, &mldr;, z).\ calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$</p><p>L: The idea here is basically if there is some parent node that doesn&rsquo;t have a child
+node in its mark set, then there is some path where we can potentially do better.</p><p>Proof.</p><p>By structural induction.</p><ul><li><code>x = None()</code>. Then $x = y = z = f$. The only place to initialize is $x$ itself,
+so this is impossible as $y = x$ and $y \not \in mark_x$.</li><li><code>x = Next(m)</code> and $mark_x = \{x\}$. Then by the algorithm $calc_x \subset calc_\ell$
+for all $\ell \in mark_m$. Since $x \rightarrow y$ (by this case that $y \in mark_m$ and $y \not \in mark_x$)
+and some $z \in init$ postdom $y$. Then the path $P = (x, &mldr;, y, &mldr;, z)$ would be a desired path where
+$calc^{mark_x}(P) \not \supset calc^S(P)$ if $y \in mark_m$. If $y \not \in mark_m$, by IH
+$\exists P&rsquo; = (m, &mldr;, z&rsquo;)$ such that $calc^{mark_m}(P&rsquo;) \not \supset calc^{S \cap P&rsquo;}$. Consing
+$x$ onto $P$ yields a path where $calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$.</li><li><code>x = Next(m)</code> and <code>mark_x = mark_m</code>. By assumption $y \not \in mark_m$. So apply
+IH and cons $x$ as before.</li><li><code>x = Select(a, b)</code> and $mark_x = mark_a \cup mark_b$. WLOG,
+$y \not \in mark_a$. Then by IH $\exists P&rsquo; = (a, &mldr;, z)$ st
+$calc^{mark_a}(P&rsquo;) \not \supset calc^{S \cap P&rsquo;}(P&rsquo;)$. Consing $x$ onto $P&rsquo;$
+yields a path $P = (x, &mldr;, z)$ st $calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$
+since $calc_v(x) \not \subset calc^{mark_x}(P)$.</li><li><code>x = Select(a, b)</code> and $mark_x = mark_k$ for $k$ postdom $x, a, b$. By lemma H1,
+$\exists P&rsquo; = (x, &mldr;, k)$ st $\forall p \in P&rsquo;$ $calc_v(p) \not \subset mark_k$. By
+assumption $calc_v(x) \not \subset \bigcap mark_k$. By IH, $\exists P&rsquo;&rsquo; = (k, &mldr;, z)$
+st $calc^{mark_k} \not \supset calc^{S \cap P&rsquo;&rsquo;}(P&rsquo;&rsquo;)$. Thus, the path $P = (x, P&rsquo;, P&rsquo;&rsquo;)$
+is a $x$-$z$ path where $calc^{mark_x}(P) \not \supset calc^{S \cap P}(P)$ since
+any initialization at $x$ or on $P&rsquo;$ is no better than the initialization by $mark_k$.
+Observe that if $\not \exists y&rsquo; \in S$ st $k \rightarrow y&rsquo;$,
+then $P$ is still a desired path as $S$ must then initialize at $x$ or on $P&rsquo;$.</li><li><code>x = Select(a, b)</code> and $mark_x = \{x\}$. By assumption $y \not = x$. We can reduce
+this case to an argument of <code>x = Next(Select(a, b))</code>, reusing the other cases.</li></ul><p>$\square$</p><p>A: I forsee that we may have a slight problem. So far, these facts required
+using a strict subset. That is, we seem to be working towards a statement
+along the lines of $\exists P$ such that $calc_v^S(P) \not \subset calc_v^{init_f}(P)$,
+which doesn&rsquo;t seem all that useful. It would say there is some path where our solution
+is not worse. So it could be that on one path, we match some other solution, but on
+all other paths, we are worse than other solutions.</p><p>L: Oh dear, not another oversight! I&rsquo;ll have to think about how best to solve this.
+Intuitively, it feels like if we can narrow down every path to being $\supseteq$
+to the calculations of our solution, then we can just assume that the initialization
+set we&rsquo;re examining is not equal to the $init_f$. Again, this is with respect
+to a single variable, so we&rsquo;re still dealing with a &ldquo;local optima&rdquo; instead of a
+global one.</p><p><u><strong>Claim</strong></u> (H2): $\forall \ell_{i + 1} \in init_{i + 1}, \ell_i \in init_i, P = (\ell_{i + 1}, &mldr;, \ell_i).\
+P \cap init_{i + 1} = \{\ell_{i + 1}\}$</p><p>Proof.</p><p>By induction on $i$.</p><p>Base Case: Here $init_0[v]$ is the initialization set produced by the phase 1 algorithm.
+Let&rsquo;s assume we process this set such that $\forall \ell_1, \ell_2 \in init_0[v].\ \ell_1 \not$ dom $\ell_2$
+and $\ell_2 \not$ dom $\ell_1$. We WTS that $\ell_1 \not \rightarrow \ell_2 \land \ell_2 \not \rightarrow \ell_1$.
+Suppose FSOC, and WLOG there exists path $P_1 = (\ell_1, &mldr;, \ell_2)$ (so $\ell_1 \rightarrow \ell_2$).
+Since $\ell_1 \in init_0[v]$, then there exists $P_2 = (\ell_1, &mldr;, u)$ for $u \in use[v]$ such
+that $P_2 \cap init_0[v] = \{\ell_1\}$. This is true by definition of the algorithm (<code>cond1</code>).
+Consider the last shared node between $P_1$ and $P_2$ (which could be $\ell_1$ itself).
+Let&rsquo;s call this node $w$. If $w$ is a select, then it must have a distinct postdominator,
+and by assumption that $w$ is the last shared node in the paths, this postdominator
+must succeed $\ell_2$ and $u$. So by scoping, $w$ dom $\ell_2$. This means that
+$\ell_2 \not \in init_0[v]$, reaching our goal.</p><p>Otherwise, if $w$ is not a select, then it must be $u$ itself. So $u \rightarrow \ell_2$.
+By Lemma CG2, $\exists w&rsquo;$ such that $w&rsquo;$ postdom $u$ and $w&rsquo;$ dom $\ell_2$. Therefore,
+$w&rsquo;$ is a use and $\ell_2$ is dominated by a use. So by <code>cond1</code> of the phase 1 algorithm,
+$\ell_2 \not \in init_0[v]$, reaching our goal again.</p><p>IC:</p><ul><li>First, I claim that $\forall \ell \in init_{i + 1}.\ mark_\ell \not = \emptyset
+\Rightarrow \exists \ell_i \in init_i.\ \ell \rightarrow \ell_i$. We will prove this by
+structural induction.<ul><li>Suppose $\ell$ is <code>None()</code>.This is vacuously true.</li><li>Suppose $\ell$ is <code>Next(a)</code> and $mark_\ell = mark_a$. If $mark_a = \emptyset$, we have
+vacuous truth. So assume this is not the case. Then Applying the IH gives us that $a \rightarrow \ell_i$
+for some $\ell_i \in init_i$ thus $\ell \rightarrow init_i$.</li><li>Suppose $\ell$ is <code>Next(a)</code> and $mark_\ell = \{\ell\}$. If $\ell \in init_i$, we&rsquo;re done.
+So suppose this isn&rsquo;t the case. Then $calc_v(\ell) \subset \bigcap_{\ell&rsquo; \in mark_a} calc_v(\ell&rsquo;)$.
+Thus $mark_a \not = \emptyset$ and following the logic of the previous case we get $\ell \rightarrow a \rightarrow init_i$.</li><li>Suppose $\ell$ is <code>Select(a, b)</code>. If $mark_\ell = \{\ell\}$, then $\ell \in init_i$ and we&rsquo;ve reached
+our goal. So suppose WLOG that $mark_\ell = mark_a$. Following the logic of case 2, we get
+that $\ell \rightarrow a \rightarrow \ell_i$. Finally, it could be that $mark_\ell = mark_a \cup mark_b$.
+If $mark_\ell = \emptyset$, we&rsquo;d have vacuous truth, so assume this isn&rsquo;t the case. WLOG
+assume $mark_b \not = \emptyset$. Then following the logic of case 2. We have $\ell \rightarrow b \rightarrow \ell_i$.</li></ul></li></ul><p>Now suppose there exists some $\ell_{i + 1}$ such that $\ell_{i + 1} \rightarrow \ell&rsquo;$
+for $\ell&rsquo; \in init_{i + 1}$. By the claim, it must be the case that $\ell&rsquo; \rightarrow \ell_i$
+for some $\ell_i \in init_i$. Let $A$ be the set of nodes added to $init_{i + 1}$
+along with $\ell_{i + 1}$. Observe that $A$ dominates some $\ell^* \in init_i$.
+Thus $\ell_i \not = \ell^*$, since $A$ does not dominate $\ell&rsquo;$.</p><ul><li>Suppose that $\ell_{i + 1} \rightarrow \ell^*$. Consider paths $P_1 = (\ell_{i + 1}, &mldr;, \ell^*)$
+and $P_2 = (\ell_{i + 1}, &mldr;, \ell_i)$. Let $w$ be the last node shared between the
+two paths. By the IH, $w \not = \ell_i$ and $w \not = \ell^*$ (otherwise two elements of
+$init_i$ would reach each other). So $w$ must be a select.
+Therefore, $\exists v$ st $w$ dom $v$ and $v$ pdom $w$. Since $v$ is the last shared
+node in the paths, it must be that $\ell^* \rightarrow v$ and $\ell_i \rightarrow v$.
+But then, by scoping, $w$ dom $\ell_i$. This implies that $A$ dominates $\ell&rsquo;$ and
+thus $\ell&rsquo; \not \in init_{i + 1}$.</li></ul><div style=text-align:center><img src=h2_diag1.png style=all:unset;height:50vh;max-width:100%;border-radius:10%></div><ul><li>Now suppose that $\ell_{i + 1} \not \rightarrow \ell^*$. Assume, $\ell^* \not \rightarrow \ell_{i + 1}$,
+as if it did, $\ell_{i + 1} \not \in init_{i + 1}$. Then there must be some select node, $w$,
+such that $mark_w = A$. Therefore $A$ pdom $w$. Let $P_1 = (w, &mldr;, \ell^*)$ and
+$P_2 = (w, &mldr;, \ell&rsquo;)$ be two paths such that
+$P_2$ contains no member of $A$ (as $A$ does not dominate $\ell&rsquo;$). Let $x$ be the
+last shared node of $P_1$ and $P_2$. $x$ cannot be $\ell&rsquo;$, otherwise $A$ would
+not dominate $\ell^*$. Further, $x$ cannot be $\ell^*$ since $\ell&rsquo; \rightarrow \ell_i$,
+and $\ell^* \not \rightarrow \ell_i$ by the IH. So $x$ must be a select. Consider a
+distinct post-dominator, $v$, of $x$. Like the last case, it must be that $\ell&rsquo; \rightarrow v$
+and $\ell^* \rightarrow v$. So $w$ dom $\ell^*$ and $w$ dom $\ell&rsquo;$. By assumption that
+$A$ does not dominate $\ell&rsquo;$, then no member of $A$ precedes $\ell&rsquo;$.
+This however, is not possible as in order for $\ell&rsquo;$ to be in $init_{i + 1}$,
+$mark_{\ell&rsquo;}$ must be $\ell&rsquo;$, but in order for $mark_w = A$ and no member of $A$
+to preceded $\ell&rsquo;$, $mark_{\ell&rsquo;} \subseteq A$. So we can ignore this case.</li></ul><p>$\square$</p><p>L: Finally, we have our final result:</p><p><u><strong>Thm</strong></u> (Hoist): $\forall S \not \equiv init_f, v.\ \exists P = (r, &mldr;, f). \ calc_v^S(P) \not \subset calc_v^{init_f}(P)$</p><p>Proof.</p><p>Observe that $\forall \ell \in init_f$, $S$ dom $\ell$ otherwise $\exists P&rsquo; = (r, &mldr;, \ell)$
+not containing any member of $S$. By Hoist Induct, $\forall S&rsquo; \subseteq S$ such that
+$\ell \rightarrow_s S&rsquo;$, $\exists P&rsquo;&rsquo; = (\ell, &mldr;, f)$ such that
+$calc_v^{S&rsquo;}(P&rsquo;&rsquo;) \not \subset calc_v^{init_f}(P&rsquo;&rsquo;)$. Joining $P&rsquo;$ and $P&rsquo;&rsquo;$, along
+with the assumption that $S \not \equiv init_f$ yields a desired path.</p><p>So consider arbitrary $s \in S$. Note that $s \not \in mark_r$, otherwise $s \in init_f$.
+So by H3, $\exists \ell \in init_f, P&rsquo; = (r, &mldr;, \ell)$ such that $calc_v^{mark_\ell}(P&rsquo;) \not \supset
+calc_v^{S \cap P&rsquo;}(P&rsquo;)$. By Hoist Induct, there exists $P&rsquo;&rsquo; = (\ell, &mldr;, f)$ such that
+$calc_v^S(P&rsquo;&rsquo;) \not \subset calc_v^{init_f}(P&rsquo;&rsquo;)$. Joining $P&rsquo;$ and $P&rsquo;&rsquo;$ along with the
+assumption that $S \not \equiv init_f$ yields a desired path.</p><p>$\square$</p><p>L: Well that was quite exhausting. I initially started out thinking this problem
+would be at least NP, and starting trying to prove something to that effect.
+Although I did end up realizing that, at least a version based only on CFG
+structure would be exponentially if perfectly optimal. Thanks for helping
+me work through this Agrippa!</p><p><em>Livia and Agrippa exchange goodbyes and Livia walks away</em></p><hr><h2 id=final-remarks class=anchor-link><a href=#final-remarks>Final Remarks</a></h2><p>These two algorithms were implemented in Caiman. My previous approach wasn&rsquo;t
+even correct (or rather, <em>complete</em>, as it could fail to find an initialization set when one exists), so already
+this is a big improvement. Admittedly, the condition that a hoist step must always
+improve can easily create situations that prevent the algorithm from reaching
+a global optimum. But the point of this requirement is to prevent any
+need for backtracking. For example, we could hoist if the new location is at least
+as good as the previous locations, but I wouldn&rsquo;t want to hoist an initialization,
+and then, after movements of other variables, learn that it would have been better
+to keep it where it was. This is really an effort to keep the frontend
+polynomial time (even if it&rsquo;s a polynomial that doesn&rsquo;t really scale super well).</p><p>I think the overall result of this hoist algorithm is something that won&rsquo;t really
+optimize your code a whole lot, but will &ldquo;take the hint&rdquo; if you write your code
+in a way that &ldquo;pushes&rdquo; something to be initialized at a given hole. For example,
+without the hoist algorithm, you might write a schedule that lays out all the needed
+dependencies of a variable, but if you don&rsquo;t use said variable while those
+dependencies are live, it&rsquo;s likely the compiler will end up recalculating them.
+With the hoist algorithm, it&rsquo;s much more likely to initialize something &ldquo;where
+you would expect&rdquo;, but the algorithm isn&rsquo;t too great at finding
+a better initialization location than you might have intended. All of this is
+very qualitative and anecdotal, but I hope I&rsquo;m getting the fuzzy idea across.</p><p>I&rsquo;ll be the first to admit I sort of got tired by the end of the Hoist phase
+proofs, as you can probably tell by the reduction in dialogue (not like it
+was dialogue-heavy in the first place). But I kind of liked this style a bit,
+at the very least it saved me from the slightly clunky expressions like
+&ldquo;now you might have noticed &mldr;&rdquo; or &ldquo;you may be wondering &mldr;&rdquo;.</p><p>Now there&rsquo;s another use-case where the algorithms here could apply. Recall
+the focus here was purely on where to initialize variables that a user
+defines, but doesn&rsquo;t initialize. There&rsquo;s also a similar problem of where
+to create variables a user doesn&rsquo;t even define. For example, in the following
+schedule:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#282a36;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-Rust data-lang=Rust><span style=display:flex><span><span style=color:#ff79c6>fn</span> <span style=color:#50fa7b>foo</span>(a: <span style=color:#8be9fd>i64</span>) -&gt; <span style=color:#8be9fd>i64</span> <span style=color:#50fa7b>impls</span> value, time, spatial {
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole0
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> x <span style=color:#ff79c6>=</span> bar(a, b)
+</span></span><span style=display:flex><span>    <span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole1
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>    <span style=color:#8be9fd;font-style:italic>let</span> r <span style=color:#ff79c6>=</span> <span style=color:#ff79c6>if</span> a <span style=color:#ff79c6>&lt;</span> <span style=color:#bd93f9>0</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole2
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        x <span style=color:#ff79c6>+</span> z
+</span></span><span style=display:flex><span>    } <span style=color:#ff79c6>else</span> {
+</span></span><span style=display:flex><span>        <span style=color:#ff79c6>???</span>; <span style=color:#6272a4>// hole3
+</span></span></span><span style=display:flex><span><span style=color:#6272a4></span>        x <span style=color:#ff79c6>*</span> z
+</span></span><span style=display:flex><span>    };
+</span></span><span style=display:flex><span>    r <span style=color:#ff79c6>+</span> a
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Here <code>z</code> is used, but never defined. The current implementation is to define
+and initialize it at the last hole that dominates all uses. So in this case,
+<code>hole1</code>. But that&rsquo;s a somewhat arbitrary choice. We could define and initialize it
+at <code>hole0</code>, or maybe we define it at <code>hole1</code> and initialize it at holes <code>hole2</code> and <code>hole3</code>.
+For example, we could choose to define and initialize the variable together,
+and choose the initializing locations based on the algorithms we just talked about.
+It will likely produce better code in quite a few situations. The reason I didn&rsquo;t do
+this is because definitions and uses are needed fairly early in the frontend analysis
+pipeline while computing types of each variable needs to be done fairly late,
+after many other analyses are done. So having a circular dependence between these two
+would effectively require the entire frontend to iterate until convergence.</p><div class=footnotes role=doc-endnotes><hr><ol><li id=fn:1><p>It does not necessarily makes it &ldquo;worse&rdquo;, just &ldquo;not better&rdquo;.&#160;<a href=#fnref:1 class=footnote-backref role=doc-backlink>&#8617;&#xfe0e;</a></p></li></ol></div></div><div class=container><hr></div><div class="container has-text-centered top-pad"><a href=#top><i class="fa fa-arrow-up"></i></a></div><div class=container><hr></div><div class=section id=footer><div class="container has-text-centered"><span class=footer-text></span></div></div></div></section><script src=https://stephenverderame.github.io/js/bundle.5c23c0437f001a469ca373a465a6f7487203d18e10cdff76d86a60af66d5ee28.js integrity="sha256-XCPAQ38AGkaco3OkZab3SHID0Y4Qzf922Gpgr2bV7ig="></script></body></html>
