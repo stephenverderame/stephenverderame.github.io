@@ -21,12 +21,14 @@ and <em>fast</em> collision detection is paramount for real-time applications su
 games. In high school, building such a <em>fast and accurate</em> collision engine
 eluded me. This post describes, conceptually, the algorithm I settled upon
 when developing <a href=/projects/oort>Project Oort</a>. I will assume a basic
-familiarity with the problem of collision detection, including <a href=https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection target=_blank>bounding spheres
-and axis-aligned bounding boxes</a>,
+familiarity with the problem of collision detection, including
+<a href=https://developer.mozilla.org/en-US/docs/Games/Techniques/3D_collision_detection target=_blank>bounding spheres and axis-aligned bounding boxes</a>,
 simple data structures like trees, and the
-<a href=https://learnopengl.com/Getting-started/Transformations target=_blank>basics of concrete linear algebra</a> including vectors, matrices, and linear transformations. I will try and keep the required mathematical background to just what&rsquo;s covered in
-the linked article. My goal is that an advanced high school student will be able
-to follow along.</p><h2 id=obbs class=anchor-link><a href=#obbs>OBBs</a></h2><p>The first big upgrade we can make over a simple AABB collision detection system
+<a href=https://learnopengl.com/Getting-started/Transformations target=_blank>basics of concrete linear algebra</a>
+including vectors, matrices, and linear transformations.
+I will try and keep the required mathematical background to just what&rsquo;s covered in
+the linked article. My goal is that this should make sense without knowing
+much more than high school math.</p><h2 id=obbs class=anchor-link><a href=#obbs>OBBs</a></h2><p>The first big upgrade we can make over a simple AABB collision detection system
 is to use Oriented Bounded Boxes (OBB). Unlike AABBs, where the sides of the
 bounding box must be parallel to the global coordinate axes, an OBB can have an
 arbitrary orientation.</p><div style=text-align:center><img src=obb1.svg style=all:unset;background-color:#fff;max-height:20vw;max-width:100%></div><p>In this 2D example, you can see that for odd-sized shapes, an OBB can often
@@ -1258,8 +1260,10 @@ clocked in at a whopping <strong>2,118,699$\mu$s</strong>. That&rsquo;s an unacc
 well into seconds per frame territory instead of FPS. The algorithm using
 an Octree with max 32 objects per leaf (denoted Octree(32)), the BVH with 1024
 primitives per leaf (denoted BVH(1024)), and the compute shader, clocks in at
-a speedy <strong>9,448$\mu$s</strong> or <strong>9.4ms</strong>. This is a speedup of <strong>224.25x</strong>!</p><p>Here&rsquo;s all the data I collected:</p><p><img src=all_data.svg alt="All Data Chart"></p><p><img src=Algorithm_Speedup_All.svg alt="All Data Speedup"></p><p>This reveals a few things right off the bat:</p><ol><li>Parallelization is <strong>KING</strong>! Without it, this algorithm would likely not be
-able to be real-time.</li><li>The Octree wasn&rsquo;t that helpful. Project Oort itself doesn&rsquo;t have that many
+a speedy <strong>9,448$\mu$s</strong> or <strong>9.4ms</strong>. This is a speedup of <strong>224.25x</strong>!</p><p>Here&rsquo;s all the data I collected:</p><p><img src=all_data.svg alt="All Data Chart"></p><p><img src=Algorithm_Speedup_All.svg alt="All Data Speedup"></p><p>This reveals a few things right off the bat:</p><ol><li>Parallelization was imperative! Without it, this algorithm would likely not be
+able to be real-time. This could be since this algorithm was
+still about detecting collisions between triangles, and I didn&rsquo;t use simplified
+collision meshes.</li><li>The Octree wasn&rsquo;t that helpful. Project Oort itself doesn&rsquo;t have that many
 objects (on the order of a few hundred), and iterating through 100-200 objects
 and checking distances isn&rsquo;t particularly expensive. The times do <strong>not</strong> include
 the cost of updating and inserting objects into the Octree, so I wouldn&rsquo;t be all
